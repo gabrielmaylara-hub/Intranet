@@ -11,11 +11,16 @@ public class IndexModel : PageModel
 {
     private readonly IAccesoRapidoRepository _accesosRepo;
     private readonly IArchivoService         _archivos;
+    private readonly ILogger<IndexModel>     _log;
 
-    public IndexModel(IAccesoRapidoRepository accesosRepo, IArchivoService archivos)
+    public IndexModel(
+        IAccesoRapidoRepository accesosRepo,
+        IArchivoService archivos,
+        ILogger<IndexModel> log)
     {
         _accesosRepo = accesosRepo;
         _archivos    = archivos;
+        _log         = log;
     }
 
     public IEnumerable<AccesoRapido> Accesos { get; private set; } = [];
@@ -53,16 +58,22 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        string? iconoAnterior = null;
+        string? bannerAnterior = null;
         string? iconoPath = null;
         string? bannerPath = null;
+        string? iconoNuevo = null;
+        string? bannerNuevo = null;
         var ordenActual = 999;
 
         if (Id > 0)
         {
             // Edición: conserva ícono y orden si no se reemplazan desde el formulario.
             var existente = await _accesosRepo.ObtenerPorIdAsync(Id);
-            iconoPath = existente?.IconoPath;
-            bannerPath = existente?.BannerPath;
+            iconoAnterior = existente?.IconoPath;
+            bannerAnterior = existente?.BannerPath;
+            iconoPath = iconoAnterior;
+            bannerPath = bannerAnterior;
             ordenActual = existente?.Orden ?? ordenActual;
         }
 
@@ -73,22 +84,6 @@ public class IndexModel : PageModel
             {
                 EsError = true;
                 Mensaje = "Solo se permiten íconos PNG, SVG o JPG.";
-                await OnGetAsync();
-                return Page();
-            }
-
-            try
-            {
-                var iconoAnterior = iconoPath;
-                iconoPath = await _archivos.GuardarAsync(Icono, "iconos");
-
-                if (!string.IsNullOrWhiteSpace(iconoAnterior))
-                    _archivos.Eliminar(iconoAnterior);
-            }
-            catch (InvalidOperationException ex)
-            {
-                EsError = true;
-                Mensaje = ex.Message;
                 await OnGetAsync();
                 return Page();
             }
@@ -104,22 +99,42 @@ public class IndexModel : PageModel
                 await OnGetAsync();
                 return Page();
             }
+        }
 
-            try
+        try
+        {
+            if (Icono is not null && Icono.Length > 0)
             {
-                var bannerAnterior = bannerPath;
-                bannerPath = await _archivos.GuardarAsync(Banner, "banners/accesos");
+                iconoNuevo = await _archivos.GuardarAsync(Icono, "iconos");
+                iconoPath = iconoNuevo;
+            }
 
-                if (!string.IsNullOrWhiteSpace(bannerAnterior))
-                    _archivos.Eliminar(bannerAnterior);
-            }
-            catch (InvalidOperationException ex)
+            if (Banner is not null && Banner.Length > 0)
             {
-                EsError = true;
-                Mensaje = ex.Message;
-                await OnGetAsync();
-                return Page();
+                bannerNuevo = await _archivos.GuardarAsync(Banner, "banners/accesos");
+                bannerPath = bannerNuevo;
             }
+        }
+        catch (InvalidOperationException ex)
+        {
+            LimpiarArchivoNuevo(iconoNuevo, "icono");
+            LimpiarArchivoNuevo(bannerNuevo, "banner");
+
+            EsError = true;
+            Mensaje = ex.Message;
+            await OnGetAsync();
+            return Page();
+        }
+        catch (Exception ex)
+        {
+            LimpiarArchivoNuevo(iconoNuevo, "icono");
+            LimpiarArchivoNuevo(bannerNuevo, "banner");
+
+            _log.LogError(ex, "Error al almacenar archivos del acceso rapido {AccesoId}.", Id);
+            EsError = true;
+            Mensaje = "No se pudieron almacenar los archivos del acceso rápido.";
+            await OnGetAsync();
+            return Page();
         }
 
         var acceso = new AccesoRapido
@@ -134,10 +149,35 @@ public class IndexModel : PageModel
             Orden            = Id > 0 ? ordenActual : 999 // El orden final se ajusta con Sortable.
         };
 
-        if (Id > 0)
-            await _accesosRepo.ActualizarAsync(acceso);
-        else
-            await _accesosRepo.InsertarAsync(acceso);
+        try
+        {
+            if (Id > 0)
+            {
+                var filasVerificadas = await _accesosRepo.ActualizarAsync(acceso);
+                if (filasVerificadas != 1)
+                    throw new InvalidOperationException("No se encontro el acceso rapido a actualizar.");
+            }
+            else
+            {
+                var idCreado = await _accesosRepo.InsertarAsync(acceso);
+                if (idCreado <= 0)
+                    throw new InvalidOperationException("No se pudo crear el acceso rapido.");
+            }
+        }
+        catch (Exception ex)
+        {
+            LimpiarArchivoNuevo(iconoNuevo, "icono");
+            LimpiarArchivoNuevo(bannerNuevo, "banner");
+
+            _log.LogError(ex, "Error al guardar el acceso rapido {AccesoId}.", Id);
+            EsError = true;
+            Mensaje = "No se pudo guardar el acceso rápido. Los archivos nuevos fueron descartados.";
+            await OnGetAsync();
+            return Page();
+        }
+
+        EliminarArchivoAnteriorSiFueReemplazado(iconoAnterior, iconoNuevo, "icono");
+        EliminarArchivoAnteriorSiFueReemplazado(bannerAnterior, bannerNuevo, "banner");
 
         Mensaje = Id > 0 ? "Acceso actualizado." : "Acceso creado.";
         return RedirectToPage();
@@ -146,13 +186,16 @@ public class IndexModel : PageModel
     public async Task<IActionResult> OnPostEliminarAsync(int id)
     {
         var acceso = await _accesosRepo.ObtenerPorIdAsync(id);
-        if (acceso is not null)
+        if (acceso is null)
+            return RedirectToPage();
+
+        var filasEliminadas = await _accesosRepo.EliminarAsync(id);
+        if (filasEliminadas > 0)
         {
-            _archivos.Eliminar(acceso.IconoPath);
-            _archivos.Eliminar(acceso.BannerPath);
+            EliminarArchivoPosteriorABd(acceso.IconoPath, "icono");
+            EliminarArchivoPosteriorABd(acceso.BannerPath, "banner");
         }
 
-        await _accesosRepo.EliminarAsync(id);
         return RedirectToPage();
     }
 
@@ -253,6 +296,57 @@ public class IndexModel : PageModel
                    !string.IsNullOrWhiteSpace(uri.Host);
 
         return false;
+    }
+
+    private void LimpiarArchivoNuevo(string? rutaRelativa, string tipo)
+    {
+        if (string.IsNullOrWhiteSpace(rutaRelativa))
+            return;
+
+        try
+        {
+            _archivos.Eliminar(rutaRelativa);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex,
+                "No se pudo limpiar el archivo nuevo de {Tipo} despues de un fallo de guardado: {Ruta}.",
+                tipo,
+                rutaRelativa);
+        }
+    }
+
+    private void EliminarArchivoAnteriorSiFueReemplazado(
+        string? rutaAnterior,
+        string? rutaNueva,
+        string tipo)
+    {
+        if (string.IsNullOrWhiteSpace(rutaAnterior) ||
+            string.IsNullOrWhiteSpace(rutaNueva) ||
+            string.Equals(rutaAnterior, rutaNueva, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        EliminarArchivoPosteriorABd(rutaAnterior, tipo);
+    }
+
+    private void EliminarArchivoPosteriorABd(string? rutaRelativa, string tipo)
+    {
+        if (string.IsNullOrWhiteSpace(rutaRelativa))
+            return;
+
+        try
+        {
+            _archivos.Eliminar(rutaRelativa);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex,
+                "La BD se actualizo, pero no se pudo eliminar el archivo fisico de {Tipo}: {Ruta}.",
+                tipo,
+                rutaRelativa);
+        }
     }
 
     public record ReordenItem(int Id, int Orden);

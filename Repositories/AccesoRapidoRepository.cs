@@ -36,21 +36,37 @@ public class AccesoRapidoRepository : IAccesoRapidoRepository
             acceso);
     }
 
-    public async Task ActualizarAsync(AccesoRapido acceso)
+    public async Task<int> ActualizarAsync(AccesoRapido acceso)
     {
         using var con = _db.CrearConexion();
+        await con.OpenAsync();
+        using var tx = await con.BeginTransactionAsync();
+
         await con.ExecuteAsync(
             @"UPDATE accesos_rapidos
               SET nombre = @Nombre, url = @Url, icono_path = @IconoPath, banner_path = @BannerPath,
                   orden = @Orden, abre_nueva_ventana = @AbreNuevaVentana, activo = @Activo
               WHERE id = @Id",
-            acceso);
+            acceso,
+            tx);
+
+        var filasVerificadas = await con.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM accesos_rapidos WHERE id = @Id",
+            acceso,
+            tx);
+
+        if (filasVerificadas == 1)
+            await tx.CommitAsync();
+        else
+            await tx.RollbackAsync();
+
+        return filasVerificadas;
     }
 
-    public async Task EliminarAsync(int id)
+    public async Task<int> EliminarAsync(int id)
     {
         using var con = _db.CrearConexion();
-        await con.ExecuteAsync("DELETE FROM accesos_rapidos WHERE id = @id", new { id });
+        return await con.ExecuteAsync("DELETE FROM accesos_rapidos WHERE id = @id", new { id });
     }
 
     public async Task CambiarEstadoAsync(int id, bool activo)
