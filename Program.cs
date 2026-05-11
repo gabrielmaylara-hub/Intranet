@@ -170,3 +170,5 @@ app.MapGet("/storage/{**ruta}", ServirArchivoStorage).AllowAnonymous();
 app.MapRazorPages();
 
 app.Run();
+
+public partial class Program { }
