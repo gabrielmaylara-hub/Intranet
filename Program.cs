@@ -85,6 +85,7 @@ builder.Services.AddScoped<IUsuarioRepository,        UsuarioRepository>();
 // ─── Servicios de negocio ─────────────────────────────────────────────────────
 builder.Services.AddScoped<IArchivoService, ArchivoService>();
 builder.Services.AddScoped<IAuthService,    AuthService>();
+builder.Services.AddSingleton<ILoginAttemptService, LoginAttemptService>();
 
 // ─── Inicializador: siembra el usuario admin si no existe ────────────────────
 builder.Services.AddScoped<DbInicializador>();

@@ -12,11 +12,16 @@ public class LoginModel : PageModel
 {
     private readonly IUsuarioRepository _usuariosRepo;
     private readonly IAuthService       _auth;
+    private readonly ILoginAttemptService _intentosLogin;
 
-    public LoginModel(IUsuarioRepository usuariosRepo, IAuthService auth)
+    public LoginModel(
+        IUsuarioRepository usuariosRepo,
+        IAuthService auth,
+        ILoginAttemptService intentosLogin)
     {
-        _usuariosRepo = usuariosRepo;
-        _auth         = auth;
+        _usuariosRepo  = usuariosRepo;
+        _auth          = auth;
+        _intentosLogin = intentosLogin;
     }
 
     [BindProperty]
@@ -44,13 +49,24 @@ public class LoginModel : PageModel
             return Page();
         }
 
+        if (_intentosLogin.EstaBloqueado(HttpContext, Usuario))
+        {
+            ErrorMensaje = "Demasiados intentos. Intente nuevamente más tarde.";
+            return Page();
+        }
+
         var usuario = await _usuariosRepo.ObtenerPorUsuarioAsync(Usuario.Trim());
 
         if (usuario is null || !_auth.VerificarPassword(Password, usuario.PasswordHash))
         {
-            ErrorMensaje = "Usuario o contraseña incorrectos.";
+            _intentosLogin.RegistrarFallo(HttpContext, Usuario);
+            ErrorMensaje = _intentosLogin.EstaBloqueado(HttpContext, Usuario)
+                ? "Demasiados intentos. Intente nuevamente más tarde."
+                : "Usuario o contraseña incorrectos.";
             return Page();
         }
+
+        _intentosLogin.RegistrarExito(HttpContext, Usuario);
 
         // Crea los claims de la sesión (sin roles — un solo perfil admin)
         var claims = new List<Claim>
