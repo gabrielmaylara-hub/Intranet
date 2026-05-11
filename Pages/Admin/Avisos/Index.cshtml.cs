@@ -1,3 +1,4 @@
+using System.Globalization;
 using Intranet.Models;
 using Intranet.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -35,15 +36,20 @@ public class IndexModel : PageModel
             return Page();
         }
 
-        if (!DateTime.TryParse(FechaPublicacion, out var fecha))
-            fecha = DateTime.Today;
+        if (!TryParseFechaAviso(FechaPublicacion, out var fecha))
+        {
+            EsError = true;
+            Mensaje = "La fecha del aviso es obligatoria y debe tener el formato aaaa-mm-dd.";
+            await OnGetAsync();
+            return Page();
+        }
 
         var aviso = new Aviso
         {
             Id               = Id,
             Titulo           = Titulo.Trim(),
             Contenido        = Contenido?.Trim(),
-            FechaPublicacion = fecha,
+            FechaPublicacion = fecha.Date,
             Activo           = Activo,
             Orden            = 0
         };
@@ -68,5 +74,20 @@ public class IndexModel : PageModel
         if (aviso is not null)
             await _avisosRepo.CambiarEstadoAsync(id, !aviso.Activo);
         return RedirectToPage();
+    }
+
+    private static bool TryParseFechaAviso(string? valor, out DateTime fecha)
+    {
+        fecha = default;
+
+        if (string.IsNullOrWhiteSpace(valor))
+            return false;
+
+        return DateTime.TryParseExact(
+            valor.Trim(),
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out fecha);
     }
 }
