@@ -10,8 +10,9 @@ namespace Intranet.Services;
 public class ArchivoService : IArchivoService
 {
     private readonly string _rutaBaseStorage;
-    private const long MaxTamanoGeneral = 500L * 1024L * 1024L;
+    private readonly long _maxTamanoGeneral;
     private const long MaxTamanoSvg = 2L * 1024L * 1024L;
+    private const long MaxTamanoGeneralPredeterminado = 524_288_000L;
 
     // Extensiones permitidas por tipo de contenido
     private static readonly HashSet<string> ExtPermitidas = new(StringComparer.OrdinalIgnoreCase)
@@ -23,6 +24,12 @@ public class ArchivoService : IArchivoService
     {
         var subcarpeta = config["Storage:RutaBase"] ?? "Storage";
         _rutaBaseStorage = Path.GetFullPath(Path.Combine(entorno.ContentRootPath, subcarpeta));
+        _maxTamanoGeneral = config.GetValue<long?>("Uploads:MaxFileSizeBytes")
+            ?? MaxTamanoGeneralPredeterminado;
+
+        if (_maxTamanoGeneral <= 0)
+            throw new InvalidOperationException("Uploads:MaxFileSizeBytes debe ser mayor que cero.");
+
         Directory.CreateDirectory(_rutaBaseStorage);
     }
 
@@ -32,8 +39,9 @@ public class ArchivoService : IArchivoService
         if (archivo.Length == 0)
             throw new InvalidOperationException("El archivo recibido está vacío.");
 
-        if (archivo.Length > MaxTamanoGeneral)
-            throw new InvalidOperationException("El archivo excede el tamaño máximo permitido.");
+        if (archivo.Length > _maxTamanoGeneral)
+            throw new InvalidOperationException(
+                $"El archivo excede el tamaño máximo permitido de {FormatearTamano(_maxTamanoGeneral)}.");
 
         var extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
 
@@ -132,5 +140,13 @@ public class ArchivoService : IArchivoService
         var invalidos = Path.GetInvalidFileNameChars();
         var limpio = string.Concat(nombre.Select(c => invalidos.Contains(c) ? '_' : c)).Trim();
         return string.IsNullOrWhiteSpace(limpio) ? Guid.NewGuid().ToString("N") : limpio;
+    }
+
+    private static string FormatearTamano(long bytes)
+    {
+        var megabytes = bytes / 1024D / 1024D;
+        return megabytes % 1 == 0
+            ? $"{megabytes:0} MB"
+            : $"{megabytes:0.##} MB";
     }
 }

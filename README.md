@@ -72,6 +72,8 @@ Las migraciones idempotentes viven en `Data/Scripts/Migrations/` y se registran 
 Los archivos subidos por el administrador viven fuera de `wwwroot`, en `Storage/`.
 La ruta publica `/storage/{ruta}` sirve unicamente extensiones permitidas y valida que el archivo fisico permanezca dentro de esa carpeta.
 
+El tamano maximo de subida se configura con `Uploads:MaxFileSizeBytes`. La guia operativa esta en `docs/ARCHIVOS_Y_SUBIDAS.md`.
+
 Por seguridad, los archivos reales subidos por administracion no se versionan en Git. El repositorio conserva solo la estructura de carpetas mediante archivos `.gitkeep`.
 
 ## MySQL portable de desarrollo

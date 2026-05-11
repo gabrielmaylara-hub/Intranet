@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Intranet.Data;
@@ -12,6 +13,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Dapper debe mapear columnas MySQL en snake_case a propiedades C# en PascalCase.
 DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+const long maxFileSizeBytesPredeterminado = 524_288_000L;
+
+var maxFileSizeBytes = builder.Configuration.GetValue<long?>(
+    "Uploads:MaxFileSizeBytes") ?? maxFileSizeBytesPredeterminado;
+
+if (maxFileSizeBytes <= 0)
+    throw new InvalidOperationException("Uploads:MaxFileSizeBytes debe ser mayor que cero.");
+
+// Límite de cuerpo HTTP para ejecución local con Kestrel.
+builder.WebHost.ConfigureKestrel(opciones =>
+{
+    opciones.Limits.MaxRequestBodySize = maxFileSizeBytes;
+});
 
 // ─── Razor Pages: protege toda la carpeta /Admin excepto la página de login ──
 builder.Services.AddRazorPages(opciones =>
@@ -39,6 +54,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAntiforgery(opciones =>
 {
     opciones.HeaderName = "X-XSRF-TOKEN";
+});
+
+// Límite de multipart alineado con el servicio de almacenamiento.
+builder.Services.Configure<FormOptions>(opciones =>
+{
+    opciones.MultipartBodyLengthLimit = maxFileSizeBytes;
+});
+
+// Límite de cuerpo HTTP para despliegue in-process en IIS.
+builder.Services.Configure<IISServerOptions>(opciones =>
+{
+    opciones.MaxRequestBodySize = maxFileSizeBytes;
 });
 
 // ─── Caché en memoria (configuración del sitio con TTL de 5 minutos) ─────────
