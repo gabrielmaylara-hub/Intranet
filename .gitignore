@@ -2,6 +2,7 @@ bin/
 obj/
 logs/
 publish/
+.backups/
 .vs/
 .vscode/
 .idea/

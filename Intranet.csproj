@@ -17,4 +17,11 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Scripts SQL requeridos por el inicializador y por despliegues IIS -->
+    <Content Update="Data\Scripts\**\*.sql"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

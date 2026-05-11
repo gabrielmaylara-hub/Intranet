@@ -64,6 +64,9 @@ El script principal esta en `Data/Scripts/init.sql` e incluye:
 
 El usuario administrador tambien puede ser sembrado automaticamente por la aplicacion al primer arranque.
 
+Las migraciones idempotentes viven en `Data/Scripts/Migrations/` y se registran en
+`schema_migrations`. Consulta la guia operativa en `docs/BASE_DE_DATOS.md`.
+
 ## Almacenamiento
 
 Los archivos subidos por el administrador viven fuera de `wwwroot`, en `Storage/`.
@@ -85,7 +88,7 @@ Valores usados por el entorno local actual:
 - Servidor: `127.0.0.1`
 - Puerto: `3306`
 - Usuario: `root`
-- Contrasena: `root`
+- Contrasena: configurada localmente, no versionar valores reales
 
 Si se usa otra instalacion de MySQL, basta con ajustar `appsettings.Development.json`.
 
