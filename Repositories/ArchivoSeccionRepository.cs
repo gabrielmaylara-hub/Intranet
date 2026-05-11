@@ -8,6 +8,8 @@ namespace Intranet.Repositories;
 public class ArchivoSeccionRepository : IArchivoSeccionRepository
 {
     private readonly ConexionDb _db;
+    private const string ColumnasArchivoSeccion =
+        "id, seccion, nombre, descripcion, archivo_path, orden, activo";
 
     public ArchivoSeccionRepository(ConexionDb db) => _db = db;
 
@@ -17,7 +19,7 @@ public class ArchivoSeccionRepository : IArchivoSeccionRepository
         using var con = _db.CrearConexion();
         var filtroActivo = soloActivos ? "AND activo = 1" : "";
         return await con.QueryAsync<ArchivoSeccion>(
-            $"SELECT * FROM archivos_seccion WHERE seccion = @seccion {filtroActivo} ORDER BY orden ASC",
+            $"SELECT {ColumnasArchivoSeccion} FROM archivos_seccion WHERE seccion = @seccion {filtroActivo} ORDER BY orden ASC",
             new { seccion });
     }
 
@@ -25,14 +27,14 @@ public class ArchivoSeccionRepository : IArchivoSeccionRepository
     {
         using var con = _db.CrearConexion();
         return await con.QueryAsync<ArchivoSeccion>(
-            "SELECT * FROM archivos_seccion ORDER BY seccion ASC, orden ASC");
+            $"SELECT {ColumnasArchivoSeccion} FROM archivos_seccion ORDER BY seccion ASC, orden ASC");
     }
 
     public async Task<ArchivoSeccion?> ObtenerPorIdAsync(int id)
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<ArchivoSeccion>(
-            "SELECT * FROM archivos_seccion WHERE id = @id", new { id });
+            $"SELECT {ColumnasArchivoSeccion} FROM archivos_seccion WHERE id = @id", new { id });
     }
 
     public async Task<int> InsertarAsync(ArchivoSeccion archivo)

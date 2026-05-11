@@ -8,6 +8,8 @@ namespace Intranet.Repositories;
 public class TutorialRepository : ITutorialRepository
 {
     private readonly ConexionDb _db;
+    private const string ColumnasTutorial =
+        "id, titulo, descripcion, archivo_path, miniatura_path, orden, activo, fecha_creacion";
 
     public TutorialRepository(ConexionDb db) => _db = db;
 
@@ -16,14 +18,14 @@ public class TutorialRepository : ITutorialRepository
         using var con = _db.CrearConexion();
         var filtro = soloActivos ? "WHERE activo = 1" : "";
         return await con.QueryAsync<Tutorial>(
-            $"SELECT * FROM tutoriales {filtro} ORDER BY orden ASC, fecha_creacion DESC");
+            $"SELECT {ColumnasTutorial} FROM tutoriales {filtro} ORDER BY orden ASC, fecha_creacion DESC");
     }
 
     public async Task<Tutorial?> ObtenerPorIdAsync(int id)
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<Tutorial>(
-            "SELECT * FROM tutoriales WHERE id = @id", new { id });
+            $"SELECT {ColumnasTutorial} FROM tutoriales WHERE id = @id", new { id });
     }
 
     public async Task<int> InsertarAsync(Tutorial tutorial)

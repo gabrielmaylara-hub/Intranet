@@ -8,6 +8,8 @@ namespace Intranet.Repositories;
 public class AccesoRapidoRepository : IAccesoRapidoRepository
 {
     private readonly ConexionDb _db;
+    private const string ColumnasAccesoRapido =
+        "id, nombre, url, icono_path, banner_path, orden, abre_nueva_ventana, activo";
 
     public AccesoRapidoRepository(ConexionDb db) => _db = db;
 
@@ -16,14 +18,14 @@ public class AccesoRapidoRepository : IAccesoRapidoRepository
         using var con = _db.CrearConexion();
         var filtro = soloActivos ? "WHERE activo = 1" : "";
         return await con.QueryAsync<AccesoRapido>(
-            $"SELECT * FROM accesos_rapidos {filtro} ORDER BY orden ASC");
+            $"SELECT {ColumnasAccesoRapido} FROM accesos_rapidos {filtro} ORDER BY orden ASC");
     }
 
     public async Task<AccesoRapido?> ObtenerPorIdAsync(int id)
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<AccesoRapido>(
-            "SELECT * FROM accesos_rapidos WHERE id = @id", new { id });
+            $"SELECT {ColumnasAccesoRapido} FROM accesos_rapidos WHERE id = @id", new { id });
     }
 
     public async Task<int> InsertarAsync(AccesoRapido acceso)

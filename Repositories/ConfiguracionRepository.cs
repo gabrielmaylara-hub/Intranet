@@ -11,6 +11,7 @@ public class ConfiguracionRepository : IConfiguracionRepository
     private readonly ConexionDb    _db;
     private readonly IMemoryCache  _cache;
     private const string CacheKey = "intranet_site_config";
+    private const string ColumnasConfiguracionSitio = "clave, valor, tipo, descripcion";
 
     public ConfiguracionRepository(ConexionDb db, IMemoryCache cache)
     {
@@ -30,7 +31,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
             return cached;
 
         using var con = _db.CrearConexion();
-        var lista = await con.QueryAsync<ConfiguracionSitio>("SELECT * FROM configuracion_sitio");
+        var lista = await con.QueryAsync<ConfiguracionSitio>(
+            $"SELECT {ColumnasConfiguracionSitio} FROM configuracion_sitio");
         var dict  = lista.ToDictionary(c => c.Clave, c => c.Valor ?? string.Empty);
 
         _cache.Set(CacheKey, dict, TimeSpan.FromMinutes(5));
@@ -40,7 +42,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
     public async Task<IEnumerable<ConfiguracionSitio>> ObtenerConDetalleAsync()
     {
         using var con = _db.CrearConexion();
-        return await con.QueryAsync<ConfiguracionSitio>("SELECT * FROM configuracion_sitio ORDER BY clave ASC");
+        return await con.QueryAsync<ConfiguracionSitio>(
+            $"SELECT {ColumnasConfiguracionSitio} FROM configuracion_sitio ORDER BY clave ASC");
     }
 
     public async Task GuardarAsync(string clave, string valor)

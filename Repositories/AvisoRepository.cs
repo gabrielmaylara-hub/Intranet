@@ -8,6 +8,8 @@ namespace Intranet.Repositories;
 public class AvisoRepository : IAvisoRepository
 {
     private readonly ConexionDb _db;
+    private const string ColumnasAviso =
+        "id, titulo, contenido, fecha_publicacion, activo, orden";
 
     public AvisoRepository(ConexionDb db) => _db = db;
 
@@ -16,14 +18,14 @@ public class AvisoRepository : IAvisoRepository
         using var con = _db.CrearConexion();
         var filtro = soloActivos ? "WHERE activo = 1" : "";
         return await con.QueryAsync<Aviso>(
-            $"SELECT * FROM avisos {filtro} ORDER BY orden ASC, fecha_publicacion DESC");
+            $"SELECT {ColumnasAviso} FROM avisos {filtro} ORDER BY orden ASC, fecha_publicacion DESC");
     }
 
     public async Task<Aviso?> ObtenerPorIdAsync(int id)
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<Aviso>(
-            "SELECT * FROM avisos WHERE id = @id", new { id });
+            $"SELECT {ColumnasAviso} FROM avisos WHERE id = @id", new { id });
     }
 
     public async Task<int> InsertarAsync(Aviso aviso)

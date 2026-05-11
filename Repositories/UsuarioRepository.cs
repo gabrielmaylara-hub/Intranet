@@ -8,6 +8,8 @@ namespace Intranet.Repositories;
 public class UsuarioRepository : IUsuarioRepository
 {
     private readonly ConexionDb _db;
+    private const string ColumnasUsuarioAdmin =
+        "id, usuario, password_hash, nombre_completo, activo";
 
     public UsuarioRepository(ConexionDb db) => _db = db;
 
@@ -15,7 +17,7 @@ public class UsuarioRepository : IUsuarioRepository
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<UsuarioAdmin>(
-            "SELECT * FROM usuarios_admin WHERE usuario = @usuario AND activo = 1",
+            $"SELECT {ColumnasUsuarioAdmin} FROM usuarios_admin WHERE usuario = @usuario AND activo = 1",
             new { usuario });
     }
 
