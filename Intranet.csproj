@@ -18,6 +18,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Las pruebas viven dentro del repositorio, pero se compilan solo desde su proyecto dedicado. -->
+    <Compile Remove="tests\**\*.cs" />
+    <Content Remove="tests\**\*" />
+    <EmbeddedResource Remove="tests\**\*" />
+    <None Remove="tests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Scripts SQL requeridos por el inicializador y por despliegues IIS -->
     <Content Update="Data\Scripts\**\*.sql"
              CopyToOutputDirectory="PreserveNewest"
