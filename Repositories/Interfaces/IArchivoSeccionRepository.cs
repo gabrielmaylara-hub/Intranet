@@ -8,7 +8,7 @@ public interface IArchivoSeccionRepository
     Task<IEnumerable<ArchivoSeccion>> ObtenerTodosAsync();
     Task<ArchivoSeccion?> ObtenerPorIdAsync(int id);
     Task<int> InsertarAsync(ArchivoSeccion archivo);
-    Task ActualizarAsync(ArchivoSeccion archivo);
-    Task EliminarAsync(int id);
+    Task<int> ActualizarAsync(ArchivoSeccion archivo);
+    Task<int> EliminarAsync(int id);
     Task CambiarEstadoAsync(int id, bool activo);
 }

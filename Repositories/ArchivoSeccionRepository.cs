@@ -45,21 +45,37 @@ public class ArchivoSeccionRepository : IArchivoSeccionRepository
             archivo);
     }
 
-    public async Task ActualizarAsync(ArchivoSeccion archivo)
+    public async Task<int> ActualizarAsync(ArchivoSeccion archivo)
     {
         using var con = _db.CrearConexion();
+        await con.OpenAsync();
+        using var tx = await con.BeginTransactionAsync();
+
         await con.ExecuteAsync(
             @"UPDATE archivos_seccion
               SET seccion = @Seccion, nombre = @Nombre, descripcion = @Descripcion,
                   archivo_path = @ArchivoPath, orden = @Orden, activo = @Activo
               WHERE id = @Id",
-            archivo);
+            archivo,
+            tx);
+
+        var filasVerificadas = await con.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM archivos_seccion WHERE id = @Id",
+            archivo,
+            tx);
+
+        if (filasVerificadas == 1)
+            await tx.CommitAsync();
+        else
+            await tx.RollbackAsync();
+
+        return filasVerificadas;
     }
 
-    public async Task EliminarAsync(int id)
+    public async Task<int> EliminarAsync(int id)
     {
         using var con = _db.CrearConexion();
-        await con.ExecuteAsync("DELETE FROM archivos_seccion WHERE id = @id", new { id });
+        return await con.ExecuteAsync("DELETE FROM archivos_seccion WHERE id = @id", new { id });
     }
 
     public async Task CambiarEstadoAsync(int id, bool activo)

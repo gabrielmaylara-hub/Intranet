@@ -10,6 +10,7 @@ public class IndexModel : PageModel
 {
     private readonly IArchivoSeccionRepository _archivosRepo;
     private readonly IArchivoService           _archivosSvc;
+    private readonly ILogger<IndexModel>       _log;
 
     // Secciones disponibles con sus etiquetas de presentación
     public static readonly Dictionary<string, string> Secciones = new()
@@ -21,10 +22,14 @@ public class IndexModel : PageModel
         ["capacitacion"] = "Oferta Académica"
     };
 
-    public IndexModel(IArchivoSeccionRepository archivosRepo, IArchivoService archivosSvc)
+    public IndexModel(
+        IArchivoSeccionRepository archivosRepo,
+        IArchivoService archivosSvc,
+        ILogger<IndexModel> log)
     {
         _archivosRepo = archivosRepo;
         _archivosSvc  = archivosSvc;
+        _log          = log;
     }
 
     public string SeccionActual { get; private set; } = "formatos";
@@ -73,7 +78,7 @@ public class IndexModel : PageModel
         }
 
         var subcarpeta   = $"archivos/{SeccionActual}";
-        string rutaRelativa;
+        string? rutaRelativa = null;
 
         try
         {
@@ -83,6 +88,14 @@ public class IndexModel : PageModel
         {
             EsError = true;
             Mensaje = ex.Message;
+            await OnGetAsync(SeccionActual);
+            return Page();
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Error al almacenar archivo PDF para la sección {Seccion}.", SeccionActual);
+            EsError = true;
+            Mensaje = "No se pudo almacenar el archivo PDF.";
             await OnGetAsync(SeccionActual);
             return Page();
         }
@@ -97,7 +110,23 @@ public class IndexModel : PageModel
             Orden       = 0
         };
 
-        await _archivosRepo.InsertarAsync(registro);
+        try
+        {
+            var idCreado = await _archivosRepo.InsertarAsync(registro);
+            if (idCreado <= 0)
+                throw new InvalidOperationException("No se pudo registrar el archivo en la base de datos.");
+        }
+        catch (Exception ex)
+        {
+            LimpiarArchivoNuevo(rutaRelativa, "PDF");
+
+            _log.LogError(ex, "Error al registrar archivo PDF para la sección {Seccion}.", SeccionActual);
+            EsError = true;
+            Mensaje = "No se pudo guardar el registro del archivo. El PDF nuevo fue descartado.";
+            await OnGetAsync(SeccionActual);
+            return Page();
+        }
+
         Mensaje = "Archivo subido correctamente.";
         return RedirectToPage(new { seccion = SeccionActual });
     }
@@ -105,10 +134,13 @@ public class IndexModel : PageModel
     public async Task<IActionResult> OnPostEliminarAsync(int id, string seccion)
     {
         var archivo = await _archivosRepo.ObtenerPorIdAsync(id);
-        if (archivo is not null)
-            _archivosSvc.Eliminar(archivo.ArchivoPath);
+        if (archivo is null)
+            return RedirectToPage(new { seccion });
 
-        await _archivosRepo.EliminarAsync(id);
+        var filasEliminadas = await _archivosRepo.EliminarAsync(id);
+        if (filasEliminadas > 0)
+            EliminarArchivoPosteriorABd(archivo.ArchivoPath, "PDF");
+
         return RedirectToPage(new { seccion });
     }
 
@@ -118,5 +150,39 @@ public class IndexModel : PageModel
         if (archivo is not null)
             await _archivosRepo.CambiarEstadoAsync(id, !archivo.Activo);
         return RedirectToPage(new { seccion });
+    }
+
+    private void LimpiarArchivoNuevo(string? rutaRelativa, string tipo)
+    {
+        if (string.IsNullOrWhiteSpace(rutaRelativa))
+            return;
+
+        try
+        {
+            _archivosSvc.Eliminar(rutaRelativa);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex,
+                "No se pudo limpiar el archivo nuevo de {Tipo} después de un fallo de guardado.",
+                tipo);
+        }
+    }
+
+    private void EliminarArchivoPosteriorABd(string? rutaRelativa, string tipo)
+    {
+        if (string.IsNullOrWhiteSpace(rutaRelativa))
+            return;
+
+        try
+        {
+            _archivosSvc.Eliminar(rutaRelativa);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex,
+                "La BD se actualizó, pero no se pudo eliminar el archivo físico de {Tipo}.",
+                tipo);
+        }
     }
 }
