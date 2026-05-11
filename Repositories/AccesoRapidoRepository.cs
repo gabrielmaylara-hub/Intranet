@@ -61,15 +61,45 @@ public class AccesoRapidoRepository : IAccesoRapidoRepository
             new { id, activo });
     }
 
-    public async Task ActualizarOrdenAsync(IEnumerable<(int Id, int Orden)> items)
+    public async Task<int> ActualizarOrdenAsync(IEnumerable<(int Id, int Orden)> items)
     {
+        var lista = items.ToList();
+
         using var con = _db.CrearConexion();
         await con.OpenAsync();
         using var tx = await con.BeginTransactionAsync();
-        foreach (var (id, orden) in items)
+
+        var ids = lista.Select(i => i.Id).ToArray();
+        var filasEncontradas = await con.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM accesos_rapidos WHERE id IN @ids",
+            new { ids }, tx);
+
+        if (filasEncontradas != lista.Count)
+        {
+            await tx.RollbackAsync();
+            return filasEncontradas;
+        }
+
+        foreach (var (id, orden) in lista)
             await con.ExecuteAsync(
                 "UPDATE accesos_rapidos SET orden = @orden WHERE id = @id",
                 new { id, orden }, tx);
+
+        var filasVerificadas = 0;
+        foreach (var (id, orden) in lista)
+            filasVerificadas += await con.ExecuteScalarAsync<int>(
+                @"SELECT COUNT(*)
+                  FROM accesos_rapidos
+                  WHERE id = @id AND orden = @orden",
+                new { id, orden }, tx);
+
+        if (filasVerificadas != lista.Count)
+        {
+            await tx.RollbackAsync();
+            return filasVerificadas;
+        }
+
         await tx.CommitAsync();
+        return filasVerificadas;
     }
 }

@@ -14,6 +14,8 @@
 
 @Html.AntiForgeryToken()
 
+<div class="alerta" id="mensajeReorden" role="alert" hidden></div>
+
 <div class="admin-panel">
     <div class="panel-cabecera">
         <h2 class="admin-panel-titulo">Listado</h2>
@@ -172,22 +174,65 @@
         const tablaAccesos = document.getElementById('tablaAccesos');
         const tokenXsrf = document.querySelector('input[name=__RequestVerificationToken]').value;
 
+        const mensajeReorden = document.getElementById('mensajeReorden');
+
+        function mostrarMensajeReorden(texto, esError) {
+            if (!mensajeReorden) {
+                return;
+            }
+
+            mensajeReorden.textContent = texto;
+            mensajeReorden.hidden = false;
+            mensajeReorden.className = `alerta ${esError ? 'alerta-error' : 'alerta-exito'}`;
+        }
+
         if (tablaAccesos) {
-            Sortable.create(tablaAccesos, {
+            let ordenAnterior = [];
+
+            const sortableAccesos = Sortable.create(tablaAccesos, {
                 animation: 150,
                 handle: '.drag-handle',
+                onStart: function () {
+                    ordenAnterior = [...tablaAccesos.querySelectorAll('tr[data-id]')]
+                        .map(tr => tr.dataset.id);
+                },
                 onEnd: async function () {
                     const items = [...tablaAccesos.querySelectorAll('tr[data-id]')]
                         .map((tr, idx) => ({ id: parseInt(tr.dataset.id), orden: idx + 1 }));
 
-                    await fetch('/Admin/AccesosRapidos?handler=Reordenar', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-XSRF-TOKEN': tokenXsrf
-                        },
-                        body: JSON.stringify(items)
-                    });
+                    try {
+                        const response = await fetch('/Admin/AccesosRapidos?handler=Reordenar', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-XSRF-TOKEN': tokenXsrf
+                            },
+                            body: JSON.stringify(items)
+                        });
+
+                        let data = null;
+                        try {
+                            data = await response.json();
+                        } catch {
+                            data = null;
+                        }
+
+                        if (!response.ok || !data || data.ok !== true) {
+                            throw new Error(data?.message || 'No se pudo guardar el nuevo orden.');
+                        }
+
+                        mostrarMensajeReorden(data.message || 'Orden actualizado correctamente.', false);
+                    } catch (error) {
+                        if (ordenAnterior.length > 0) {
+                            sortableAccesos.sort(ordenAnterior);
+                        }
+
+                        mostrarMensajeReorden(
+                            error.message || 'No se pudo guardar el nuevo orden.',
+                            true);
+
+                        window.setTimeout(() => window.location.reload(), 1200);
+                    }
                 }
             });
         }

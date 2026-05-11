@@ -44,6 +44,15 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        var urlNormalizada = UrlAcceso.Trim();
+        if (!EsUrlAccesoValida(urlNormalizada))
+        {
+            EsError = true;
+            Mensaje = "La URL debe iniciar con / o ser una dirección http/https válida.";
+            await OnGetAsync();
+            return Page();
+        }
+
         string? iconoPath = null;
         string? bannerPath = null;
         var ordenActual = 999;
@@ -117,7 +126,7 @@ public class IndexModel : PageModel
         {
             Id               = Id,
             Nombre           = Nombre.Trim(),
-            Url              = UrlAcceso.Trim(),
+            Url              = urlNormalizada,
             IconoPath        = iconoPath,
             BannerPath       = bannerPath,
             AbreNuevaVentana = AbreNuevaVentana,
@@ -162,14 +171,88 @@ public class IndexModel : PageModel
         using var lector = new StreamReader(Request.Body, leaveOpen: true);
         var json = await lector.ReadToEndAsync();
 
-        var items = JsonSerializer.Deserialize<List<ReordenItem>>(json,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (string.IsNullOrWhiteSpace(json))
+            return BadRequest(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de los accesos rápidos."
+            });
 
-        if (items is not null)
-            await _accesosRepo.ActualizarOrdenAsync(
-                items.Select(i => (i.Id, i.Orden)));
+        List<ReordenItem>? items;
+        try
+        {
+            items = JsonSerializer.Deserialize<List<ReordenItem>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch (JsonException)
+        {
+            return BadRequest(new
+            {
+                ok = false,
+                message = "El formato del orden recibido no es válido."
+            });
+        }
 
-        return new JsonResult(new { ok = true });
+        if (items is null || items.Count == 0 || items.Any(i => i.Id <= 0))
+            return BadRequest(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de los accesos rápidos."
+            });
+
+        var idsDuplicados = items
+            .GroupBy(i => i.Id)
+            .Any(g => g.Count() > 1);
+
+        if (idsDuplicados)
+            return BadRequest(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de los accesos rápidos."
+            });
+
+        var ordenCalculado = items
+            .Select((item, indice) => (item.Id, Orden: indice + 1))
+            .ToList();
+
+        var filasVerificadas = await _accesosRepo.ActualizarOrdenAsync(ordenCalculado);
+
+        if (filasVerificadas != ordenCalculado.Count)
+            return NotFound(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de los accesos rápidos."
+            });
+
+        return new JsonResult(new
+        {
+            ok = true,
+            message = "Orden actualizado correctamente."
+        });
+    }
+
+    private static bool EsUrlAccesoValida(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        var valor = url.Trim();
+
+        if (valor.Any(char.IsControl))
+            return false;
+
+        if (valor.StartsWith("//", StringComparison.Ordinal))
+            return false;
+
+        if (valor.StartsWith("/", StringComparison.Ordinal))
+            return true;
+
+        if (Uri.TryCreate(valor, UriKind.Absolute, out var uri))
+            return (uri.Scheme == Uri.UriSchemeHttp ||
+                    uri.Scheme == Uri.UriSchemeHttps) &&
+                   !string.IsNullOrWhiteSpace(uri.Host);
+
+        return false;
     }
 
     public record ReordenItem(int Id, int Orden);

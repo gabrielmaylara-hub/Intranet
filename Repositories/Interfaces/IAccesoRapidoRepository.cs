@@ -10,5 +10,5 @@ public interface IAccesoRapidoRepository
     Task ActualizarAsync(AccesoRapido acceso);
     Task EliminarAsync(int id);
     Task CambiarEstadoAsync(int id, bool activo);
-    Task ActualizarOrdenAsync(IEnumerable<(int Id, int Orden)> items);
+    Task<int> ActualizarOrdenAsync(IEnumerable<(int Id, int Orden)> items);
 }
