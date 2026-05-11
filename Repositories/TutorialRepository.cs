@@ -36,22 +36,38 @@ public class TutorialRepository : ITutorialRepository
             tutorial);
     }
 
-    public async Task ActualizarAsync(Tutorial tutorial)
+    public async Task<int> ActualizarAsync(Tutorial tutorial)
     {
         using var con = _db.CrearConexion();
+        await con.OpenAsync();
+        using var tx = await con.BeginTransactionAsync();
+
         await con.ExecuteAsync(
             @"UPDATE tutoriales
               SET titulo = @Titulo, descripcion = @Descripcion,
                   archivo_path = @ArchivoPath, miniatura_path = @MiniaturaPath,
                   orden = @Orden, activo = @Activo
               WHERE id = @Id",
-            tutorial);
+            tutorial,
+            tx);
+
+        var filasVerificadas = await con.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM tutoriales WHERE id = @Id",
+            tutorial,
+            tx);
+
+        if (filasVerificadas == 1)
+            await tx.CommitAsync();
+        else
+            await tx.RollbackAsync();
+
+        return filasVerificadas;
     }
 
-    public async Task EliminarAsync(int id)
+    public async Task<int> EliminarAsync(int id)
     {
         using var con = _db.CrearConexion();
-        await con.ExecuteAsync("DELETE FROM tutoriales WHERE id = @id", new { id });
+        return await con.ExecuteAsync("DELETE FROM tutoriales WHERE id = @id", new { id });
     }
 
     public async Task CambiarEstadoAsync(int id, bool activo)
