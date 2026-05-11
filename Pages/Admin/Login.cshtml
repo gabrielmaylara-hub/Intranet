@@ -36,6 +36,7 @@
 
         <form method="post" class="login-form" novalidate>
             @Html.AntiForgeryToken()
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
 
             <div class="campo-grupo">
                 <label for="usuario" class="campo-label">Usuario</label>

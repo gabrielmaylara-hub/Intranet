@@ -30,6 +30,9 @@ public class LoginModel : PageModel
     [BindProperty]
     public string Password  { get; set; } = string.Empty;
 
+    [BindProperty(SupportsGet = true)]
+    public string? ReturnUrl { get; set; }
+
     public string? ErrorMensaje { get; private set; }
 
     public IActionResult OnGet()
@@ -88,6 +91,9 @@ public class LoginModel : PageModel
             CookieAuthenticationDefaults.AuthenticationScheme,
             principal,
             propiedades);
+
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+            return LocalRedirect(ReturnUrl);
 
         return RedirectToPage("/Admin/Index");
     }
