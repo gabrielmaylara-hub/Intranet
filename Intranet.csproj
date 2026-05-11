@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Intranet</RootNamespace>
+    <AssemblyName>Intranet</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Controlador MySQL de alto rendimiento, sin dependencias nativas -->
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+    <!-- Micro-ORM para mapeo de resultados sin Entity Framework -->
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <!-- Hashing seguro de contraseñas con bcrypt -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+  </ItemGroup>
+
+</Project>

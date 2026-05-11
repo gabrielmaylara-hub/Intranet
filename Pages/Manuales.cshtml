@@ -1,0 +1,19 @@
+@page
+@model ManualesModel
+@{
+    ViewData["Title"] = "Manuales Justicia NET";
+}
+
+<section class="seccion-pagina">
+    <div class="seccion-inner">
+        <div class="pagina-encabezado">
+            <h1 class="pagina-titulo">Manuales de Capacitación Justicia.NET</h1>
+            <p class="pagina-descripcion">
+                Manuales de usuario y capacitación del sistema Justicia.NET.
+                Consulta o descarga el manual que necesitas.
+            </p>
+        </div>
+
+        @await Html.PartialAsync("_ListaArchivos", Model.Archivos)
+    </div>
+</section>

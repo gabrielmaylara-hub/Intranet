@@ -1,0 +1,115 @@
+@page
+@model Intranet.Pages.Admin.Avisos.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Avisos y Comunicados";
+}
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">Avisos publicados</h2>
+        <button type="button" class="btn btn-primario btn-sm" id="btnNuevo">+ Nuevo aviso</button>
+    </div>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var aviso in Model.Avisos)
+                {
+                    <tr>
+                        <td>@aviso.Titulo</td>
+                        <td>@aviso.FechaPublicacion.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="badge @(aviso.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(aviso.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <button type="button"
+                                    class="btn btn-sm btn-secundario btn-editar"
+                                    data-id="@aviso.Id"
+                                    data-titulo="@aviso.Titulo"
+                                    data-contenido="@aviso.Contenido"
+                                    data-fecha="@aviso.FechaPublicacion.ToString("yyyy-MM-dd")"
+                                    data-activo="@aviso.Activo.ToString().ToLower()">
+                                Editar
+                            </button>
+
+                            <form method="post" asp-page-handler="Toggle" class="form-inline">
+                                <input type="hidden" name="id" value="@aviso.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm @(aviso.Activo ? "btn-advertencia" : "btn-exito")">
+                                    @(aviso.Activo ? "Desactivar" : "Activar")
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Eliminar" class="form-inline"
+                                  onsubmit="return confirm('¿Eliminar el aviso «@aviso.Titulo»?')">
+                                <input type="hidden" name="id" value="@aviso.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Formulario alta / edición -->
+<div class="admin-panel" id="panelFormulario" hidden>
+    <h2 class="admin-panel-titulo" id="formTitulo">Nuevo aviso</h2>
+
+    <form method="post" asp-page-handler="Guardar">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" id="formId" value="0" />
+
+        <div class="campo-grupo">
+            <label class="campo-label">Título <span class="campo-requerido">*</span></label>
+            <input type="text" name="Titulo" id="formTituloInput" class="campo-input" required />
+        </div>
+
+        <div class="campo-grupo">
+            <label class="campo-label">Contenido</label>
+            <textarea name="Contenido" id="formContenido" class="campo-textarea" rows="4"></textarea>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Fecha de publicación</label>
+                <input type="date" name="FechaPublicacion" id="formFecha"
+                       class="campo-input"
+                       value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="campo-grupo campo-grupo--checks">
+                <label class="campo-check">
+                    <input type="checkbox" name="Activo" id="formActivo" value="true" checked />
+                    Publicar aviso
+                </label>
+                <input type="hidden" name="Activo" value="false" />
+            </div>
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">Guardar</button>
+            <button type="button" class="btn btn-neutro" id="btnCancelar">Cancelar</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,19 @@
+@page
+@model IdentidadModel
+@{
+    ViewData["Title"] = "Kit de Identidad Gráfica";
+}
+
+<section class="seccion-pagina">
+    <div class="seccion-inner">
+        <div class="pagina-encabezado">
+            <h1 class="pagina-titulo">Kit de Identidad Gráfica FGET</h1>
+            <p class="pagina-descripcion">
+                Recursos gráficos oficiales de la Fiscalía General del Estado de Tabasco:
+                logotipos, paleta de colores, tipografías y lineamientos de uso.
+            </p>
+        </div>
+
+        @await Html.PartialAsync("_ListaArchivos", Model.Archivos)
+    </div>
+</section>

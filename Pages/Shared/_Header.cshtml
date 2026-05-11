@@ -1,0 +1,44 @@
+@{
+    var logoPath    = ViewData["logoPath"]    as string ?? "";
+    var nombreSitio = ViewData["nombreSitio"] as string ?? "Intranet FGET";
+    var rutaActual  = Context.Request.Path.Value ?? "";
+
+    // Determina si una ruta de navegación está activa
+    bool EsActivo(string ruta) =>
+        ruta == "/" ? rutaActual == "/" : rutaActual.StartsWith(ruta, StringComparison.OrdinalIgnoreCase);
+}
+<header class="site-header">
+    <div class="header-inner">
+        <!-- Identidad: logo y nombre del sistema -->
+        <a href="/" class="header-marca" aria-label="Ir al inicio">
+            @if (!string.IsNullOrWhiteSpace(logoPath))
+            {
+                <img src="/storage/@logoPath" alt="FGET" class="header-logo" />
+            }
+            else
+            {
+                <!-- Logo institucional base hasta que se suba uno desde el panel administrativo -->
+                <img src="~/img/logo-fget.jpeg" alt="FGET" class="header-logo" asp-append-version="true" />
+            }
+            <div class="header-nombre">
+                <span class="header-nombre-principal">@nombreSitio</span>
+                <span class="header-nombre-sub">Fiscalía General del Estado de Tabasco</span>
+            </div>
+        </a>
+
+        <!-- Navegación principal -->
+        <nav class="header-nav" aria-label="Navegación principal">
+            <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-lista" id="navLista" role="list">
+                <li><a href="/formatos"     class="nav-enlace @(EsActivo("/formatos")     ? "nav-enlace--activo" : "")">Formatos</a></li>
+                <li><a href="/manuales"     class="nav-enlace @(EsActivo("/manuales")     ? "nav-enlace--activo" : "")">Manuales</a></li>
+                <li><a href="/dgie"         class="nav-enlace @(EsActivo("/dgie")         ? "nav-enlace--activo" : "")">DGIE</a></li>
+                <li><a href="/identidad"    class="nav-enlace @(EsActivo("/identidad")    ? "nav-enlace--activo" : "")">Identidad</a></li>
+                <li><a href="/capacitacion" class="nav-enlace @(EsActivo("/capacitacion") ? "nav-enlace--activo" : "")">Capacitación</a></li>
+                <li><a href="/tutoriales"   class="nav-enlace @(EsActivo("/tutoriales")   ? "nav-enlace--activo" : "")">Tutoriales</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>

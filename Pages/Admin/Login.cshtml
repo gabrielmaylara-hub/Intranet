@@ -1,0 +1,71 @@
+@page
+@model LoginModel
+@{
+    Layout = null; // Página sin layout — diseño propio centrado
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Acceso — Panel Admin FGET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap"
+          rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="login-body">
+
+<div class="login-contenedor">
+    <div class="login-card">
+        <!-- Marca institucional -->
+        <div class="login-marca">
+            <img src="~/img/logo-fget.jpeg" alt="FGET" class="login-logo-img" asp-append-version="true" />
+            <h1 class="login-titulo">Panel de Administración</h1>
+            <p class="login-subtitulo">Dirección General de Informática y Estadística</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMensaje))
+        {
+            <div class="alerta alerta-error" role="alert">
+                @Model.ErrorMensaje
+            </div>
+        }
+
+        <form method="post" class="login-form" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div class="campo-grupo">
+                <label for="usuario" class="campo-label">Usuario</label>
+                <input type="text"
+                       id="usuario"
+                       name="Usuario"
+                       class="campo-input"
+                       autocomplete="username"
+                       autofocus
+                       required />
+            </div>
+
+            <div class="campo-grupo">
+                <label for="password" class="campo-label">Contraseña</label>
+                <input type="password"
+                       id="password"
+                       name="Password"
+                       class="campo-input"
+                       autocomplete="current-password"
+                       required />
+            </div>
+
+            <button type="submit" class="btn btn-primario btn-bloque">
+                Iniciar sesión
+            </button>
+        </form>
+
+        <a href="/" class="login-volver">← Regresar al sitio</a>
+    </div>
+</div>
+
+</body>
+</html>

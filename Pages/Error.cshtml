@@ -1,0 +1,12 @@
+@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+<div class="error-pagina">
+    <div class="error-contenido">
+        <h1 class="error-codigo">@Model.CodigoEstado</h1>
+        <p class="error-mensaje">@Model.Mensaje</p>
+        <a href="/" class="btn btn-primario">Regresar al inicio</a>
+    </div>
+</div>

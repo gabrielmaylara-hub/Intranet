@@ -1,0 +1,198 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Inicio";
+
+    // Preparacion de datos de presentacion para no duplicar calculos en el marcado.
+    var accesos = Model.AccesosRapidos.ToList();
+}
+
+<div class="home-redisenado">
+    <!-- Bloque principal del portal: identidad, busqueda y resumen operativo. -->
+    <section class="home-hero-interno" aria-labelledby="tituloHome">
+        <div class="home-hero-inner">
+            <div class="home-hero-copy">
+                <span class="home-etiqueta">Portal institucional</span>
+                <h1 class="home-titulo" id="tituloHome">Intranet FGET</h1>
+                <p class="home-descripcion">
+                    Punto de acceso para sistemas, formatos, manuales, solicitudes y recursos de trabajo de la Fiscalia General del Estado de Tabasco.
+                </p>
+            </div>
+
+            <div class="home-busqueda-panel">
+                <label for="buscadorAccesos" class="buscador-label">Busqueda rapida</label>
+                <div class="home-buscador-barra">
+                    <div class="buscador-campo">
+                        <svg class="buscador-icono" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="search"
+                               id="buscadorAccesos"
+                               class="buscador-input"
+                               placeholder="Busca formatos, correo, manuales, capacitacion..."
+                               autocomplete="off"
+                               aria-label="Buscar en los accesos rapidos" />
+                    </div>
+                    <button type="button" class="buscador-boton" id="btnBuscarAccesos">Buscar</button>
+                </div>
+
+                <div class="home-tags" aria-label="Filtros sugeridos">
+                    <button type="button" data-busqueda="formatos">Formatos</button>
+                    <button type="button" data-busqueda="manuales">Manuales</button>
+                    <button type="button" data-busqueda="correo">Correo</button>
+                    <button type="button" data-busqueda="dgie">DGIE</button>
+                    <button type="button" data-busqueda="capacitacion">Capacitacion</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Listado principal de accesos: formato institucional sin iconografia dominante. -->
+    <section class="seccion-accesos home-accesos-panel" aria-labelledby="tituloAccesos">
+        <div class="seccion-inner home-accesos-inner">
+            <aside class="home-accesos-intro">
+                <span class="home-seccion-kicker">Directorio de servicios</span>
+                <h2 class="seccion-titulo" id="tituloAccesos">Accesos rapidos</h2>
+                <p>
+                    Accesos concentrados para consulta del personal. Cada elemento dirige al sistema, seccion o recurso correspondiente.
+                </p>
+            </aside>
+
+            <div class="accesos-lista" id="gridAccesos">
+                @foreach (var acceso in accesos)
+                {
+                    var target = acceso.AbreNuevaVentana ? "_blank" : "_self";
+                    var rel = acceso.AbreNuevaVentana ? "noopener noreferrer" : "";
+                    var destino = "Recurso institucional";
+
+                    if (acceso.AbreNuevaVentana && Uri.TryCreate(acceso.Url, UriKind.Absolute, out var uri))
+                    {
+                        destino = uri.Host.Replace("www.", "");
+                    }
+
+                    var bannerStyle = !string.IsNullOrWhiteSpace(acceso.BannerPath)
+                        ? $"--banner-imagen: url('/storage/{acceso.BannerPath}');"
+                        : null;
+
+                    <a href="@acceso.Url"
+                       target="@target"
+                       rel="@rel"
+                       style="@bannerStyle"
+                       class="acceso-card acceso-card--lista"
+                       data-nombre="@acceso.Nombre.ToLowerInvariant()"
+                       aria-label="@acceso.Nombre">
+                        <span class="acceso-card-etiqueta">Acceso</span>
+                        <span class="acceso-card-contenido">
+                            <span class="acceso-card-nombre">@acceso.Nombre</span>
+                            <span class="acceso-card-destino">@destino</span>
+                        </span>
+                        @if (acceso.AbreNuevaVentana)
+                        {
+                            <span class="acceso-card-accion" aria-hidden="true">&nearr;</span>
+                        }
+                        else
+                        {
+                            <span class="acceso-card-accion" aria-hidden="true">&rarr;</span>
+                        }
+                    </a>
+                }
+            </div>
+
+            <p class="accesos-sin-resultados" id="sinResultados" hidden>
+                No se encontraron accesos que coincidan con la busqueda.
+            </p>
+        </div>
+    </section>
+
+    <!-- Secciones secundarias visibles para dejar preparado el crecimiento del portal. -->
+    <section class="home-secundarias" aria-label="Avisos y tutoriales">
+        <div class="seccion-inner home-secundarias-grid">
+            <section class="seccion-avisos home-tarjeta-info" aria-labelledby="tituloAvisos">
+                <div class="seccion-cabecera">
+                    <div>
+                        <span class="home-seccion-kicker">Comunicacion interna</span>
+                        <h2 class="seccion-titulo" id="tituloAvisos">Avisos y comunicados</h2>
+                    </div>
+                </div>
+
+                @if (Model.Avisos.Any())
+                {
+                    <ul class="avisos-lista" role="list">
+                        @foreach (var aviso in Model.Avisos)
+                        {
+                            <li class="aviso-item">
+                                <div class="aviso-fecha">
+                                    @aviso.FechaPublicacion.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("es-MX"))
+                                </div>
+                                <div class="aviso-cuerpo">
+                                    <h3 class="aviso-titulo">@aviso.Titulo</h3>
+                                    @if (!string.IsNullOrWhiteSpace(aviso.Contenido))
+                                    {
+                                        <p class="aviso-contenido">@aviso.Contenido</p>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="seccion-vacia">
+                        <p>No hay avisos publicados en este momento.</p>
+                    </div>
+                }
+            </section>
+
+            <section class="seccion-tutoriales-home home-tarjeta-info" aria-labelledby="tituloTutorialesHome">
+                <div class="seccion-cabecera">
+                    <div>
+                        <span class="home-seccion-kicker">Material de apoyo</span>
+                        <h2 class="seccion-titulo" id="tituloTutorialesHome">Tutoriales y videos</h2>
+                    </div>
+                    <a href="/tutoriales" class="seccion-ver-todos">Ver todos &rarr;</a>
+                </div>
+
+                @if (Model.Tutoriales.Any())
+                {
+                    <div class="tutoriales-grid-home">
+                        @foreach (var tut in Model.Tutoriales)
+                        {
+                            <div class="tutorial-card-home">
+                                <div class="tutorial-thumb">
+                                    @if (!string.IsNullOrWhiteSpace(tut.MiniaturaPath))
+                                    {
+                                        <img src="/storage/@tut.MiniaturaPath" alt="@tut.Titulo" />
+                                    }
+                                    else
+                                    {
+                                        <div class="tutorial-thumb-placeholder" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="tutorial-info">
+                                    <h3 class="tutorial-titulo">@tut.Titulo</h3>
+                                    @if (!string.IsNullOrWhiteSpace(tut.Descripcion))
+                                    {
+                                        <p class="tutorial-desc">@tut.Descripcion</p>
+                                    }
+                                    <a href="/tutoriales" class="tutorial-ver-enlace">Ver tutorial &rarr;</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="seccion-vacia">
+                        <p>No hay tutoriales publicados en este momento.</p>
+                    </div>
+                }
+            </section>
+        </div>
+    </section>
+</div>

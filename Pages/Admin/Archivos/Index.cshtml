@@ -1,0 +1,121 @@
+@page
+@model Intranet.Pages.Admin.Archivos.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Archivos por Sección";
+}
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<!-- Pestañas de sección -->
+<div class="admin-tabs">
+    @foreach (var (clave, etiqueta) in Intranet.Pages.Admin.Archivos.IndexModel.Secciones)
+    {
+        <a href="/Admin/Archivos?seccion=@clave"
+           class="admin-tab @(Model.SeccionActual == clave ? "admin-tab--activo" : "")">
+            @etiqueta
+        </a>
+    }
+</div>
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">
+            @Intranet.Pages.Admin.Archivos.IndexModel.Secciones[Model.SeccionActual]
+        </h2>
+    </div>
+
+    <!-- Tabla de archivos de la sección activa -->
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var archivo in Model.Archivos)
+                {
+                    <tr>
+                        <td>
+                            <a href="/storage/@archivo.ArchivoPath"
+                               target="_blank" rel="noopener"
+                               class="tabla-enlace-archivo">
+                                @archivo.Nombre
+                            </a>
+                        </td>
+                        <td>@(archivo.Descripcion ?? "—")</td>
+                        <td>
+                            <span class="badge @(archivo.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(archivo.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <form method="post" asp-page-handler="Toggle" class="form-inline">
+                                <input type="hidden" name="id" value="@archivo.Id" />
+                                <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm @(archivo.Activo ? "btn-advertencia" : "btn-exito")">
+                                    @(archivo.Activo ? "Desactivar" : "Activar")
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Eliminar" class="form-inline"
+                                  onsubmit="return confirm('¿Eliminar «@archivo.Nombre»? El archivo se borrará del servidor.')">
+                                <input type="hidden" name="id" value="@archivo.Id" />
+                                <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Archivos.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="td-vacio">No hay archivos en esta sección.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulario de subida -->
+    <div class="subir-archivo-panel">
+        <h3 class="admin-panel-titulo">Subir nuevo archivo</h3>
+        <form method="post" asp-page-handler="Subir" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label">Nombre del documento <span class="campo-requerido">*</span></label>
+                    <input type="text" name="Nombre" class="campo-input"
+                           placeholder="Ej. Formato de solicitud de vacaciones" required />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Descripción</label>
+                    <input type="text" name="Descripcion" class="campo-input"
+                           placeholder="Breve descripción del contenido" />
+                </div>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Archivo PDF <span class="campo-requerido">*</span></label>
+                <input type="file" name="Archivo" class="campo-input campo-archivo"
+                       accept=".pdf" required />
+            </div>
+
+            <button type="submit" class="btn btn-primario">Subir archivo</button>
+        </form>
+    </div>
+</div>

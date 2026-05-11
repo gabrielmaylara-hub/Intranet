@@ -1,0 +1,19 @@
+@page
+@model FormatosModel
+@{
+    ViewData["Title"] = "Formatos Contraloría";
+}
+
+<section class="seccion-pagina">
+    <div class="seccion-inner">
+        <div class="pagina-encabezado">
+            <h1 class="pagina-titulo">Formatos de Contraloría</h1>
+            <p class="pagina-descripcion">
+                Formatos oficiales de la Contraloría Interna de la Fiscalía General del Estado de Tabasco.
+                Descarga el formato que necesitas en formato PDF.
+            </p>
+        </div>
+
+        @await Html.PartialAsync("_ListaArchivos", Model.Archivos)
+    </div>
+</section>

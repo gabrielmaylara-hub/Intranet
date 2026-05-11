@@ -1,0 +1,92 @@
+@page
+@model Intranet.Pages.Admin.Configuracion.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Configuración Visual";
+}
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<div class="admin-dos-columnas">
+
+    <!-- Columna 1: Texto y datos de contacto -->
+    <div class="admin-panel">
+        <h2 class="admin-panel-titulo">Textos del sitio</h2>
+        <form method="post" asp-page-handler="Guardar">
+            @Html.AntiForgeryToken()
+
+            <div class="campo-grupo">
+                <label class="campo-label">Nombre del sitio</label>
+                <input type="text" name="NombreSitio" value="@Model.NombreSitio" class="campo-input" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Texto principal del footer</label>
+                <input type="text" name="FooterTexto" value="@Model.FooterTexto" class="campo-input" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Subtexto del footer</label>
+                <input type="text" name="FooterSubtexto" value="@Model.FooterSubtexto" class="campo-input" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Correo de contacto</label>
+                <input type="email" name="FooterEmail" value="@Model.FooterEmail" class="campo-input" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Teléfono de contacto</label>
+                <input type="tel" name="FooterTelefono" value="@Model.FooterTelefono" class="campo-input" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Dirección</label>
+                <input type="text" name="FooterDireccion" value="@Model.FooterDireccion" class="campo-input" />
+            </div>
+
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label">Color dorado principal</label>
+                    <input type="color" name="ColorDorado" value="@Model.ColorDorado" class="campo-input campo-color" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Color dorado brillante</label>
+                    <input type="color" name="ColorDoradoBrillo" value="@Model.ColorDoradoBrillo" class="campo-input campo-color" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primario">Guardar cambios</button>
+        </form>
+    </div>
+
+    <!-- Columna 2: Logo institucional -->
+    <div class="admin-panel">
+        <h2 class="admin-panel-titulo">Logo institucional</h2>
+        <p class="campo-ayuda">
+            El logo se mostrará en el header del sitio. Formatos aceptados: PNG, SVG, JPG.
+            Dimensiones recomendadas: altura máxima de 60px.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.LogoActual))
+        {
+            <div class="logo-preview">
+                <img src="/storage/@Model.LogoActual" alt="Logo actual" />
+                <span class="logo-preview-label">Logo actual</span>
+            </div>
+        }
+
+        <form method="post" asp-page-handler="SubirLogo" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="campo-grupo">
+                <label class="campo-label">Seleccionar nuevo logo</label>
+                <input type="file"
+                       name="Logo"
+                       class="campo-input campo-archivo"
+                       accept=".png,.svg,.jpg,.jpeg" />
+            </div>
+            <button type="submit" class="btn btn-primario">Subir logo</button>
+        </form>
+    </div>
+
+</div>

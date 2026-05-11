@@ -1,0 +1,131 @@
+@page
+@model Intranet.Pages.Admin.Tutoriales.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Tutoriales";
+}
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">Videos institucionales</h2>
+        <button type="button" class="btn btn-primario btn-sm" id="btnNuevo">+ Nuevo tutorial</button>
+    </div>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Video</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tut in Model.Tutoriales)
+                {
+                    <tr>
+                        <td>@tut.Titulo</td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(tut.ArchivoPath))
+                            {
+                                <span class="badge badge-activo">Con video</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-inactivo">Sin video</span>
+                            }
+                        </td>
+                        <td>@tut.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="badge @(tut.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(tut.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <button type="button"
+                                    class="btn btn-sm btn-secundario btn-editar"
+                                    data-id="@tut.Id"
+                                    data-titulo="@tut.Titulo"
+                                    data-descripcion="@tut.Descripcion"
+                                    data-activo="@tut.Activo.ToString().ToLower()">
+                                Editar
+                            </button>
+
+                            <form method="post" asp-page-handler="Toggle" class="form-inline">
+                                <input type="hidden" name="id" value="@tut.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm @(tut.Activo ? "btn-advertencia" : "btn-exito")">
+                                    @(tut.Activo ? "Desactivar" : "Activar")
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Eliminar" class="form-inline"
+                                  onsubmit="return confirm('¿Eliminar el tutorial «@tut.Titulo»? También se eliminará el archivo de video.')">
+                                <input type="hidden" name="id" value="@tut.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Formulario -->
+<div class="admin-panel" id="panelFormulario" hidden>
+    <h2 class="admin-panel-titulo" id="formTitulo">Nuevo tutorial</h2>
+
+    <form method="post" asp-page-handler="Guardar" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" id="formId" value="0" />
+
+        <div class="campo-grupo">
+            <label class="campo-label">Título <span class="campo-requerido">*</span></label>
+            <input type="text" name="Titulo" id="formTituloInput" class="campo-input" required />
+        </div>
+
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="Descripcion" id="formDescripcion" class="campo-textarea" rows="3"></textarea>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Archivo de video (.mp4)</label>
+                <input type="file" name="Video" class="campo-input campo-archivo" accept=".mp4" />
+                <span class="campo-ayuda">Dejar vacío para conservar el video actual al editar.</span>
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Miniatura (imagen de portada)</label>
+                <input type="file" name="Miniatura" class="campo-input campo-archivo"
+                       accept=".png,.jpg,.jpeg" />
+                <span class="campo-ayuda">Opcional. Se muestra antes de reproducir el video.</span>
+            </div>
+        </div>
+
+        <div class="campo-grupo campo-grupo--checks">
+            <label class="campo-check">
+                <input type="checkbox" name="Activo" id="formActivo" value="true" checked />
+                Publicar tutorial
+            </label>
+            <input type="hidden" name="Activo" value="false" />
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">Guardar</button>
+            <button type="button" class="btn btn-neutro" id="btnCancelar">Cancelar</button>
+        </div>
+    </form>
+</div>

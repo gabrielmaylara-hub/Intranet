@@ -1,0 +1,18 @@
+bin/
+obj/
+logs/
+publish/
+.vs/
+.vscode/
+.idea/
+.tools/
+*.user
+*.suo
+.env
+Thumbs.db
+.DS_Store
+
+# Storage conserva solo estructura. Los archivos subidos por admin no se versionan.
+Storage/**
+!Storage/**/
+!Storage/**/.gitkeep

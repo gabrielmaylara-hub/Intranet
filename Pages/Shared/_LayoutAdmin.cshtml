@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@(ViewData["TituloAdmin"] ?? "Panel Admin") — FGET Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+
+@{
+    var rutaActual = Context.Request.Path.Value?.ToLower() ?? "";
+    bool NavActivo(string ruta) => rutaActual.StartsWith(ruta, StringComparison.OrdinalIgnoreCase);
+
+    var nombreUsuario = User.Identity?.Name ?? "Admin";
+}
+
+<!-- ─── Sidebar de navegación ──────────────────────────────────────────── -->
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-marca">
+        <img src="~/img/logo-fget.jpeg" alt="FGET" class="sidebar-logo-img" asp-append-version="true" />
+        <span class="sidebar-titulo">Panel Admin</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Navegación del panel">
+        <ul class="sidebar-lista" role="list">
+            <li>
+                <a href="/Admin" class="sidebar-enlace @(rutaActual == "/admin" ? "sidebar-enlace--activo" : "")">
+                    <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/Admin/Configuracion" class="sidebar-enlace @(NavActivo("/admin/configuracion") ? "sidebar-enlace--activo" : "")">
+                    <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    Configuración
+                </a>
+            </li>
+            <li>
+                <a href="/Admin/AccesosRapidos" class="sidebar-enlace @(NavActivo("/admin/accesosrapidos") ? "sidebar-enlace--activo" : "")">
+                    <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    Accesos Rápidos
+                </a>
+            </li>
+            <li>
+                <a href="/Admin/Avisos" class="sidebar-enlace @(NavActivo("/admin/avisos") ? "sidebar-enlace--activo" : "")">
+                    <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    Avisos
+                </a>
+            </li>
+            <li>
+                <a href="/Admin/Tutoriales" class="sidebar-enlace @(NavActivo("/admin/tutoriales") ? "sidebar-enlace--activo" : "")">
+                    <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                    </svg>
+                    Tutoriales
+                </a>
+            </li>
+            <li>
+                <a href="/Admin/Archivos" class="sidebar-enlace @(NavActivo("/admin/archivos") ? "sidebar-enlace--activo" : "")">
+                    <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Archivos
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Logout al fondo del sidebar -->
+    <div class="sidebar-pie">
+        <span class="sidebar-usuario">@nombreUsuario</span>
+        <form method="post" asp-page="/Admin/Login" asp-page-handler="Salir">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="sidebar-logout">Cerrar sesión</button>
+        </form>
+    </div>
+</aside>
+
+<!-- ─── Área principal de contenido ────────────────────────────────────── -->
+<div class="admin-main">
+    <header class="admin-topbar">
+        <button class="topbar-toggle" id="sidebarToggle" aria-label="Colapsar menú">
+            <span></span><span></span><span></span>
+        </button>
+        <h1 class="admin-titulo-pagina">@(ViewData["TituloAdmin"] ?? "Panel de Administración")</h1>
+    </header>
+
+    <div class="admin-contenido">
+        @RenderBody()
+    </div>
+</div>
+
+<script src="~/js/admin.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

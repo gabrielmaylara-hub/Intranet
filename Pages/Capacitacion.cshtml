@@ -1,0 +1,52 @@
+@page
+@model CapacitacionModel
+@{
+    ViewData["Title"] = "Oferta Académica";
+}
+
+<section class="seccion-pagina">
+    <div class="seccion-inner">
+        <div class="pagina-encabezado">
+            <h1 class="pagina-titulo">Oferta Académica</h1>
+            <p class="pagina-descripcion">
+                Cursos de capacitación y formación profesional disponibles para el personal
+                de la Fiscalía General del Estado de Tabasco.
+            </p>
+        </div>
+
+        <!-- Oferta académica interna -->
+        @if (Model.ArchivosInternos.Any())
+        {
+            <div class="capacitacion-seccion">
+                <h2 class="subseccion-titulo">Cursos y Materiales Internos</h2>
+                @await Html.PartialAsync("_ListaArchivos", Model.ArchivosInternos)
+            </div>
+        }
+
+        <!-- Enlace externo a SIGAACEJ -->
+        <div class="capacitacion-externa">
+            <div class="externa-card">
+                <div class="externa-icono" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                </div>
+                <div class="externa-info">
+                    <h2 class="externa-titulo">Sistema Integral de Gestión Académica</h2>
+                    <p class="externa-desc">
+                        Accede al sistema SIGAACEJ del Tribunal Superior de Justicia del Estado
+                        de Tabasco para consultar la oferta académica institucional compartida.
+                    </p>
+                    <a href="https://sigaacej.tsj-tabasco.gob.mx/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="btn btn-primario">
+                        Acceder a SIGAACEJ ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

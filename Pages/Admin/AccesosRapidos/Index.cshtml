@@ -1,0 +1,195 @@
+@page
+@model Intranet.Pages.Admin.AccesosRapidos.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Accesos Rapidos";
+}
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+@Html.AntiForgeryToken()
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">Listado</h2>
+        <button type="button" class="btn btn-primario btn-sm" id="btnNuevo">+ Nuevo acceso</button>
+    </div>
+
+    <p class="campo-ayuda">Arrastra las filas para reordenar. El orden se guarda automaticamente.</p>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th class="col-drag"></th>
+                    <th>Nombre</th>
+                    <th>URL</th>
+                    <th>Icono</th>
+                    <th>Banner</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaAccesos">
+                @foreach (var acceso in Model.Accesos)
+                {
+                    <tr data-id="@acceso.Id">
+                        <td class="col-drag">
+                            <span class="drag-handle" title="Arrastrar para reordenar">::</span>
+                        </td>
+                        <td>@acceso.Nombre</td>
+                        <td class="td-url">
+                            <span class="texto-truncado" title="@acceso.Url">@acceso.Url</span>
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(acceso.IconoPath))
+                            {
+                                <img src="/storage/@acceso.IconoPath"
+                                     alt="Icono @acceso.Nombre"
+                                     class="tabla-icono-preview" />
+                            }
+                            else
+                            {
+                                <span class="texto-gris">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(acceso.BannerPath))
+                            {
+                                <img src="/storage/@acceso.BannerPath"
+                                     alt="Banner @acceso.Nombre"
+                                     class="tabla-banner-preview" />
+                            }
+                            else
+                            {
+                                <span class="texto-gris">-</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @(acceso.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(acceso.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <button type="button"
+                                    class="btn btn-sm btn-secundario btn-editar"
+                                    data-id="@acceso.Id"
+                                    data-nombre="@acceso.Nombre"
+                                    data-url="@acceso.Url"
+                                    data-nueva-ventana="@acceso.AbreNuevaVentana.ToString().ToLower()"
+                                    data-activo="@acceso.Activo.ToString().ToLower()">
+                                Editar
+                            </button>
+
+                            <form method="post" asp-page-handler="Toggle" class="form-inline">
+                                <input type="hidden" name="id" value="@acceso.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm @(acceso.Activo ? "btn-advertencia" : "btn-exito")">
+                                    @(acceso.Activo ? "Desactivar" : "Activar")
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Eliminar" class="form-inline"
+                                  onsubmit="return confirm('Eliminar el acceso @acceso.Nombre?')">
+                                <input type="hidden" name="id" value="@acceso.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="admin-panel" id="panelFormulario" hidden>
+    <h2 class="admin-panel-titulo" id="formTitulo">Nuevo acceso rapido</h2>
+
+    <form method="post" asp-page-handler="Guardar" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" id="formId" value="0" />
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Nombre <span class="campo-requerido">*</span></label>
+                <input type="text" name="Nombre" id="formNombre" class="campo-input"
+                       placeholder="Ej. Correo institucional" required />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">URL <span class="campo-requerido">*</span></label>
+                <input type="text" name="UrlAcceso" id="formUrl" class="campo-input"
+                       placeholder="https://... o /ruta-interna" required />
+            </div>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Icono (PNG o SVG)</label>
+                <input type="file" name="Icono" class="campo-input campo-archivo"
+                       accept=".png,.svg,.jpg,.jpeg" />
+                <span class="campo-ayuda">Opcional. Dimension recomendada: 64x64 px.</span>
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Imagen banner (PNG, JPG o WEBP)</label>
+                <input type="file" name="Banner" class="campo-input campo-archivo"
+                       accept=".png,.jpg,.jpeg,.webp" />
+                <span class="campo-ayuda">Opcional. Recomendado: 1600x500 px o proporcion panoramica.</span>
+            </div>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo campo-grupo--checks">
+                <label class="campo-check">
+                    <input type="checkbox" name="AbreNuevaVentana" id="formNuevaVentana" value="true" checked />
+                    Abre en nueva pestana
+                </label>
+                <input type="hidden" name="AbreNuevaVentana" value="false" />
+                <label class="campo-check">
+                    <input type="checkbox" name="Activo" id="formActivo" value="true" checked />
+                    Activo
+                </label>
+                <input type="hidden" name="Activo" value="false" />
+            </div>
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">Guardar</button>
+            <button type="button" class="btn btn-neutro" id="btnCancelar">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        const tablaAccesos = document.getElementById('tablaAccesos');
+        const tokenXsrf = document.querySelector('input[name=__RequestVerificationToken]').value;
+
+        if (tablaAccesos) {
+            Sortable.create(tablaAccesos, {
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: async function () {
+                    const items = [...tablaAccesos.querySelectorAll('tr[data-id]')]
+                        .map((tr, idx) => ({ id: parseInt(tr.dataset.id), orden: idx + 1 }));
+
+                    await fetch('/Admin/AccesosRapidos?handler=Reordenar', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-XSRF-TOKEN': tokenXsrf
+                        },
+                        body: JSON.stringify(items)
+                    });
+                }
+            });
+        }
+    </script>
+}

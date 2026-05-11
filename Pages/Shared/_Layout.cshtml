@@ -1,0 +1,61 @@
+@inject Intranet.Repositories.Interfaces.IConfiguracionRepository ConfigRepo
+@{
+    var siteConfig = await ConfigRepo.ObtenerTodosAsync();
+    ViewData["SiteConfig"] = siteConfig;
+
+    string CssHex(string? valor, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(valor)) return fallback;
+        valor = valor.Trim();
+        var esValido = valor.Length == 7 && valor[0] == '#' && valor.Skip(1).All(Uri.IsHexDigit);
+        return esValido ? valor : fallback;
+    }
+
+    var nombreSitio = siteConfig.GetValueOrDefault("nombre_sitio", "Intranet FGET");
+    var logoPath    = siteConfig.GetValueOrDefault("logo_path", "");
+    var colorDorado = CssHex(siteConfig.GetValueOrDefault("color_dorado", "#c9922a"), "#c9922a");
+    var colorDoradoBrillo = CssHex(siteConfig.GetValueOrDefault("color_dorado_bri", "#e8a820"), "#e8a820");
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Intranet institucional — no indexar en motores de búsqueda -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@(ViewData["Title"] ?? "Inicio") — @nombreSitio</title>
+
+    <!-- Tipografía institucional: Barlow + Barlow Condensed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --dorado: @colorDorado;
+            --dorado-bri: @colorDoradoBrillo;
+        }
+    </style>
+</head>
+<body>
+    @await Html.PartialAsync("_Header", new ViewDataDictionary(ViewData)
+    {
+        ["logoPath"]    = logoPath,
+        ["nombreSitio"] = nombreSitio
+    })
+
+    <main class="contenido-principal">
+        @RenderBody()
+    </main>
+
+    @await Html.PartialAsync("_Footer", new ViewDataDictionary(ViewData)
+    {
+        ["siteConfig"] = siteConfig
+    })
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
