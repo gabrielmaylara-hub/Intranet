@@ -131,6 +131,15 @@ public class DbInicializador
 
     private static async Task AsegurarEstructuraAsync(IDbConnection con)
     {
+        var existeAccesosRapidos = await con.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*)
+              FROM INFORMATION_SCHEMA.TABLES
+              WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'accesos_rapidos'");
+
+        if (existeAccesosRapidos == 0)
+            return;
+
         var existeBannerPath = await con.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*)
               FROM INFORMATION_SCHEMA.COLUMNS
