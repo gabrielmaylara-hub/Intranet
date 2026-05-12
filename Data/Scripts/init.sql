@@ -107,11 +107,11 @@ CREATE TABLE IF NOT EXISTS usuarios_admin (
 INSERT IGNORE INTO configuracion_sitio (clave, valor, tipo, descripcion) VALUES
 ('nombre_sitio',          'Intranet FGET',                                 'texto',    'Nombre del sitio mostrado en el titulo'),
 ('logo_path',             '',                                               'imagen',   'Ruta del logo principal'),
-('footer_texto',          'Fiscalia General del Estado de Tabasco',         'texto',    'Texto principal del footer'),
-('footer_subtexto',       'Direccion General de Informatica y Estadistica', 'texto',    'Subtexto del footer'),
+('footer_texto',          'Fiscalía General del Estado de Tabasco',         'texto',    'Texto principal del footer'),
+('footer_subtexto',       'Dirección General de Informática y Estadística', 'texto',    'Subtexto del footer'),
 ('footer_contacto_email', 'dgie@fiscaliatabasco.gob.mx',                    'email',    'Correo de contacto DGIE'),
 ('footer_contacto_tel',   '',                                               'telefono', 'Telefono de contacto'),
-('footer_direccion',      'Villahermosa, Tabasco, Mexico',                  'texto',    'Direccion fisica'),
+('footer_direccion',      'Villahermosa, Tabasco, México',                  'texto',    'Direccion fisica'),
 ('color_dorado',          '#c9922a',                                         'color',    'Color institucional principal'),
 ('color_dorado_bri',      '#e8a820',                                         'color',    'Color institucional de realce');
 
