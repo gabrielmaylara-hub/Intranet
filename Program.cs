@@ -127,6 +127,34 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/health/live", () =>
+    Results.Json(new { status = "ok" }))
+    .AllowAnonymous();
+
+app.MapGet("/health/ready", async (ConexionDb db) =>
+{
+    try
+    {
+        await using var con = db.CrearConexion();
+        await con.OpenAsync();
+
+        var resultado = await con.ExecuteScalarAsync<int>("SELECT 1");
+
+        return resultado == 1
+            ? Results.Json(new { status = "ready" })
+            : Results.Json(
+                new { status = "unready" },
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch
+    {
+        return Results.Json(
+            new { status = "unready" },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+})
+    .AllowAnonymous();
+
 // ─── Endpoint de Storage: sirve archivos fuera de wwwroot con control ────────
 // Punto de extensión: agregar validaciones de sesión por sección aquí en el futuro.
 IResult ServirArchivoStorage(string? ruta)
