@@ -81,7 +81,7 @@ $env:ASPNETCORE_ENVIRONMENT="Development"
 dotnet run --urls http://127.0.0.1:5077
 ```
 
-No versionar contrasenas reales, cadenas de conexion productivas ni archivos `.env` con secretos. Cada entorno debe configurar sus credenciales fuera del control de versiones.
+No versionar contrasenas reales, cadenas de conexion productivas ni archivos `.env` con secretos. Cada entorno debe configurar sus credenciales fuera del control de versiones. Los archivos `appsettings*.json` versionados funcionan como plantilla y deben completarse localmente antes de ejecutar la aplicacion.
 
 ## Usuario de desarrollo
 
@@ -128,8 +128,7 @@ Valores usados por el entorno local actual:
 
 - Servidor: `127.0.0.1`
 - Puerto: `3306`
-- Usuario: `root`
-- Contrasena: configurada localmente, no versionar valores reales
+- Usuario y contrasena: configurar localmente con `MYSQL_DEV_USER` y `MYSQL_DEV_PASSWORD` antes de usar los scripts.
 
 Si se usa otra instalacion de MySQL, basta con ajustar `appsettings.Development.json`.
 
@@ -146,3 +145,19 @@ dotnet publish -c Release -o publish
 4. Verificar permisos de escritura para la carpeta `Storage/`.
 
 En produccion se debe cambiar la contrasena inicial despues del primer acceso administrativo.
+
+## Entrega a NAS
+
+No copiar el directorio de trabajo completo a la NAS. Preparar la entrega desde un clon limpio, un `git archive` o una carpeta de publicacion revisada.
+
+Excluir siempre:
+
+- `.backups/`
+- `.tools/`
+- `bin/`
+- `obj/`
+- `publish/`, salvo que sea la carpeta de publicacion final revisada.
+- `logs/`
+- `TestResults/`
+- `Storage/` con archivos reales subidos por usuarios o administradores.
+- Archivos `.user`, `.pubxml.user`, `.trx`, `.tmp`, `.bak` o dumps locales.

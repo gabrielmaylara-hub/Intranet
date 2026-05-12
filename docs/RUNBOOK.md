@@ -37,11 +37,15 @@ Detener solo el proceso correspondiente a esta aplicacion.
 Si existe una instalacion portable bajo `.tools/`, usar:
 
 ```powershell
+$env:MYSQL_DEV_USER="USUARIO_LOCAL"
+$env:MYSQL_DEV_PASSWORD="CONTRASENA_LOCAL"
 .\scripts\start-mysql-dev.ps1
 .\scripts\stop-mysql-dev.ps1
+Remove-Item Env:MYSQL_DEV_USER
+Remove-Item Env:MYSQL_DEV_PASSWORD
 ```
 
-Los scripts esperan MySQL local en `127.0.0.1:3306`.
+Los scripts esperan MySQL local en `127.0.0.1:3306` y no contienen credenciales versionadas.
 
 ## 4. Backup de MySQL
 
@@ -54,6 +58,8 @@ Remove-Item Env:MYSQL_PWD
 ```
 
 La carpeta `.backups/` esta ignorada por Git.
+
+Los respaldos pueden contener datos sensibles. No copiarlos a NAS ni compartirlos fuera del procedimiento autorizado de respaldo.
 
 ## 5. Restore basico de MySQL
 
@@ -77,7 +83,25 @@ Revisar segun el entorno:
 
 No compartir logs con contrasenas, cadenas de conexion ni datos personales.
 
-## 7. Errores comunes
+## 7. Entrega a NAS
+
+Para entrega documental o de codigo fuente, usar un clon limpio o un paquete generado desde Git. No copiar el workspace completo si contiene artefactos locales.
+
+Excluir de la entrega:
+
+- `.backups/`
+- `.tools/`
+- `bin/`
+- `obj/`
+- `publish/`, salvo que sea el paquete de publicacion final revisado.
+- `logs/`
+- `TestResults/`
+- `Storage/` con archivos reales.
+- Dumps SQL locales, `.trx`, `.tmp`, `.bak`, `.user` y `.pubxml.user`.
+
+Los archivos `appsettings*.json` versionados son plantillas. Las credenciales reales deben configurarse en el entorno destino y no deben copiarse desde una estacion de desarrollo.
+
+## 8. Errores comunes
 
 ### MySQL no inicia
 
@@ -136,7 +160,7 @@ docker ps
 - Repetir las pruebas de integracion.
 - No apuntar las pruebas de integracion a la BD real `intranet_fget`.
 
-## 8. Smoke test recomendado
+## 9. Smoke test recomendado
 
 ```powershell
 Invoke-WebRequest http://127.0.0.1:5077/ -UseBasicParsing

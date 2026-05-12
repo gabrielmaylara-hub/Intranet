@@ -38,6 +38,8 @@ Revisar la clave:
 
 No versionar contrasenas reales ni cadenas de conexion productivas. Cada entorno debe configurar sus propios valores.
 
+Los `appsettings*.json` incluidos en el repositorio son plantillas saneadas. Antes de ejecutar la aplicacion, reemplazar `USUARIO` y `CONTRASENA_DEL_ENTORNO` con credenciales locales autorizadas.
+
 ## 5. Crear o inicializar la base de datos
 
 El script principal es:
