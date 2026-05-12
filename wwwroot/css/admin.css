@@ -159,6 +159,8 @@ button { cursor: pointer; font-family: inherit; }
 .admin-main {
   margin-left: var(--sidebar-w);
   flex: 1;
+  min-width: 0;
+  max-width: calc(100% - var(--sidebar-w));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -203,7 +205,12 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--blanco);
 }
 
-.admin-contenido { padding: 2rem; flex: 1; }
+.admin-contenido {
+  padding: 2rem;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
 
 /* ─── Paneles ─────────────────────────────────────────────────────────────────── */
 .admin-panel {
@@ -212,6 +219,8 @@ button { cursor: pointer; font-family: inherit; }
   border-radius: var(--radio);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .admin-panel-titulo {
@@ -305,7 +314,13 @@ button { cursor: pointer; font-family: inherit; }
 .dashboard-info a { color: var(--dorado); }
 
 /* ─── Tablas ──────────────────────────────────────────────────────────────────── */
-.tabla-wrap { overflow-x: auto; }
+.tabla-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
 
 .admin-tabla {
   width: 100%;
