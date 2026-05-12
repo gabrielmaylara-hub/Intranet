@@ -89,16 +89,32 @@ public class DbInicializador
             .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        var migracionesRegistradas = await ObtenerMigracionesRegistradasAsync(con);
+
         foreach (var script in scripts)
         {
+            var version = ObtenerVersionMigracion(script);
+            var nombre = Path.GetFileNameWithoutExtension(script);
+
+            if (migracionesRegistradas.Contains(version))
+            {
+                _log.LogInformation(
+                    "Migracion omitida porque ya esta registrada: {Migracion}",
+                    Path.GetFileName(script));
+                continue;
+            }
+
             try
             {
                 var contenido = await File.ReadAllTextAsync(script);
                 foreach (var sentencia in SepararSentenciasSql(contenido))
                     await con.ExecuteAsync(sentencia);
 
+                await RegistrarMigracionAsync(con, version, nombre);
+                migracionesRegistradas.Add(version);
+
                 _log.LogInformation(
-                    "Migracion aplicada/verificada: {Migracion}",
+                    "Migracion aplicada: {Migracion}",
                     Path.GetFileName(script));
             }
             catch (Exception ex)
@@ -109,6 +125,46 @@ public class DbInicializador
                 throw;
             }
         }
+    }
+
+    private static async Task<HashSet<string>> ObtenerMigracionesRegistradasAsync(IDbConnection con)
+    {
+        var existeTablaMigraciones = await con.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*)
+              FROM INFORMATION_SCHEMA.TABLES
+              WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'schema_migrations'");
+
+        if (existeTablaMigraciones == 0)
+            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var versiones = await con.QueryAsync<string>(
+            "SELECT version FROM schema_migrations");
+
+        return new HashSet<string>(versiones, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static async Task RegistrarMigracionAsync(
+        IDbConnection con,
+        string version,
+        string nombre)
+    {
+        await con.ExecuteAsync(
+            @"INSERT IGNORE INTO schema_migrations (version, name)
+              VALUES (@version, @nombre)",
+            new { version, nombre });
+    }
+
+    private static string ObtenerVersionMigracion(string script)
+    {
+        var nombre = Path.GetFileNameWithoutExtension(script);
+        var separador = nombre.IndexOf('_', StringComparison.Ordinal);
+
+        if (separador <= 0)
+            throw new InvalidOperationException(
+                $"La migracion no tiene prefijo de version: {Path.GetFileName(script)}");
+
+        return nombre[..separador];
     }
 
     private static IEnumerable<string> SepararSentenciasSql(string contenido)
