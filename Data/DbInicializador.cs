@@ -54,7 +54,15 @@ public class DbInicializador
 
             if (totalUsuarios == 0)
             {
-                var hash = _auth.HashearPassword("Fget2025*");
+                var passwordInicial = Environment.GetEnvironmentVariable("INTRANET_ADMIN_INITIAL_PASSWORD");
+                if (string.IsNullOrWhiteSpace(passwordInicial))
+                {
+                    _log.LogWarning(
+                        "No se creo el usuario admin inicial porque falta la variable de entorno INTRANET_ADMIN_INITIAL_PASSWORD.");
+                    return;
+                }
+
+                var hash = _auth.HashearPassword(passwordInicial);
                 await con.ExecuteAsync(
                     @"INSERT INTO usuarios_admin (usuario, password_hash, nombre_completo, activo)
                       VALUES (@usuario, @hash, @nombre, 1)",

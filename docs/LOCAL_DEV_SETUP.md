@@ -68,6 +68,11 @@ La configuracion debe incluir, sin versionarse:
 
 No imprimas la contrasena en consola, capturas, logs o reportes.
 
+Para crear el usuario administrador inicial en una base nueva, configura tambien la variable local `INTRANET_ADMIN_INITIAL_PASSWORD`.
+Esta variable solo se usa cuando no existe ningun administrador activo. Si ya existe un administrador, la aplicacion no modifica usuarios ni restablece contrasenas.
+
+No guardes el valor real de `INTRANET_ADMIN_INITIAL_PASSWORD` en archivos versionados. Cargalo desde la sesion local o desde un archivo ignorado por Git.
+
 ## 6. Levantar MySQL local
 
 Pasos generales:
@@ -87,9 +92,10 @@ No ejecutes scripts destructivos contra una base con datos sin respaldo y autori
 Pasos generales:
 
 1. Configurar la variable local `ConnectionStrings__MySQL` sin mostrar su valor.
-2. Configurar la URL local de ASP.NET Core para escuchar en el puerto `5077`.
-3. Ejecutar la aplicacion con `dotnet run` desde la raiz del proyecto.
-4. Si hay una instancia anterior ocupando el puerto, detener solo el proceso local de esta aplicacion.
+2. Si la base es nueva y no tiene administradores, configurar `INTRANET_ADMIN_INITIAL_PASSWORD` sin mostrar su valor.
+3. Configurar la URL local de ASP.NET Core para escuchar en el puerto `5077`.
+4. Ejecutar la aplicacion con `dotnet run` desde la raiz del proyecto.
+5. Si hay una instancia anterior ocupando el puerto, detener solo el proceso local de esta aplicacion.
 
 La aplicacion debe quedar disponible en:
 
@@ -126,6 +132,7 @@ Antes de dar por levantado el entorno local:
 - [ ] La base `intranet_fget` existe.
 - [ ] El usuario `intranet_local` puede acceder a la base.
 - [ ] La cadena local esta configurada fuera de Git.
+- [ ] `INTRANET_ADMIN_INITIAL_PASSWORD` esta configurada si se va a crear el primer administrador.
 - [ ] La aplicacion escucha en `5077`.
 - [ ] `/health/live` responde `200`.
 - [ ] `/health/ready` responde `200`.
