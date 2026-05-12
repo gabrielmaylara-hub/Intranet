@@ -4,6 +4,7 @@ using Intranet.Models;
 using Intranet.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MySqlConnector;
 
 namespace Intranet.Pages.Admin.Directorio;
 
@@ -137,44 +138,54 @@ public class IndexModel : PageModel
         var existentes = (await _directorioRepo.ObtenerTodosAsync())
             .ToList();
 
-        foreach (var fila in Importacion.Filas)
+        try
         {
-            await _directorioRepo.AsegurarAreaAsync(fila.Area);
-            await _directorioRepo.ActualizarAreaDesdeImportacionAsync(
-                fila.Area,
-                fila.Titular,
-                fila.Ubicacion,
-                fila.Correo);
-
-            if (fila.Estado == EstadoImportacion.ActualizarDatosArea)
+            foreach (var fila in Importacion.Filas)
             {
-                aplicadas++;
-                continue;
-            }
+                await _directorioRepo.AsegurarAreaAsync(fila.Area);
+                await _directorioRepo.ActualizarAreaDesdeImportacionAsync(
+                    fila.Area,
+                    fila.Titular,
+                    fila.Ubicacion,
+                    fila.Correo);
 
-            if (fila.Estado == EstadoImportacion.Nuevo)
-            {
-                await _directorioRepo.InsertarAsync(fila.ToEntrada());
-                aplicadas++;
-                continue;
-            }
-
-            if (fila.Estado is EstadoImportacion.ActualizarExtension
-                or EstadoImportacion.ActualizarOrdenEstado)
-            {
-                var existente = existentes.FirstOrDefault(e =>
-                    Coincide(e.Area, fila.Area) &&
-                    Coincide(e.Nombre, fila.Nombre));
-
-                if (existente is null)
+                if (fila.Estado == EstadoImportacion.ActualizarDatosArea)
+                {
+                    aplicadas++;
                     continue;
+                }
 
-                existente.Extension = fila.Extension;
-                existente.Orden = fila.Orden;
-                existente.Activo = fila.Activo;
-                await _directorioRepo.ActualizarAsync(existente);
-                aplicadas++;
+                if (fila.Estado == EstadoImportacion.Nuevo)
+                {
+                    await _directorioRepo.InsertarAsync(fila.ToEntrada());
+                    aplicadas++;
+                    continue;
+                }
+
+                if (fila.Estado is EstadoImportacion.ActualizarExtension
+                    or EstadoImportacion.ActualizarOrdenEstado)
+                {
+                    var existente = existentes.FirstOrDefault(e =>
+                        Coincide(e.Area, fila.Area) &&
+                        Coincide(e.Nombre, fila.Nombre));
+
+                    if (existente is null)
+                        continue;
+
+                    existente.Extension = fila.Extension;
+                    existente.Orden = fila.Orden;
+                    existente.Activo = fila.Activo;
+                    await _directorioRepo.ActualizarAsync(existente);
+                    aplicadas++;
+                }
             }
+        }
+        catch (MySqlException ex) when (EsDuplicadoDirectorio(ex))
+        {
+            EsError = true;
+            Mensaje = "No se pudo aplicar la importacion porque generaria un duplicado en el Directorio.";
+            await CargarListasAsync();
+            return Page();
         }
 
         Mensaje = $"Importacion aplicada. Cambios guardados: {aplicadas}.";
@@ -241,10 +252,20 @@ public class IndexModel : PageModel
             Activo = Activo
         };
 
-        if (Id > 0)
-            await _directorioRepo.ActualizarAsync(entrada);
-        else
-            await _directorioRepo.InsertarAsync(entrada);
+        try
+        {
+            if (Id > 0)
+                await _directorioRepo.ActualizarAsync(entrada);
+            else
+                await _directorioRepo.InsertarAsync(entrada);
+        }
+        catch (MySqlException ex) when (EsDuplicadoDirectorio(ex))
+        {
+            EsError = true;
+            Mensaje = "Ya existe una unidad o extension con esos datos en el area seleccionada.";
+            await CargarListasAsync();
+            return Page();
+        }
 
         return RedirectToPage();
     }
@@ -422,7 +443,9 @@ public class IndexModel : PageModel
     {
         var existentes = (await _directorioRepo.ObtenerTodosAsync()).ToList();
         var areas = (await _directorioRepo.ObtenerAreasAsync()).ToList();
-        var clavesArchivo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var clavesExactas = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var clavesAreaNombre = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var clavesAreaExtension = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var resultado = new List<DirectorioImportacionFila>();
 
         foreach (var fila in filas)
@@ -430,9 +453,8 @@ public class IndexModel : PageModel
             var vista = DirectorioImportacionFila.FromCsv(fila);
             ValidarFila(vista);
 
-            var claveExacta = Clave(vista.Area, vista.Nombre, vista.Extension);
-            if (vista.Errores.Count == 0 && !clavesArchivo.Add(claveExacta))
-                vista.Errores.Add("Duplicado dentro del archivo.");
+            if (vista.Errores.Count == 0)
+                ValidarDuplicadosArchivo(vista, clavesExactas, clavesAreaNombre, clavesAreaExtension);
 
             if (vista.Errores.Count == 0)
                 ClasificarFila(vista, existentes, areas);
@@ -441,6 +463,36 @@ public class IndexModel : PageModel
         }
 
         return new ImportacionDirectorioPreview(resultado);
+    }
+
+    private static void ValidarDuplicadosArchivo(
+        DirectorioImportacionFila fila,
+        Dictionary<string, int> clavesExactas,
+        Dictionary<string, int> clavesAreaNombre,
+        Dictionary<string, int> clavesAreaExtension)
+    {
+        var claveExacta = Clave(fila.Area, fila.Nombre, fila.Extension);
+        if (clavesExactas.TryGetValue(claveExacta, out var lineaExacta))
+        {
+            fila.Errores.Add($"Duplicado exacto dentro del archivo con la fila {lineaExacta}.");
+            return;
+        }
+
+        var claveNombre = Clave(fila.Area, fila.Nombre);
+        if (clavesAreaNombre.TryGetValue(claveNombre, out var lineaNombre))
+            fila.Errores.Add($"El area y nombre ya aparecen en la fila {lineaNombre}.");
+
+        if (!string.IsNullOrWhiteSpace(fila.Extension))
+        {
+            var claveExtension = Clave(fila.Area, fila.Extension);
+            if (clavesAreaExtension.TryGetValue(claveExtension, out var lineaExtension))
+                fila.Errores.Add($"El area y extension ya aparecen en la fila {lineaExtension}.");
+        }
+
+        clavesExactas[claveExacta] = fila.Linea;
+        clavesAreaNombre[claveNombre] = fila.Linea;
+        if (!string.IsNullOrWhiteSpace(fila.Extension))
+            clavesAreaExtension[Clave(fila.Area, fila.Extension)] = fila.Linea;
     }
 
     private static void ValidarFila(DirectorioImportacionFila fila)
@@ -534,17 +586,18 @@ public class IndexModel : PageModel
             return;
         }
 
+        if (mismaAreaExtension is not null &&
+            (mismaAreaNombre is null || mismaAreaExtension.Id != mismaAreaNombre.Id))
+        {
+            fila.Estado = EstadoImportacion.Conflicto;
+            fila.Observacion = $"La extension ya existe para {mismaAreaExtension.Nombre}. Revisar antes de importar.";
+            return;
+        }
+
         if (mismaAreaNombre is not null)
         {
             fila.Estado = EstadoImportacion.ActualizarExtension;
             fila.Observacion = $"Cambiara extension {mismaAreaNombre.Extension} por {fila.Extension}.";
-            return;
-        }
-
-        if (mismaAreaExtension is not null)
-        {
-            fila.Estado = EstadoImportacion.Conflicto;
-            fila.Observacion = $"La extension ya existe para {mismaAreaExtension.Nombre}. Revisar antes de importar.";
             return;
         }
 
@@ -577,8 +630,16 @@ public class IndexModel : PageModel
     private static bool Coincide(string a, string b) =>
         string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
 
+    private static bool EsDuplicadoDirectorio(MySqlException ex) =>
+        ex.Number == 1062 &&
+        (ex.Message.Contains("uk_directorio_area_nombre", StringComparison.OrdinalIgnoreCase) ||
+         ex.Message.Contains("uk_directorio_area_extension", StringComparison.OrdinalIgnoreCase));
+
     private static string Clave(string area, string nombre, string extension) =>
         $"{area.Trim()}|{nombre.Trim()}|{extension.Trim()}";
+
+    private static string Clave(string area, string valor) =>
+        $"{area.Trim()}|{valor.Trim()}";
 
     private static string NormalizarEncabezado(string encabezado)
     {
