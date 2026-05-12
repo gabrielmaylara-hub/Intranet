@@ -17,6 +17,9 @@ TestResults/
 *.bak
 *.dump
 .env
+.env.local
+.env.*.local
+.env.intranet-local
 Thumbs.db
 .DS_Store
 
