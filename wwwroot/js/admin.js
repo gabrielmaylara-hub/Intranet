@@ -53,7 +53,9 @@
         ? "aviso"
         : pagina.includes("tutoriales")
           ? "tutorial"
-          : "registro";
+          : pagina.includes("directorio")
+            ? "extension"
+            : "registro";
 
     const obtener = (id) => document.getElementById(id);
     const asignarValor = (id, valor) => {
@@ -96,6 +98,9 @@
       asignarValor("formId", datos.id);
       asignarValor("formNombre", datos.nombre);
       asignarValor("formUrl", datos.url);
+      asignarValor("formArea", datos.area);
+      asignarValor("formExtension", datos.extension);
+      asignarValor("formOrden", datos.orden);
       asignarValor("formTituloInput", datos.titulo);
       asignarValor("formContenido", datos.contenido);
       asignarValor("formFecha", datos.fecha);
@@ -115,6 +120,65 @@
 
     document.querySelectorAll(".btn-editar").forEach((boton) => {
       boton.addEventListener("click", () => prepararEdicion(boton));
+    });
+  }
+
+  const panelAreaFormulario = document.getElementById("panelAreaFormulario");
+  const btnNuevaArea = document.getElementById("btnNuevaArea");
+  const btnCancelarArea = document.getElementById("btnCancelarArea");
+
+  if (panelAreaFormulario) {
+    const formArea = panelAreaFormulario.querySelector("form");
+    const tituloArea = document.getElementById("areaFormTitulo");
+    const asignarValor = (id, valor) => {
+      const campo = document.getElementById(id);
+      if (campo) campo.value = valor ?? "";
+    };
+    const asignarCheck = (id, valor) => {
+      const campo = document.getElementById(id);
+      if (campo) campo.checked = valor === true || valor === "true";
+    };
+
+    const prepararNuevaArea = () => {
+      if (formArea) formArea.reset();
+      asignarValor("areaFormId", "0");
+      asignarValor("areaFormOrden", "0");
+      asignarCheck("areaFormActivo", true);
+
+      const nombre = document.getElementById("areaFormNombre");
+      if (nombre) nombre.readOnly = false;
+      if (tituloArea) tituloArea.textContent = "Nueva area";
+
+      panelAreaFormulario.hidden = false;
+      panelAreaFormulario.scrollIntoView({ behavior: "smooth", block: "start" });
+      nombre?.focus();
+    };
+
+    btnNuevaArea?.addEventListener("click", prepararNuevaArea);
+
+    document.querySelectorAll(".btn-editar-area").forEach((boton) => {
+      boton.addEventListener("click", () => {
+        const datos = boton.dataset;
+        asignarValor("areaFormId", datos.areaId);
+        asignarValor("areaFormNombre", datos.areaNombre);
+        asignarValor("areaFormTitular", datos.areaTitular);
+        asignarValor("areaFormUbicacion", datos.areaUbicacion);
+        asignarValor("areaFormCorreo", datos.areaCorreo);
+        asignarValor("areaFormOrden", datos.areaOrden);
+        asignarCheck("areaFormActivo", datos.areaActivo);
+
+        const nombre = document.getElementById("areaFormNombre");
+        if (nombre) nombre.readOnly = true;
+        if (tituloArea) tituloArea.textContent = "Editar datos del area";
+
+        panelAreaFormulario.hidden = false;
+        panelAreaFormulario.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    btnCancelarArea?.addEventListener("click", () => {
+      panelAreaFormulario.hidden = true;
+      panelAreaFormulario.querySelector("form")?.reset();
     });
   }
 })();

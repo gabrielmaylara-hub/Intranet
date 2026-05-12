@@ -1,0 +1,316 @@
+@page
+@model Intranet.Pages.Admin.Directorio.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Directorio";
+}
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">Datos por area</h2>
+        <button type="button" class="btn btn-primario btn-sm" id="btnNuevaArea">+ Nueva area</button>
+    </div>
+
+    <p class="campo-ayuda">Captura titular, ubicacion y correo solo cuando el dato este confirmado. Los campos vacios no se muestran en la pagina publica.</p>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Area</th>
+                    <th>Orden area</th>
+                    <th>Titular</th>
+                    <th>Ubicacion</th>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var area in Model.Areas)
+                {
+                    <tr>
+                        <td>@area.Nombre</td>
+                        <td>@area.Orden</td>
+                        <td>@(string.IsNullOrWhiteSpace(area.Titular) ? "-" : area.Titular)</td>
+                        <td>@(string.IsNullOrWhiteSpace(area.Ubicacion) ? "-" : area.Ubicacion)</td>
+                        <td>@(string.IsNullOrWhiteSpace(area.Correo) ? "-" : area.Correo)</td>
+                        <td>
+                            <span class="badge @(area.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(area.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <button type="button"
+                                    class="btn btn-sm btn-secundario btn-editar-area"
+                                    data-area-id="@area.Id"
+                                    data-area-nombre="@area.Nombre"
+                                    data-area-titular="@(area.Titular ?? "")"
+                                    data-area-ubicacion="@(area.Ubicacion ?? "")"
+                                    data-area-correo="@(area.Correo ?? "")"
+                                    data-area-orden="@area.Orden"
+                                    data-area-activo="@area.Activo.ToString().ToLower()">
+                                Editar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="admin-panel" id="panelAreaFormulario" hidden>
+    <h2 class="admin-panel-titulo" id="areaFormTitulo">Nueva area</h2>
+
+    <form method="post" asp-page-handler="GuardarArea">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="AreaId" id="areaFormId" value="0" />
+
+        <div class="campo-grupo">
+            <label class="campo-label">Area <span class="campo-requerido">*</span></label>
+            <input type="text" name="AreaNombre" id="areaFormNombre" class="campo-input"
+                   placeholder="Ej. DIRECCION GENERAL DE INFORMATICA Y ESTADISTICA" required />
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Orden del area</label>
+                <input type="number" name="AreaOrden" id="areaFormOrden" class="campo-input"
+                       value="0" min="0" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Ubicacion</label>
+                <input type="text" name="AreaUbicacion" id="areaFormUbicacion" class="campo-input"
+                       placeholder="Edificio, piso o referencia interna" />
+            </div>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Titular</label>
+                <input type="text" name="AreaTitular" id="areaFormTitular" class="campo-input"
+                       placeholder="Nombre del titular" />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Correo del area</label>
+                <input type="email" name="AreaCorreo" id="areaFormCorreo" class="campo-input"
+                       placeholder="area@fiscaliatabasco.gob.mx" />
+            </div>
+        </div>
+
+        <div class="campo-grupo campo-grupo--checks">
+            <label class="campo-check">
+                <input type="checkbox" name="AreaActivo" id="areaFormActivo" value="true" checked />
+                Mostrar area en Directorio publico
+            </label>
+            <input type="hidden" name="AreaActivo" value="false" />
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">Guardar datos del area</button>
+            <button type="button" class="btn btn-neutro" id="btnCancelarArea">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">Extensiones publicadas</h2>
+        <button type="button" class="btn btn-primario btn-sm" id="btnNuevo">+ Nueva extension</button>
+    </div>
+
+    <p class="campo-ayuda">Primero selecciona un area existente. El orden de cada extension solo aplica dentro de su area.</p>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Area</th>
+                    <th>Nombre / unidad</th>
+                    <th>Extension</th>
+                    <th>Orden interno</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entrada in Model.Entradas)
+                {
+                    <tr>
+                        <td>@entrada.Area</td>
+                        <td>@entrada.Nombre</td>
+                        <td>@entrada.Extension</td>
+                        <td>@entrada.Orden</td>
+                        <td>
+                            <span class="badge @(entrada.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(entrada.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <button type="button"
+                                    class="btn btn-sm btn-secundario btn-editar"
+                                    data-id="@entrada.Id"
+                                    data-area="@entrada.Area"
+                                    data-nombre="@entrada.Nombre"
+                                    data-extension="@entrada.Extension"
+                                    data-orden="@entrada.Orden"
+                                    data-activo="@entrada.Activo.ToString().ToLower()">
+                                Editar
+                            </button>
+
+                            <form method="post" asp-page-handler="Toggle" class="form-inline">
+                                <input type="hidden" name="id" value="@entrada.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm @(entrada.Activo ? "btn-advertencia" : "btn-exito")">
+                                    @(entrada.Activo ? "Desactivar" : "Activar")
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Eliminar" class="form-inline"
+                                  onsubmit="return confirm('Eliminar la extension @entrada.Extension de @entrada.Nombre?')">
+                                <input type="hidden" name="id" value="@entrada.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <h2 class="admin-panel-titulo">Carga masiva CSV</h2>
+        <a class="btn btn-secundario btn-sm" asp-page-handler="Plantilla">Descargar plantilla</a>
+    </div>
+
+    <p class="campo-ayuda">
+        Importa extensiones desde CSV. Primero se muestra una vista previa con nuevos, duplicados, actualizaciones y conflictos.
+    </p>
+
+    <form method="post" asp-page-handler="PrevisualizarImportacion" enctype="multipart/form-data" class="form-importacion">
+        @Html.AntiForgeryToken()
+        <div class="campo-grupo">
+            <label class="campo-label">Archivo CSV</label>
+            <input type="file" name="ArchivoCsv" class="campo-input campo-archivo" accept=".csv,text/csv" />
+        </div>
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">Previsualizar importacion</button>
+        </div>
+    </form>
+
+    @if (Model.Importacion is not null)
+    {
+        <div class="importacion-resumen" role="status">
+            <span>Total: @Model.Importacion.Total</span>
+            <span>Nuevos: @Model.Importacion.Nuevos</span>
+            <span>Actualizaciones: @Model.Importacion.Actualizaciones</span>
+            <span>Sin cambios: @Model.Importacion.SinCambios</span>
+            <span>Conflictos: @Model.Importacion.Conflictos</span>
+            <span>Errores: @Model.Importacion.Errores</span>
+        </div>
+
+        <div class="tabla-wrap">
+            <table class="admin-tabla">
+                <thead>
+                    <tr>
+                        <th>Linea</th>
+                        <th>Area</th>
+                        <th>Nombre / unidad</th>
+                        <th>Extension</th>
+                        <th>Estado</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var fila in Model.Importacion.Filas)
+                    {
+                        <tr>
+                            <td>@fila.Linea</td>
+                            <td>@fila.Area</td>
+                            <td>@fila.Nombre</td>
+                            <td>@fila.Extension</td>
+                            <td>@fila.EstadoTexto</td>
+                            <td>@fila.Detalle</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <form method="post" asp-page-handler="ConfirmarImportacion" class="form-acciones">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ImportacionJson" value="@Model.ImportacionJson" />
+            <button type="submit" class="btn btn-primario" @(Model.Importacion.PuedeConfirmar ? null : "disabled")>
+                Confirmar importacion
+            </button>
+        </form>
+    }
+</div>
+
+<div class="admin-panel" id="panelFormulario" hidden>
+    <h2 class="admin-panel-titulo" id="formTitulo">Nueva extension</h2>
+
+    <form method="post" asp-page-handler="Guardar">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" id="formId" value="0" />
+
+        <div class="campo-grupo">
+            <label class="campo-label">Area <span class="campo-requerido">*</span></label>
+            <select name="Area" id="formArea" class="campo-input" required>
+                <option value="">Selecciona un area</option>
+                @foreach (var area in Model.Areas.Where(a => a.Activo))
+                {
+                    <option value="@area.Nombre">@area.Nombre</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Nombre / unidad <span class="campo-requerido">*</span></label>
+                <input type="text" name="Nombre" id="formNombre" class="campo-input"
+                       placeholder="Ej. RECEPCION" required />
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Extension <span class="campo-requerido">*</span></label>
+                <input type="text" name="Extension" id="formExtension" class="campo-input"
+                       placeholder="0000" required />
+            </div>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Orden interno</label>
+                <input type="number" name="Orden" id="formOrden" class="campo-input" value="0" min="0" />
+            </div>
+
+            <div class="campo-grupo campo-grupo--checks">
+                <label class="campo-check">
+                    <input type="checkbox" name="Activo" id="formActivo" value="true" checked />
+                    Publicar en Directorio
+                </label>
+                <input type="hidden" name="Activo" value="false" />
+            </div>
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">Guardar</button>
+            <button type="button" class="btn btn-neutro" id="btnCancelar">Cancelar</button>
+        </div>
+    </form>
+</div>

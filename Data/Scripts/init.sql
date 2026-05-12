@@ -129,7 +129,9 @@ VALUES
     (9,  'SGC',                    'https://manualespericiales.fiscaliatabasco.gob.mx/',     NULL, NULL, 9,  1, 1),
     (10, 'Oferta Academica',       '/capacitacion',                                          NULL, NULL, 10, 0, 1),
     (11, 'Identidad Grafica FGET', '/identidad',                                             NULL, NULL, 11, 0, 1),
-    (12, 'Tutoriales y Videos',    '/tutoriales',                                            NULL, NULL, 12, 0, 1);
+    (12, 'Tutoriales y Videos',    '/tutoriales',                                            NULL, NULL, 12, 0, 1),
+    (13, 'NUBE PRIVADA',           'https://nube.fiscaliatabasco.gob.mx',                    NULL, NULL, 13, 1, 1),
+    (14, 'DIRECTORIO',             '/directorio',                                            NULL, NULL, 14, 0, 1);
 
 -- Nota: el usuario administrador es sembrado automaticamente por DbInicializador
 -- al primer arranque de la aplicacion (usuario: admin / contrasena: Fget2025*).

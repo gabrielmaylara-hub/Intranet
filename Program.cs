@@ -81,6 +81,7 @@ builder.Services.AddScoped<ITutorialRepository,       TutorialRepository>();
 builder.Services.AddScoped<IArchivoSeccionRepository, ArchivoSeccionRepository>();
 builder.Services.AddScoped<IConfiguracionRepository,  ConfiguracionRepository>();
 builder.Services.AddScoped<IUsuarioRepository,        UsuarioRepository>();
+builder.Services.AddScoped<IDirectorioRepository,     DirectorioRepository>();
 
 // ─── Servicios de negocio ─────────────────────────────────────────────────────
 builder.Services.AddScoped<IArchivoService, ArchivoService>();

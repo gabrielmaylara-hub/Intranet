@@ -349,6 +349,7 @@ button { cursor: pointer; font-family: inherit; }
 .drag-handle:hover { color: var(--dorado); }
 
 .td-url { max-width: 200px; }
+.td-nombre-acceso { text-transform: uppercase; }
 .texto-truncado {
   display: block;
   overflow: hidden;
@@ -463,6 +464,25 @@ button { cursor: pointer; font-family: inherit; }
 }
 
 .form-inline { display: inline-flex; }
+
+.form-importacion {
+  margin-top: 1rem;
+}
+
+.importacion-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.importacion-resumen span {
+  border: 1px solid var(--gris-borde);
+  border-radius: 999px;
+  color: var(--gris-texto);
+  font-size: 0.8rem;
+  padding: 0.35rem 0.7rem;
+}
 
 /* ─── Botones ────────────────────────────────────────────────────────────────── */
 .btn {

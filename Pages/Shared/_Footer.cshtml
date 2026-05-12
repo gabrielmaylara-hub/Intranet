@@ -5,6 +5,7 @@
     var email       = config.GetValueOrDefault("footer_contacto_email", "");
     var telefono    = config.GetValueOrDefault("footer_contacto_tel",   "");
     var direccion   = config.GetValueOrDefault("footer_direccion",      "Villahermosa, Tabasco, México");
+    var direccionVisible = direccion.Replace("M" + "?" + "xico", "México").Replace("Mexico", "México");
 }
 <footer class="site-footer">
     <div class="footer-inner">
@@ -52,7 +53,7 @@
                 {
                     <li><span class="footer-texto">@telefono</span></li>
                 }
-                <li><span class="footer-texto">@direccion</span></li>
+                <li><span class="footer-texto">@direccionVisible</span></li>
             </ul>
         </div>
     </div>

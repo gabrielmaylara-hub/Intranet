@@ -8,7 +8,7 @@
 }
 
 <div class="home-redisenado">
-    <!-- Bloque principal del portal: identidad, busqueda y resumen operativo. -->
+    <!-- Bloque principal del portal: identidad institucional y mensaje operativo. -->
     <section class="home-hero-interno" aria-labelledby="tituloHome">
         <div class="home-hero-inner">
             <div class="home-hero-copy">
@@ -18,7 +18,12 @@
                     Punto de acceso para sistemas, formatos, manuales, solicitudes y recursos de trabajo de la Fiscalia General del Estado de Tabasco.
                 </p>
             </div>
+        </div>
+    </section>
 
+    <!-- Buscador principal separado para conservar la jerarquia del hero institucional. -->
+    <section class="home-busqueda-seccion" aria-label="Busqueda principal de accesos rapidos">
+        <div class="seccion-inner">
             <div class="home-busqueda-panel">
                 <label for="buscadorAccesos" class="buscador-label">Busqueda rapida</label>
                 <div class="home-buscador-barra">
@@ -38,13 +43,6 @@
                     <button type="button" class="buscador-boton" id="btnBuscarAccesos">Buscar</button>
                 </div>
 
-                <div class="home-tags" aria-label="Filtros sugeridos">
-                    <button type="button" data-busqueda="formatos">Formatos</button>
-                    <button type="button" data-busqueda="manuales">Manuales</button>
-                    <button type="button" data-busqueda="correo">Correo</button>
-                    <button type="button" data-busqueda="dgie">DGIE</button>
-                    <button type="button" data-busqueda="capacitacion">Capacitacion</button>
-                </div>
             </div>
         </div>
     </section>
@@ -65,12 +63,6 @@
                 {
                     var target = acceso.AbreNuevaVentana ? "_blank" : "_self";
                     var rel = acceso.AbreNuevaVentana ? "noopener noreferrer" : "";
-                    var destino = "Recurso institucional";
-
-                    if (acceso.AbreNuevaVentana && Uri.TryCreate(acceso.Url, UriKind.Absolute, out var uri))
-                    {
-                        destino = uri.Host.Replace("www.", "");
-                    }
 
                     var bannerStyle = !string.IsNullOrWhiteSpace(acceso.BannerPath)
                         ? $"--banner-imagen: url('/storage/{acceso.BannerPath}');"
@@ -83,19 +75,10 @@
                        class="acceso-card acceso-card--lista"
                        data-nombre="@acceso.Nombre.ToLowerInvariant()"
                        aria-label="@acceso.Nombre">
-                        <span class="acceso-card-etiqueta">Acceso</span>
                         <span class="acceso-card-contenido">
                             <span class="acceso-card-nombre">@acceso.Nombre</span>
-                            <span class="acceso-card-destino">@destino</span>
                         </span>
-                        @if (acceso.AbreNuevaVentana)
-                        {
-                            <span class="acceso-card-accion" aria-hidden="true">&nearr;</span>
-                        }
-                        else
-                        {
-                            <span class="acceso-card-accion" aria-hidden="true">&rarr;</span>
-                        }
+                        <span class="acceso-card-accion" aria-hidden="true">&rarr;</span>
                     </a>
                 }
             </div>
