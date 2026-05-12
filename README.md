@@ -17,10 +17,38 @@ Proyecto ASP.NET Core Razor Pages para la intranet institucional de la Fiscalia 
 - MySQL 8.0 o superior.
 - Para IIS: ASP.NET Core Hosting Bundle compatible con .NET 10.
 
+## Documentacion operativa
+
+- `docs/SETUP.md`: instalacion local desde cero.
+- `docs/TESTING.md`: ejecucion de pruebas unitarias e integracion.
+- `docs/DEPLOY.md`: publicacion y despliegue en IIS.
+- `docs/RUNBOOK.md`: operacion, respaldo, restore y errores comunes.
+- `docs/BASE_DE_DATOS.md`: guia operativa de MySQL y versionado de esquema.
+- `docs/ARCHIVOS_Y_SUBIDAS.md`: limites y comportamiento de archivos subidos.
+
+## Estructura del proyecto
+
+- `Pages/`: Razor Pages publicas y administrativas.
+- `Models/`: modelos de dominio usados por vistas y repositorios.
+- `Repositories/`: acceso a datos con Dapper.
+- `Services/`: servicios de aplicacion, almacenamiento y seguridad.
+- `Data/`: conexion, inicializador y scripts SQL.
+- `Data/Scripts/`: script principal y migraciones idempotentes.
+- `Storage/`: archivos subidos por administracion, fuera de `wwwroot`.
+- `wwwroot/`: recursos estaticos publicos.
+- `tests/Intranet.Tests/`: pruebas focales e integracion.
+- `scripts/`: utilidades locales, incluyendo MySQL portable de desarrollo.
+
 ## Arranque local desde cero
 
 1. Clonar el repositorio.
-2. Crear una base de datos MySQL ejecutando `Data/Scripts/init.sql`.
+2. Crear una base de datos MySQL ejecutando `Data/Scripts/init.sql`:
+
+```powershell
+Get-Content Data/Scripts/init.sql -Raw |
+    mysql --host=127.0.0.1 --port=3306 --user=USUARIO --password --default-character-set=utf8mb4
+```
+
 3. Revisar la cadena `ConnectionStrings:MySQL` en `appsettings.Development.json`.
 4. Restaurar dependencias:
 
@@ -43,6 +71,17 @@ dotnet run --urls http://127.0.0.1:5077
 
 La vista publica queda disponible en `http://127.0.0.1:5077/`.
 El panel administrativo queda disponible en `http://127.0.0.1:5077/Admin`.
+
+Resumen de ejecucion local:
+
+```powershell
+dotnet restore
+dotnet build
+$env:ASPNETCORE_ENVIRONMENT="Development"
+dotnet run --urls http://127.0.0.1:5077
+```
+
+No versionar contrasenas reales, cadenas de conexion productivas ni archivos `.env` con secretos. Cada entorno debe configurar sus credenciales fuera del control de versiones.
 
 ## Usuario de desarrollo
 
