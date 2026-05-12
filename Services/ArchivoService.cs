@@ -20,6 +20,23 @@ public class ArchivoService : IArchivoService
         ".pdf", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".mp4"
     };
 
+    private static readonly Dictionary<string, string[]> MimePermitidos = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".pdf"] = ["application/pdf"],
+        [".png"] = ["image/png"],
+        [".jpg"] = ["image/jpeg", "image/pjpeg"],
+        [".jpeg"] = ["image/jpeg", "image/pjpeg"],
+        [".webp"] = ["image/webp"],
+        [".mp4"] = ["video/mp4", "application/mp4"],
+        [".svg"] = ["image/svg+xml", "text/xml", "application/xml"]
+    };
+
+    private static readonly byte[] FirmaPng = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    private static readonly HashSet<string> MarcasMp4 = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "isom", "iso2", "mp41", "mp42", "avc1", "M4V ", "MSNV", "dash"
+    };
+
     public ArchivoService(IWebHostEnvironment entorno, IConfiguration config)
     {
         var subcarpeta = config["Storage:RutaBase"] ?? "Storage";
@@ -49,8 +66,7 @@ public class ArchivoService : IArchivoService
             throw new InvalidOperationException(
                 $"Tipo de archivo no permitido: {extension}");
 
-        if (extension == ".svg")
-            await ValidarSvgAsync(archivo);
+        await ValidarTipoArchivoAsync(archivo, extension);
 
         var subcarpetaSegura = NormalizarSubcarpeta(subcarpeta);
         var carpeta = Path.GetFullPath(Path.Combine(
@@ -122,6 +138,9 @@ public class ArchivoService : IArchivoService
             detectEncodingFromByteOrderMarks: true);
 
         var contenido = (await lector.ReadToEndAsync()).ToLowerInvariant();
+        if (!contenido.Contains("<svg", StringComparison.Ordinal))
+            throw new InvalidOperationException("El contenido del SVG no corresponde al tipo permitido.");
+
         var patronesNoPermitidos = new[]
         {
             "<script",
@@ -133,6 +152,95 @@ public class ArchivoService : IArchivoService
 
         if (patronesNoPermitidos.Any(patron => contenido.Contains(patron, StringComparison.Ordinal)))
             throw new InvalidOperationException("El SVG contiene elementos no permitidos.");
+    }
+
+    private static async Task ValidarTipoArchivoAsync(IFormFile archivo, string extension)
+    {
+        ValidarMimeDeclarado(archivo.ContentType, extension);
+
+        if (extension == ".svg")
+        {
+            await ValidarSvgAsync(archivo);
+            return;
+        }
+
+        var bytesALeer = (int)Math.Min(64L, archivo.Length);
+        var encabezado = new byte[bytesALeer];
+
+        await using var stream = archivo.OpenReadStream();
+        var leidos = await stream.ReadAsync(encabezado.AsMemory(0, bytesALeer));
+
+        if (!FirmaValida(extension, encabezado.AsSpan(0, leidos)))
+            throw new InvalidOperationException("El contenido del archivo no corresponde al tipo permitido.");
+    }
+
+    private static void ValidarMimeDeclarado(string? contentType, string extension)
+    {
+        var tipo = contentType?.Split(';', 2)[0].Trim().ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(tipo) || tipo == "application/octet-stream")
+            return;
+
+        if (!MimePermitidos.TryGetValue(extension, out var permitidos) ||
+            !permitidos.Contains(tipo, StringComparer.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("El tipo declarado del archivo no corresponde a la extension permitida.");
+        }
+    }
+
+    private static bool FirmaValida(string extension, ReadOnlySpan<byte> encabezado) =>
+        extension switch
+        {
+            ".pdf" => IniciaConAscii(encabezado, "%PDF-"),
+            ".png" => encabezado.StartsWith(FirmaPng),
+            ".jpg" or ".jpeg" => TieneFirmaJpeg(encabezado),
+            ".webp" => TieneFirmaWebp(encabezado),
+            ".mp4" => TieneFirmaMp4(encabezado),
+            _ => false
+        };
+
+    private static bool TieneFirmaJpeg(ReadOnlySpan<byte> encabezado) =>
+        encabezado.Length >= 3 &&
+        encabezado[0] == 0xFF &&
+        encabezado[1] == 0xD8 &&
+        encabezado[2] == 0xFF;
+
+    private static bool TieneFirmaWebp(ReadOnlySpan<byte> encabezado) =>
+        encabezado.Length >= 12 &&
+        IniciaConAscii(encabezado[..4], "RIFF") &&
+        IniciaConAscii(encabezado.Slice(8, 4), "WEBP");
+
+    private static bool TieneFirmaMp4(ReadOnlySpan<byte> encabezado)
+    {
+        if (encabezado.Length < 12 || !IniciaConAscii(encabezado.Slice(4, 4), "ftyp"))
+            return false;
+
+        var marcaPrincipal = Encoding.ASCII.GetString(encabezado.Slice(8, 4));
+        if (MarcasMp4.Contains(marcaPrincipal))
+            return true;
+
+        for (var indice = 16; indice + 4 <= encabezado.Length; indice += 4)
+        {
+            var marcaCompatible = Encoding.ASCII.GetString(encabezado.Slice(indice, 4));
+            if (MarcasMp4.Contains(marcaCompatible))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IniciaConAscii(ReadOnlySpan<byte> bytes, string valor)
+    {
+        if (bytes.Length < valor.Length)
+            return false;
+
+        for (var indice = 0; indice < valor.Length; indice++)
+        {
+            if (bytes[indice] != valor[indice])
+                return false;
+        }
+
+        return true;
     }
 
     private static string SanitizarNombre(string nombre)
