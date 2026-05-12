@@ -31,7 +31,6 @@
                     <th class="col-drag"></th>
                     <th>Nombre</th>
                     <th>URL</th>
-                    <th>Icono</th>
                     <th>Banner</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -47,18 +46,6 @@
                         <td>@acceso.Nombre</td>
                         <td class="td-url">
                             <span class="texto-truncado" title="@acceso.Url">@acceso.Url</span>
-                        </td>
-                        <td>
-                            @if (!string.IsNullOrWhiteSpace(acceso.IconoPath))
-                            {
-                                <img src="/storage/@acceso.IconoPath"
-                                     alt="Icono @acceso.Nombre"
-                                     class="tabla-icono-preview" />
-                            }
-                            else
-                            {
-                                <span class="texto-gris">-</span>
-                            }
                         </td>
                         <td>
                             @if (!string.IsNullOrWhiteSpace(acceso.BannerPath))
@@ -131,19 +118,12 @@
             </div>
         </div>
 
-        <div class="form-dos-columnas">
-            <div class="campo-grupo">
-                <label class="campo-label">Icono (PNG o SVG)</label>
-                <input type="file" name="Icono" class="campo-input campo-archivo"
-                       accept=".png,.svg,.jpg,.jpeg" />
-                <span class="campo-ayuda">Opcional. Dimension recomendada: 64x64 px.</span>
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Imagen banner (PNG, JPG o WEBP)</label>
-                <input type="file" name="Banner" class="campo-input campo-archivo"
-                       accept=".png,.jpg,.jpeg,.webp" />
-                <span class="campo-ayuda">Opcional. Recomendado: 1600x500 px o proporcion panoramica.</span>
-            </div>
+        @* El frontend público usa banners; Icono se conserva internamente para compatibilidad futura. *@
+        <div class="campo-grupo">
+            <label class="campo-label">Imagen banner (PNG, JPG o WEBP)</label>
+            <input type="file" name="Banner" class="campo-input campo-archivo"
+                   accept=".png,.jpg,.jpeg,.webp" />
+            <span class="campo-ayuda">Opcional. Recomendado: 1600x500 px o proporcion panoramica.</span>
         </div>
 
         <div class="form-dos-columnas">
