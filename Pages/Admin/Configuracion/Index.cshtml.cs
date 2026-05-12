@@ -3,11 +3,19 @@ using Intranet.Repositories.Interfaces;
 using Intranet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Mail;
 
 namespace Intranet.Pages.Admin.Configuracion;
 
 public class IndexModel : PageModel
 {
+    private const int MaxNombreSitio = 120;
+    private const int MaxTextoFooter = 180;
+    private const int MaxSubtextoFooter = 180;
+    private const int MaxEmail = 254;
+    private const int MaxTelefono = 60;
+    private const int MaxDireccion = 250;
+
     private readonly IConfiguracionRepository _configRepo;
     private readonly IArchivoService          _archivos;
 
@@ -49,14 +57,23 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostGuardarAsync()
     {
+        var errorValidacion = ValidarYNormalizarConfiguracion();
+        if (errorValidacion is not null)
+        {
+            EsError = true;
+            Mensaje = errorValidacion;
+            await OnGetAsync();
+            return Page();
+        }
+
         var valores = new Dictionary<string, string>
         {
-            ["nombre_sitio"]          = NombreSitio    ?? "",
-            ["footer_texto"]          = FooterTexto     ?? "",
-            ["footer_subtexto"]       = FooterSubtexto  ?? "",
-            ["footer_contacto_email"] = FooterEmail     ?? "",
-            ["footer_contacto_tel"]   = FooterTelefono  ?? "",
-            ["footer_direccion"]      = FooterDireccion ?? "",
+            ["nombre_sitio"]          = NombreSitio,
+            ["footer_texto"]          = FooterTexto,
+            ["footer_subtexto"]       = FooterSubtexto,
+            ["footer_contacto_email"] = FooterEmail,
+            ["footer_contacto_tel"]   = FooterTelefono,
+            ["footer_direccion"]      = FooterDireccion,
             ["color_dorado"]          = NormalizarHex(ColorDorado, "#c9922a"),
             ["color_dorado_bri"]      = NormalizarHex(ColorDoradoBrillo, "#e8a820")
         };
@@ -116,6 +133,51 @@ public class IndexModel : PageModel
         Mensaje = "Logo actualizado correctamente.";
         await OnGetAsync();
         return Page();
+    }
+
+    private string? ValidarYNormalizarConfiguracion()
+    {
+        NombreSitio = NormalizarTexto(NombreSitio);
+        FooterTexto = NormalizarTexto(FooterTexto);
+        FooterSubtexto = NormalizarTexto(FooterSubtexto);
+        FooterEmail = NormalizarTexto(FooterEmail);
+        FooterTelefono = NormalizarTexto(FooterTelefono);
+        FooterDireccion = NormalizarTexto(FooterDireccion);
+
+        if (NombreSitio.Length > MaxNombreSitio)
+            return $"El nombre del sitio no debe superar {MaxNombreSitio} caracteres.";
+        if (FooterTexto.Length > MaxTextoFooter)
+            return $"El texto principal del footer no debe superar {MaxTextoFooter} caracteres.";
+        if (FooterSubtexto.Length > MaxSubtextoFooter)
+            return $"El subtexto del footer no debe superar {MaxSubtextoFooter} caracteres.";
+        if (FooterEmail.Length > MaxEmail)
+            return $"El correo de contacto no debe superar {MaxEmail} caracteres.";
+        if (FooterTelefono.Length > MaxTelefono)
+            return $"El telefono de contacto no debe superar {MaxTelefono} caracteres.";
+        if (FooterDireccion.Length > MaxDireccion)
+            return $"La direccion no debe superar {MaxDireccion} caracteres.";
+        if (!EmailValido(FooterEmail))
+            return "El correo de contacto no tiene un formato valido.";
+
+        return null;
+    }
+
+    private static string NormalizarTexto(string? valor) => valor?.Trim() ?? string.Empty;
+
+    private static bool EmailValido(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return true;
+
+        try
+        {
+            var direccion = new MailAddress(email);
+            return string.Equals(direccion.Address, email, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     private static string NormalizarHex(string? valor, string fallback)
