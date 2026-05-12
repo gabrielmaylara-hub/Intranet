@@ -118,17 +118,17 @@ INSERT IGNORE INTO configuracion_sitio (clave, valor, tipo, descripcion) VALUES
 INSERT IGNORE INTO accesos_rapidos
     (id, nombre, url, icono_path, banner_path, orden, abre_nueva_ventana, activo)
 VALUES
-    (1,  'Pagina web de la FGE',   'https://www.fiscaliatabasco.gob.mx/',                    NULL, NULL, 1,  1, 1),
+    (1,  'Página web de la FGE',   'https://www.fiscaliatabasco.gob.mx/',                    NULL, NULL, 1,  1, 1),
     (2,  'Correo FGE',             'https://correo.fiscaliatabasco.gob.mx/',                 NULL, NULL, 2,  1, 1),
     (3,  'Transparencia',          'https://transparencia.fiscaliatabasco.gob.mx/account',   NULL, NULL, 3,  1, 1),
-    (4,  'Declaracion patrimonial','https://declaracionpatrimonial.fiscaliatabasco.gob.mx/', NULL, NULL, 4,  1, 1),
-    (5,  'Formatos de No Adeudo y Entrega-Recepcion', '/formatos',                           NULL, NULL, 5,  0, 1),
-    (6,  'Entrega recepcion',      'https://entregarecepcion.fiscaliatabasco.gob.mx/',       NULL, NULL, 6,  1, 1),
+    (4,  'Declaración patrimonial','https://declaracionpatrimonial.fiscaliatabasco.gob.mx/', NULL, NULL, 4,  1, 1),
+    (5,  'Formatos de No Adeudo y Entrega-Recepción', '/formatos',                           NULL, NULL, 5,  0, 1),
+    (6,  'Entrega recepción',      'https://entregarecepcion.fiscaliatabasco.gob.mx/',       NULL, NULL, 6,  1, 1),
     (7,  'Manuales Justicia NET',  '/manuales',                                              NULL, NULL, 7,  0, 1),
     (8,  'Solicitudes DGIE',       '/dgie',                                                  NULL, NULL, 8,  0, 1),
     (9,  'SGC',                    'https://manualespericiales.fiscaliatabasco.gob.mx/',     NULL, NULL, 9,  1, 1),
-    (10, 'Oferta Academica',       '/capacitacion',                                          NULL, NULL, 10, 0, 1),
-    (11, 'Identidad Grafica FGET', '/identidad',                                             NULL, NULL, 11, 0, 1),
+    (10, 'Oferta Académica',       '/capacitacion',                                          NULL, NULL, 10, 0, 1),
+    (11, 'Identidad Gráfica FGET', '/identidad',                                             NULL, NULL, 11, 0, 1),
     (12, 'Tutoriales y Videos',    '/tutoriales',                                            NULL, NULL, 12, 0, 1),
     (13, 'NUBE PRIVADA',           'https://nube.fiscaliatabasco.gob.mx',                    NULL, NULL, 13, 1, 1),
     (14, 'DIRECTORIO',             '/directorio',                                            NULL, NULL, 14, 0, 1);
