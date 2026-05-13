@@ -1,21 +1,19 @@
 # Resumen ejecutivo y tecnico
 
-La Intranet FGET queda en un Estado estable para entrega tecnica. La rama main se encuentra limpia y sincronizada con origin/main, con HEAD en 2341528 docs(performance): documenta baseline de concurrencia y tag final de entrega intranet-entrega-tecnica-v1.
+La Intranet FGET queda en estado estable para entrega tecnica. La rama `main` se encuentra limpia y sincronizada con `origin/main`, con HEAD actual en `983303e fix(home): suaviza contraste de accesos rapidos`.
 
-El proyecto cuenta con base de datos recreable desde cero usando unicamente archivos versionados. La aplicacion puede arrancar sobre una base vacia, crear y verificar tablas, aplicar migraciones y dejar seeds minimos funcionales sin depender de dumps ni de aplicar init.sql manualmente.
+El proyecto cuenta con base de datos recreable desde cero usando archivos versionados. La aplicacion puede arrancar sobre una base vacia, crear y verificar tablas, aplicar migraciones y dejar seeds minimos funcionales sin depender de dumps ni de aplicar `init.sql` manualmente. El ciclo de migraciones esta controlado mediante `schema_migrations` y contempla las migraciones `001` a `009`, ejecutando solo las pendientes.
 
-El ciclo de migraciones quedo saneado: el runner consulta schema_migrations y ejecuta unicamente migraciones pendientes, evitando reejecuciones innecesarias y reduciendo riesgos ante futuras migraciones.
+El bootstrap del administrador inicial fue endurecido: la contrasena inicial ya no vive fija en codigo y se toma desde variable de entorno cuando se requiere crear el primer administrador. El usuario administrador autenticado tambien puede cambiar su propia contrasena desde el panel. Los formularios de login y cambio de contrasena incluyen visor de contrasena y atributos de autocompletado compatibles con administradores de contrasenas.
 
-El bootstrap del administrador inicial fue endurecido. La contrasena inicial ya no vive fija en codigo; se obtiene mediante variable de entorno local cuando se requiere crear el primer administrador. Si la variable no existe, la aplicacion arranca sin imprimir secretos ni generar credenciales inseguras.
+El modulo Directorio esta consolidado. El Directorio publico cuenta con busqueda por texto general, area y extension. El Admin de Directorio permite administrar datos por area, agrupar extensiones, reordenarlas visualmente dentro de cada area y cargar CSV con plantilla simplificada. La integridad se protege en backend y base de datos: no se permiten duplicados por Area + Nombre, Area + Extension ni Area + Orden interno.
 
-El modulo de Directorio quedo protegido contra duplicados tanto en backend como en base de datos. Se validan duplicados en importacion CSV y se agregaron restricciones unicas para evitar conflictos por concurrencia en Area + Nombre y Area + Extension.
+La configuracion publica fue centralizada en el Admin. Header, textos principales del Home, buscador, secciones de avisos/tutoriales y footer se administran desde Configuracion. Los enlaces de menu, Footer: Recursos y Footer: Sistemas son configurables con texto, URL, orden y estado activo/inactivo. El guardado usa patron POST-Redirect-GET para evitar reenvio de formularios al actualizar.
 
-El modulo de Configuracion Admin incorpora validacion backend para email y textos del footer/configuracion, con limites de longitud, recorte de espacios y mensajes amigables sin exponer detalles internos.
+Se agregaron health checks minimos en `/health/live` y `/health/ready`. La auditoria de seguridad del Admin quedo documentada en `docs/ADMIN_SECURITY_AUDIT.md`, sin hallazgos explotables reportados. El baseline de rendimiento quedo documentado en `docs/PERFORMANCE_BASELINE.md`, con pruebas locales no destructivas de 10, 25 y 50 usuarios concurrentes sobre rutas GET, sin errores 500, timeouts ni errores SQL.
 
-Se agregaron health checks minimos en /health/live y /health/ready.
+No se detectan secretos versionados, cadenas sensibles en `appsettings`, dumps, datadir ni archivos locales expuestos en Git. Los archivos locales de entorno, respaldos, herramientas, builds y datadir permanecen ignorados.
 
-La auditoria de seguridad del Admin quedo documentada en docs/ADMIN_SECURITY_AUDIT.md, sin hallazgos explotables reportados. Tambien quedo documentado el baseline de rendimiento en docs/PERFORMANCE_BASELINE.md, con pruebas locales no destructivas de 10, 25 y 50 usuarios concurrentes sobre rutas GET, todas con 100% de exito, sin errores 500, timeouts ni errores SQL.
+Nota importante para la entrega USB: `Storage/` contiene assets locales necesarios para que la copia se vea igual que esta maquina, incluyendo logo institucional, banners e iconos configurados. Estos archivos no forman parte de Git por diseno, pero deben incluirse en la carpeta de entrega cuando se regenere la USB.
 
-No se detectan secretos versionados, cadenas sensibles en appsettings, dumps, datadir ni archivos locales expuestos. El arbol Git quedo limpio, sincronizado y marcado con el tag final intranet-entrega-tecnica-v1.
-
-Este Estado representa una base tecnica estable para entrega, revision y continuidad del proyecto.
+Este estado representa una base tecnica estable para entrega, revision y continuidad del proyecto.
