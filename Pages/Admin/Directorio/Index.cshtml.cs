@@ -44,6 +44,7 @@ public class IndexModel : PageModel
 
     public string? Mensaje { get; private set; }
     public bool    EsError { get; private set; }
+    public bool    AnclarCargaCsv { get; private set; }
 
     public async Task OnGetAsync() => await CargarListasAsync();
 
@@ -91,6 +92,7 @@ public class IndexModel : PageModel
         var filas = await LeerCsvAsync(ArchivoCsv);
         Importacion = await PrepararImportacionAsync(filas);
         ImportacionJson = JsonSerializer.Serialize(filas, JsonOptions);
+        AnclarCargaCsv = true;
         await CargarListasAsync();
         return Page();
     }
@@ -127,6 +129,7 @@ public class IndexModel : PageModel
         {
             EsError = true;
             Mensaje = "Corrige las filas con error o conflicto antes de confirmar.";
+            AnclarCargaCsv = true;
             await CargarListasAsync();
             return Page();
         }
@@ -180,6 +183,7 @@ public class IndexModel : PageModel
         {
             EsError = true;
             Mensaje = "No se pudo aplicar la importacion porque generaria un duplicado en el Directorio.";
+            AnclarCargaCsv = true;
             await CargarListasAsync();
             return Page();
         }
@@ -187,8 +191,14 @@ public class IndexModel : PageModel
         Mensaje = $"Importacion aplicada. Cambios guardados: {aplicadas}.";
         Importacion = null;
         ImportacionJson = null;
-        await CargarListasAsync();
-        return Page();
+        return RedirectToPage(null, null, null, "carga-csv");
+    }
+
+    public IActionResult OnPostCancelarImportacion()
+    {
+        Importacion = null;
+        ImportacionJson = null;
+        return RedirectToPage(null, null, null, "carga-csv");
     }
 
     public async Task<IActionResult> OnPostReordenarExtensionesAsync(
@@ -419,6 +429,7 @@ public class IndexModel : PageModel
     {
         EsError = true;
         Mensaje = mensaje;
+        AnclarCargaCsv = true;
         await CargarListasAsync();
     }
 

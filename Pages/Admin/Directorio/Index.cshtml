@@ -237,7 +237,7 @@
     </div>
 </div>
 
-<div class="admin-panel">
+<div class="admin-panel" id="carga-csv">
     <div class="panel-cabecera">
         <h2 class="admin-panel-titulo">Carga masiva CSV</h2>
         <a class="btn btn-secundario btn-sm" asp-page-handler="Plantilla">Descargar plantilla</a>
@@ -303,13 +303,29 @@
             </table>
         </div>
 
-        <form method="post" asp-page-handler="ConfirmarImportacion" class="form-acciones">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="ImportacionJson" value="@Model.ImportacionJson" />
-            <button type="submit" class="btn btn-primario" @(Model.Importacion.PuedeConfirmar ? null : "disabled")>
-                Confirmar importacion
-            </button>
-        </form>
+        <div class="form-acciones">
+            @if (Model.Importacion.PuedeConfirmar)
+            {
+                <form method="post" asp-page-handler="ConfirmarImportacion" class="form-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ImportacionJson" value="@Model.ImportacionJson" />
+                    <button type="submit" class="btn btn-primario">
+                        Confirmar importacion
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="alerta alerta-error" role="alert">
+                    La importacion no puede confirmarse mientras existan errores o conflictos.
+                </div>
+            }
+
+            <form method="post" asp-page-handler="CancelarImportacion" class="form-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-neutro">Cancelar previsualizacion</button>
+            </form>
+        </div>
     }
 </div>
 
@@ -366,3 +382,19 @@
         </div>
     </form>
 </div>
+
+@if (Model.AnclarCargaCsv || Model.Importacion is not null)
+{
+    <script>
+        (() => {
+            const destino = document.getElementById('carga-csv');
+            if (!destino) {
+                return;
+            }
+
+            const url = `${window.location.pathname}${window.location.search}#carga-csv`;
+            window.history.replaceState(null, '', url);
+            destino.scrollIntoView({ block: 'start' });
+        })();
+    </script>
+}
