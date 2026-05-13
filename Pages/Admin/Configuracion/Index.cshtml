@@ -186,7 +186,7 @@
         <div class="admin-panel">
             <h2 class="admin-panel-titulo">Footer: recursos</h2>
             <div class="tabla-wrap">
-                <table class="admin-tabla">
+                <table class="admin-tabla admin-tabla--enlaces-footer">
                     <thead>
                         <tr>
                             <th>Texto</th>
@@ -204,7 +204,7 @@
                                 <input type="text" name="FooterRecursosLinks[@i].Texto" value="@Model.FooterRecursosLinks[i].Texto" class="campo-input" maxlength="150" />
                             </td>
                             <td><input type="text" name="FooterRecursosLinks[@i].Url" value="@Model.FooterRecursosLinks[i].Url" class="campo-input" maxlength="500" /></td>
-                            <td><input type="number" name="FooterRecursosLinks[@i].Orden" value="@Model.FooterRecursosLinks[i].Orden" class="campo-input" min="1" /></td>
+                            <td><input type="number" name="FooterRecursosLinks[@i].Orden" value="@Model.FooterRecursosLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" /></td>
                             <td>
                                 <input type="checkbox" name="FooterRecursosLinks[@i].Activo" value="true" @(Model.FooterRecursosLinks[i].Activo ? "checked" : "") />
                                 <input type="hidden" name="FooterRecursosLinks[@i].Activo" value="false" />
@@ -219,7 +219,7 @@
         <div class="admin-panel">
             <h2 class="admin-panel-titulo">Footer: sistemas</h2>
             <div class="tabla-wrap">
-                <table class="admin-tabla">
+                <table class="admin-tabla admin-tabla--enlaces-footer">
                     <thead>
                         <tr>
                             <th>Texto</th>
@@ -237,7 +237,7 @@
                                 <input type="text" name="FooterSistemasLinks[@i].Texto" value="@Model.FooterSistemasLinks[i].Texto" class="campo-input" maxlength="150" />
                             </td>
                             <td><input type="text" name="FooterSistemasLinks[@i].Url" value="@Model.FooterSistemasLinks[i].Url" class="campo-input" maxlength="500" /></td>
-                            <td><input type="number" name="FooterSistemasLinks[@i].Orden" value="@Model.FooterSistemasLinks[i].Orden" class="campo-input" min="1" /></td>
+                            <td><input type="number" name="FooterSistemasLinks[@i].Orden" value="@Model.FooterSistemasLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" /></td>
                             <td>
                                 <input type="checkbox" name="FooterSistemasLinks[@i].Activo" value="true" @(Model.FooterSistemasLinks[i].Activo ? "checked" : "") />
                                 <input type="hidden" name="FooterSistemasLinks[@i].Activo" value="false" />

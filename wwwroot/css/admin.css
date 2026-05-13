@@ -363,6 +363,51 @@ button { cursor: pointer; font-family: inherit; }
 
 .admin-tabla tbody tr:hover { background: var(--negro-hover); }
 
+.admin-tabla--enlaces-footer {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.admin-tabla--enlaces-footer th,
+.admin-tabla--enlaces-footer td {
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+}
+
+.admin-tabla--enlaces-footer th:nth-child(1),
+.admin-tabla--enlaces-footer td:nth-child(1) {
+  width: 33%;
+}
+
+.admin-tabla--enlaces-footer th:nth-child(2),
+.admin-tabla--enlaces-footer td:nth-child(2) {
+  width: auto;
+}
+
+.admin-tabla--enlaces-footer th:nth-child(3),
+.admin-tabla--enlaces-footer td:nth-child(3) {
+  width: 78px;
+  text-align: center;
+}
+
+.admin-tabla--enlaces-footer th:nth-child(4),
+.admin-tabla--enlaces-footer td:nth-child(4) {
+  width: 68px;
+  text-align: center;
+}
+
+.admin-tabla--enlaces-footer .campo-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-tabla--enlaces-footer .campo-input--orden-enlace {
+  max-width: 72px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  text-align: center;
+}
+
 .admin-tabla tbody tr.admin-tabla-grupo,
 .admin-tabla tbody tr.admin-tabla-grupo:hover {
   background: rgba(201,146,42,0.12);
