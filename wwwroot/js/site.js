@@ -107,6 +107,40 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Directorio publico: envia la busqueda GET con una pausa breve al escribir.
+  // ---------------------------------------------------------------------------
+  const directorioBuscador = document.querySelector("[data-directorio-buscador]");
+
+  if (directorioBuscador) {
+    const controles = Array.from(directorioBuscador.querySelectorAll("[data-directorio-auto]"));
+    let timerBusqueda;
+
+    const enviarBusqueda = () => {
+      const datos = new FormData(directorioBuscador);
+      const parametrosBusqueda = new URLSearchParams();
+
+      datos.forEach((valor, clave) => {
+        const texto = (valor || "").toString().trim();
+        if (texto.length > 0) parametrosBusqueda.set(clave, texto);
+      });
+
+      const destino = new URL(directorioBuscador.action || window.location.href, window.location.origin);
+      destino.search = parametrosBusqueda.toString();
+      window.location.assign(destino.toString());
+    };
+
+    const programarBusqueda = (inmediata = false) => {
+      window.clearTimeout(timerBusqueda);
+      timerBusqueda = window.setTimeout(enviarBusqueda, inmediata ? 0 : 350);
+    };
+
+    controles.forEach((control) => {
+      const evento = control.tagName === "SELECT" ? "change" : "input";
+      control.addEventListener(evento, () => programarBusqueda(evento === "change"));
+    });
+  }
+
   if (modoPdf) {
     window.addEventListener("load", () => {
       window.setTimeout(() => window.print(), 700);

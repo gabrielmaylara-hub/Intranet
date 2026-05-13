@@ -15,6 +15,7 @@ public class DirectorioModel : PageModel
         _directorioRepo = directorioRepo;
 
     public IReadOnlyList<DirectorioGrupo> Grupos { get; private set; } = [];
+    public IReadOnlyList<DirectorioArea> AreasBusqueda { get; private set; } = [];
 
     [BindProperty(SupportsGet = true, Name = "q")]
     public string? Q { get; set; }
@@ -37,8 +38,14 @@ public class DirectorioModel : PageModel
         Extension = Extension?.Trim();
 
         var entradas = await _directorioRepo.ObtenerTodosAsync(soloActivos: true);
-        var areas = (await _directorioRepo.ObtenerAreasAsync())
-            .ToDictionary(a => a.Nombre, StringComparer.OrdinalIgnoreCase);
+        var areasLista = (await _directorioRepo.ObtenerAreasAsync()).ToList();
+        AreasBusqueda = areasLista
+            .Where(a => a.Activo)
+            .OrderBy(a => a.Orden)
+            .ThenBy(a => a.Nombre)
+            .ToList();
+
+        var areas = areasLista.ToDictionary(a => a.Nombre, StringComparer.OrdinalIgnoreCase);
 
         Grupos = entradas
             .Where(e => CumpleFiltros(e, areas))
@@ -73,8 +80,11 @@ public class DirectorioModel : PageModel
         if (!area.Activo)
             return false;
 
-        if (!CoincideBusqueda(area.Nombre, Area) && !string.IsNullOrWhiteSpace(Area))
+        if (!string.IsNullOrWhiteSpace(Area) &&
+            !string.Equals(area.Nombre.Trim(), Area.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         if (!CoincideBusqueda(entrada.Extension, Extension) && !string.IsNullOrWhiteSpace(Extension))
             return false;

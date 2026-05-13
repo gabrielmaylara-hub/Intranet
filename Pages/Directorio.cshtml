@@ -17,12 +17,16 @@
             </p>
         </header>
 
-        <form method="get" class="directorio-buscador" aria-label="Buscar en Directorio">
+        <form method="get"
+              class="directorio-buscador"
+              data-directorio-buscador
+              aria-label="Buscar en Directorio">
             <div class="directorio-buscador-principal">
                 <label for="directorio-q">B&uacute;squeda general</label>
                 <input type="search"
                        id="directorio-q"
                        name="q"
+                       data-directorio-auto
                        value="@Model.Q"
                        placeholder="Buscar por &aacute;rea, unidad, extensi&oacute;n, titular, ubicaci&oacute;n o correo" />
             </div>
@@ -30,17 +34,29 @@
             <div class="directorio-buscador-grid">
                 <div>
                     <label for="directorio-area">&Aacute;rea</label>
-                    <input type="search"
-                           id="directorio-area"
-                           name="area"
-                           value="@Model.Area"
-                           placeholder="Ej. DESPACHO" />
+                    <select id="directorio-area"
+                            name="area"
+                            data-directorio-auto>
+                        <option value="">Todas las &aacute;reas</option>
+                        @foreach (var area in Model.AreasBusqueda)
+                        {
+                            if (string.Equals(Model.Area, area.Nombre, StringComparison.OrdinalIgnoreCase))
+                            {
+                                <option value="@area.Nombre" selected>@area.Nombre</option>
+                            }
+                            else
+                            {
+                                <option value="@area.Nombre">@area.Nombre</option>
+                            }
+                        }
+                    </select>
                 </div>
                 <div>
                     <label for="directorio-extension">Extensi&oacute;n</label>
                     <input type="search"
                            id="directorio-extension"
                            name="extension"
+                           data-directorio-auto
                            value="@Model.Extension"
                            placeholder="Ej. 4017" />
                 </div>
