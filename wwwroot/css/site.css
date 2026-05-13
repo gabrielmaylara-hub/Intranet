@@ -1266,16 +1266,16 @@ button { cursor: pointer; font-family: inherit; }
   background:
     linear-gradient(
       125deg,
-      rgba(0, 0, 0, 0.80) 0%,
-      rgba(0, 0, 0, 0.66) 36%,
-      rgba(0, 0, 0, 0.32) 66%,
-      rgba(0, 0, 0, 0.12) 100%
+      rgba(0, 0, 0, 0.90) 0%,
+      rgba(0, 0, 0, 0.76) 38%,
+      rgba(0, 0, 0, 0.42) 68%,
+      rgba(0, 0, 0, 0.16) 100%
     ),
     linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.74) 0%,
-      rgba(0, 0, 0, 0.38) 50%,
-      rgba(0, 0, 0, 0.12) 100%
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.46) 52%,
+      rgba(0, 0, 0, 0.14) 100%
     );
   opacity: 1;
   pointer-events: none;
@@ -1305,16 +1305,16 @@ button { cursor: pointer; font-family: inherit; }
   background:
     linear-gradient(
       125deg,
-      rgba(0, 0, 0, 0.76) 0%,
-      rgba(0, 0, 0, 0.60) 36%,
-      rgba(0, 0, 0, 0.28) 66%,
-      rgba(0, 0, 0, 0.10) 100%
+      rgba(0, 0, 0, 0.84) 0%,
+      rgba(0, 0, 0, 0.68) 38%,
+      rgba(0, 0, 0, 0.36) 68%,
+      rgba(0, 0, 0, 0.14) 100%
     ),
     linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.70) 0%,
-      rgba(0, 0, 0, 0.34) 50%,
-      rgba(0, 0, 0, 0.10) 100%
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.42) 52%,
+      rgba(0, 0, 0, 0.12) 100%
     );
 }
 
@@ -1324,28 +1324,41 @@ button { cursor: pointer; font-family: inherit; }
   transform: translateX(4px);
 }
 
-.acceso-card-contenido {
+.home-redisenado .acceso-card-contenido {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  max-width: calc(100% - 2.35rem);
   margin-top: auto;
-  padding-right: 2.7rem;
+  margin-left: -0.35rem;
+  margin-bottom: -0.15rem;
+  padding: 0.62rem 0.8rem 0.68rem 0.95rem;
   position: relative;
   z-index: 1;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.58) 64%,
+      rgba(0, 0, 0, 0.22) 100%
+    );
+  border-left: 3px solid rgba(232,168,32,0.86);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.26);
 }
 
 .home-redisenado .acceso-card-nombre {
   max-width: none;
   color: #ffffff;
   font-family: var(--fuente-cond);
-  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
-  font-weight: 700;
+  font-size: clamp(1.48rem, 2.55vw, 2rem);
+  font-weight: 800;
   letter-spacing: 0.01em;
   line-height: 1.12;
   overflow-wrap: anywhere;
   text-shadow:
-    0 2px 8px rgba(0,0,0,0.76),
-    0 0 18px rgba(0,0,0,0.46);
+    0 2px 5px rgba(0,0,0,0.92),
+    0 0 18px rgba(0,0,0,0.72),
+    0 0 2px rgba(0,0,0,0.95);
 }
 
 .acceso-card-accion {
@@ -1358,8 +1371,8 @@ button { cursor: pointer; font-family: inherit; }
   line-height: 1;
   z-index: 1;
   text-shadow:
-    0 2px 8px rgba(0,0,0,0.72),
-    0 0 16px rgba(0,0,0,0.42);
+    0 2px 6px rgba(0,0,0,0.90),
+    0 0 16px rgba(0,0,0,0.62);
   transition: color var(--transicion), transform var(--transicion);
 }
 
