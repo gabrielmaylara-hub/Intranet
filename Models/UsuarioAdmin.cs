@@ -10,4 +10,7 @@ public class UsuarioAdmin
     public string Rol            { get; set; } = "admin_general";
     public int?   AreaPublicacionId { get; set; }
     public string? AreaPublicacionNombre { get; set; }
+    public DateTime FechaCreacion { get; set; }
+    public DateTime? FechaActualizacion { get; set; }
+    public DateTime? UltimoAcceso { get; set; }
 }

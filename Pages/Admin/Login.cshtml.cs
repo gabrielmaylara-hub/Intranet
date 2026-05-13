@@ -86,6 +86,7 @@ public class LoginModel : PageModel
         }
 
         _intentosLogin.RegistrarExito(HttpContext, Usuario);
+        await _usuariosRepo.RegistrarUltimoAccesoAsync(usuario.Id);
 
         // Crea los claims de la sesión. NameIdentifier se mantiene como Id para
         // no romper cambio de contraseña ni flujos existentes; rol/area preparan

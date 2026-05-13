@@ -124,6 +124,10 @@ Reglas de esta fase:
 - `admin_general` puede no tener area asignada.
 - No borrar areas con usuarios asociados; usar desactivar.
 - Todavia no se aplican filtros por area a Avisos, Tutoriales ni Archivos.
+- La administracion de usuarios vive en `/Admin/Usuarios` y solo debe verla `admin_general`.
+- No desactives ni cambies el rol del ultimo `admin_general` activo; el backend lo bloquea para evitar dejar el panel sin acceso.
+- Para crear o resetear un usuario se captura una contrasena temporal desde Admin. El valor no se muestra despues de guardar y solo se conserva el hash.
+- `usuario_area` todavia no administra Avisos/Tutoriales en esta fase; esa restriccion se aplicara cuando esos modulos tengan columna de area.
 
 Areas semilla oficiales:
 

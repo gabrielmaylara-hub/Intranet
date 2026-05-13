@@ -33,7 +33,7 @@ public class CambiarPasswordModel : PageModel
     public async Task<IActionResult> OnPostAsync()
     {
         var usuario = await ObtenerUsuarioActualAsync();
-        if (usuario is null)
+        if (usuario is null || !usuario.Activo)
             return RedirectToPage("/Admin/Login");
 
         var error = ValidarFormulario();

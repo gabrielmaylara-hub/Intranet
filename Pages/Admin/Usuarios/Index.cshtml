@@ -1,0 +1,188 @@
+@page
+@model Intranet.Pages.Admin.Usuarios.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Usuarios";
+    var editando = Model.Id > 0;
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <div>
+            <h2 class="admin-panel-titulo">Usuarios</h2>
+            <p class="campo-ayuda">
+                Los usuarios de área solo podrán administrar contenido de su área en las fases posteriores.
+                Cada usuario de área debe pertenecer a una sola área.
+            </p>
+        </div>
+        <a class="btn btn-primario btn-sm" href="/Admin/Usuarios">Nuevo usuario</a>
+    </div>
+
+    <form method="post" asp-page-handler="Guardar">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="Usuario">Usuario <span class="campo-requerido">*</span></label>
+                <input class="campo-input" asp-for="Usuario" maxlength="100" required readonly="@editando" />
+                @if (editando)
+                {
+                    <span class="campo-ayuda">El nombre de acceso se conserva estable después de creado.</span>
+                }
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="NombreCompleto">Nombre <span class="campo-requerido">*</span></label>
+                <input class="campo-input" asp-for="NombreCompleto" maxlength="200" required />
+            </div>
+        </div>
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="Rol">Rol <span class="campo-requerido">*</span></label>
+                <select class="campo-input" asp-for="Rol">
+                    <option value="admin_general">admin_general</option>
+                    <option value="usuario_area">usuario_area</option>
+                </select>
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="AreaPublicacionId">Área de publicación</label>
+                <select class="campo-input" asp-for="AreaPublicacionId">
+                    <option value="">Sin área</option>
+                    @foreach (var area in Model.Areas)
+                    {
+                        <option value="@area.Id" disabled="@(!area.Activa)">
+                            @area.Nombre@(!area.Activa ? " (inactiva)" : "")
+                        </option>
+                    }
+                </select>
+                <span class="campo-ayuda">Obligatoria solo para usuario_area.</span>
+            </div>
+        </div>
+
+        @if (!editando)
+        {
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label" asp-for="PasswordTemporal">Contraseña temporal <span class="campo-requerido">*</span></label>
+                    <input class="campo-input" asp-for="PasswordTemporal" type="password" autocomplete="new-password" minlength="10" required />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label" asp-for="ConfirmarPasswordTemporal">Confirmar contraseña <span class="campo-requerido">*</span></label>
+                    <input class="campo-input" asp-for="ConfirmarPasswordTemporal" type="password" autocomplete="new-password" minlength="10" required />
+                </div>
+            </div>
+        }
+
+        <div class="campo-grupo campo-grupo--checks">
+            <label class="campo-check">
+                <input type="checkbox" asp-for="Activo" />
+                Activo
+            </label>
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">
+                @(editando ? "Guardar cambios" : "Crear usuario")
+            </button>
+            @if (editando)
+            {
+                <a class="btn btn-neutro" href="/Admin/Usuarios">Cancelar edición</a>
+            }
+        </div>
+    </form>
+</div>
+
+<div class="admin-panel">
+    <h2 class="admin-panel-titulo">Listado</h2>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Área</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var usuario in Model.Usuarios)
+                {
+                    <tr>
+                        <td><strong>@usuario.Usuario</strong></td>
+                        <td>@usuario.NombreCompleto</td>
+                        <td><code>@usuario.Rol</code></td>
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(usuario.AreaPublicacionNombre))
+                            {
+                                <span class="texto-gris">Sin área</span>
+                            }
+                            else
+                            {
+                                @usuario.AreaPublicacionNombre
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @(usuario.Activo ? "badge-activo" : "badge-inactivo")">
+                                @(usuario.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <a class="btn btn-sm btn-secundario"
+                               href="/Admin/Usuarios?editarId=@usuario.Id">
+                                Editar
+                            </a>
+
+                            @if (usuario.Activo)
+                            {
+                                <form method="post" asp-page-handler="Desactivar" class="form-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@usuario.Id" />
+                                    <button type="submit" class="btn btn-sm btn-advertencia">Desactivar</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Activar" class="form-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@usuario.Id" />
+                                    <button type="submit" class="btn btn-sm btn-exito">Activar</button>
+                                </form>
+                            }
+
+                            <form method="post" asp-page-handler="ResetearPassword" class="form-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@usuario.Id" />
+                                <input type="password"
+                                       name="nuevoPassword"
+                                       class="campo-input campo-input-inline"
+                                       placeholder="Nueva temporal"
+                                       autocomplete="new-password"
+                                       minlength="10"
+                                       required />
+                                <input type="password"
+                                       name="confirmarPassword"
+                                       class="campo-input campo-input-inline"
+                                       placeholder="Confirmar"
+                                       autocomplete="new-password"
+                                       minlength="10"
+                                       required />
+                                <button type="submit" class="btn btn-sm btn-secundario">Resetear</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

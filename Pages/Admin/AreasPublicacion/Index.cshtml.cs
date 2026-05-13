@@ -1,7 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Intranet.Models;
+using Intranet.Pages.Admin;
 using Intranet.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -9,7 +10,7 @@ using MySqlConnector;
 
 namespace Intranet.Pages.Admin.AreasPublicacion;
 
-public class IndexModel : PageModel
+public class IndexModel : AdminPageModel
 {
     private const int MaxNombre = 180;
     private const int MaxDescripcion = 300;
@@ -30,19 +31,22 @@ public class IndexModel : PageModel
     [TempData] public string? Mensaje { get; set; }
     [TempData] public bool EsError { get; set; }
 
-    public async Task OnGetAsync(int? editarId)
+    public async Task<IActionResult> OnGetAsync(int? editarId)
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         await CargarAreasAsync();
 
         if (editarId is null)
-            return;
+            return Page();
 
         var area = await _areasRepo.ObtenerPorIdAsync(editarId.Value);
         if (area is null)
         {
             EsError = true;
             Mensaje = "No se encontró el área seleccionada.";
-            return;
+            return Page();
         }
 
         Id = area.Id;
@@ -50,10 +54,14 @@ public class IndexModel : PageModel
         Descripcion = area.Descripcion;
         Orden = area.Orden;
         Activa = area.Activa;
+        return Page();
     }
 
     public async Task<IActionResult> OnPostGuardarAsync()
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         var error = await ValidarFormularioAsync();
         if (error is not null)
         {
@@ -118,6 +126,9 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostActivarAsync(int id)
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         await _areasRepo.ActivarAsync(id);
         Mensaje = "Área de publicación activada.";
         EsError = false;
@@ -126,6 +137,9 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostDesactivarAsync(int id)
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         await _areasRepo.DesactivarAsync(id);
         Mensaje = "Área de publicación desactivada.";
         EsError = false;
@@ -134,6 +148,9 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostEliminarAsync(int id)
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         var puedeEliminar = await _areasRepo.PuedeEliminarAsync(id);
         if (!puedeEliminar)
         {
