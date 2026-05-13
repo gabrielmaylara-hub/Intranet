@@ -180,35 +180,54 @@
       return `${primerNombre.charAt(0)}${primerApellido}${segundoApellido.charAt(0)}`;
     };
 
-    const tomarCaracter = (caracteres) => {
+    const tomarElemento = (valores) => {
       const aleatorio = window.crypto?.getRandomValues
         ? window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296
         : Math.random();
 
-      return caracteres[Math.floor(aleatorio * caracteres.length)];
+      return valores[Math.floor(aleatorio * valores.length)];
     };
 
     const generarPasswordTemporal = () => {
-      const mayusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-      const minusculas = "abcdefghijkmnopqrstuvwxyz";
+      const palabras = [
+        "Folio",
+        "Archivo",
+        "Oficio",
+        "Carpeta",
+        "Sello",
+        "Acta",
+        "Cedula",
+        "Caja",
+        "Mesa",
+        "Libro",
+        "Minuta",
+        "Sala",
+        "Modulo",
+        "Registro",
+        "Agenda",
+        "Formato",
+        "Control",
+        "Unidad",
+        "Tramite"
+      ];
       const digitos = "23456789";
-      const simbolos = "-_*";
-      const todos = `${mayusculas}${minusculas}${digitos}`;
 
-      return [
-        tomarCaracter(mayusculas),
-        tomarCaracter(minusculas),
-        tomarCaracter(minusculas),
-        tomarCaracter(digitos),
-        "-",
-        tomarCaracter(mayusculas),
-        tomarCaracter(minusculas),
-        tomarCaracter(digitos),
-        tomarCaracter(simbolos),
-        tomarCaracter(todos),
-        tomarCaracter(digitos),
-        tomarCaracter(minusculas)
-      ].join("");
+      for (let intento = 0; intento < 20; intento += 1) {
+        const izquierda = tomarElemento(palabras);
+        const derecha = tomarElemento(palabras);
+        const numeros = [
+          tomarElemento(digitos),
+          tomarElemento(digitos),
+          tomarElemento(digitos)
+        ].join("");
+        const password = `${izquierda}${numeros}${derecha}`;
+
+        if (password.length >= 11 && password.length <= 16) {
+          return password;
+        }
+      }
+
+      return `Folio${tomarElemento(digitos)}${tomarElemento(digitos)}${tomarElemento(digitos)}Mesa`;
     };
 
     const esAltaUsuario = () => {
@@ -229,6 +248,41 @@
       const password = generarPasswordTemporal();
       passwordUsuario.value = password;
       confirmarPasswordUsuario.value = password;
+      passwordUsuario.setCustomValidity("");
+      confirmarPasswordUsuario.setCustomValidity("");
+    };
+
+    const validarPasswordTemporalAntesDeEnviar = () => {
+      if (!esAltaUsuario() || !passwordUsuario || !confirmarPasswordUsuario) return true;
+
+      const password = passwordUsuario.value.trim();
+      const confirmacion = confirmarPasswordUsuario.value.trim();
+
+      passwordUsuario.setCustomValidity("");
+      confirmarPasswordUsuario.setCustomValidity("");
+
+      if (!password) {
+        passwordUsuario.setCustomValidity("Ingresa una contrasena temporal.");
+        passwordUsuario.reportValidity();
+        passwordUsuario.focus();
+        return false;
+      }
+
+      if (!confirmacion) {
+        confirmarPasswordUsuario.setCustomValidity("Confirma la contrasena temporal.");
+        confirmarPasswordUsuario.reportValidity();
+        confirmarPasswordUsuario.focus();
+        return false;
+      }
+
+      if (password !== confirmacion) {
+        confirmarPasswordUsuario.setCustomValidity("La confirmacion de contrasena no coincide.");
+        confirmarPasswordUsuario.reportValidity();
+        confirmarPasswordUsuario.focus();
+        return false;
+      }
+
+      return true;
     };
 
     const sincronizarRolUsuario = () => {
@@ -257,6 +311,21 @@
     btnRegenerarPasswordUsuario?.addEventListener("click", () => {
       asignarPasswordTemporal(true);
       passwordUsuario?.focus();
+    });
+
+    formUsuarios?.addEventListener("submit", (evento) => {
+      if (!validarPasswordTemporalAntesDeEnviar()) {
+        evento.preventDefault();
+      }
+    });
+
+    passwordUsuario?.addEventListener("input", () => {
+      passwordUsuario.setCustomValidity("");
+      confirmarPasswordUsuario?.setCustomValidity("");
+    });
+
+    confirmarPasswordUsuario?.addEventListener("input", () => {
+      confirmarPasswordUsuario.setCustomValidity("");
     });
 
     nombreUsuario?.addEventListener("input", () => {
