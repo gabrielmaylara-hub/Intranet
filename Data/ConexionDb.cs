@@ -13,9 +13,16 @@ public class ConexionDb
 
     public ConexionDb(IConfiguration configuracion)
     {
-        _cadenaConexion = configuracion.GetConnectionString("MySQL")
+        var cadenaConexion = configuracion.GetConnectionString("MySQL")
             ?? throw new InvalidOperationException(
                 "La cadena de conexión 'MySQL' no está configurada en appsettings.json.");
+
+        var builder = new MySqlConnectionStringBuilder(cadenaConexion)
+        {
+            AllowUserVariables = true
+        };
+
+        _cadenaConexion = builder.ConnectionString;
     }
 
     /// <summary>

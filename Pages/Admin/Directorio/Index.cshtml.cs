@@ -242,6 +242,17 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        if (entradas.Any(e =>
+            e.Id != Id &&
+            Coincide(e.Area, areaSeleccionada.Nombre) &&
+            e.Orden == Orden))
+        {
+            EsError = true;
+            Mensaje = "Ya existe una extensión con ese orden interno dentro del área seleccionada.";
+            await CargarListasAsync();
+            return Page();
+        }
+
         var entrada = new DirectorioEntrada
         {
             Id = Id,
@@ -262,7 +273,9 @@ public class IndexModel : PageModel
         catch (MySqlException ex) when (EsDuplicadoDirectorio(ex))
         {
             EsError = true;
-            Mensaje = "Ya existe una unidad o extension con esos datos en el area seleccionada.";
+            Mensaje = EsDuplicadoOrdenDirectorio(ex)
+                ? "Ya existe una extensión con ese orden interno dentro del área seleccionada."
+                : "Ya existe una unidad o extension con esos datos en el area seleccionada.";
             await CargarListasAsync();
             return Page();
         }
@@ -446,6 +459,7 @@ public class IndexModel : PageModel
         var clavesExactas = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var clavesAreaNombre = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var clavesAreaExtension = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var clavesAreaOrden = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var resultado = new List<DirectorioImportacionFila>();
 
         foreach (var fila in filas)
@@ -454,7 +468,12 @@ public class IndexModel : PageModel
             ValidarFila(vista);
 
             if (vista.Errores.Count == 0)
-                ValidarDuplicadosArchivo(vista, clavesExactas, clavesAreaNombre, clavesAreaExtension);
+                ValidarDuplicadosArchivo(
+                    vista,
+                    clavesExactas,
+                    clavesAreaNombre,
+                    clavesAreaExtension,
+                    clavesAreaOrden);
 
             if (vista.Errores.Count == 0)
                 ClasificarFila(vista, existentes, areas);
@@ -469,7 +488,8 @@ public class IndexModel : PageModel
         DirectorioImportacionFila fila,
         Dictionary<string, int> clavesExactas,
         Dictionary<string, int> clavesAreaNombre,
-        Dictionary<string, int> clavesAreaExtension)
+        Dictionary<string, int> clavesAreaExtension,
+        Dictionary<string, int> clavesAreaOrden)
     {
         var claveExacta = Clave(fila.Area, fila.Nombre, fila.Extension);
         if (clavesExactas.TryGetValue(claveExacta, out var lineaExacta))
@@ -489,10 +509,15 @@ public class IndexModel : PageModel
                 fila.Errores.Add($"El area y extension ya aparecen en la fila {lineaExtension}.");
         }
 
+        var claveOrden = Clave(fila.Area, fila.Orden.ToString());
+        if (clavesAreaOrden.TryGetValue(claveOrden, out var lineaOrden))
+            fila.Errores.Add($"El area y orden interno ya aparecen en la fila {lineaOrden}.");
+
         clavesExactas[claveExacta] = fila.Linea;
         clavesAreaNombre[claveNombre] = fila.Linea;
         if (!string.IsNullOrWhiteSpace(fila.Extension))
             clavesAreaExtension[Clave(fila.Area, fila.Extension)] = fila.Linea;
+        clavesAreaOrden[claveOrden] = fila.Linea;
     }
 
     private static void ValidarFila(DirectorioImportacionFila fila)
@@ -561,6 +586,10 @@ public class IndexModel : PageModel
             Coincide(e.Area, fila.Area) &&
             Coincide(e.Extension, fila.Extension));
 
+        var mismaAreaOrden = existentes.FirstOrDefault(e =>
+            Coincide(e.Area, fila.Area) &&
+            e.Orden == fila.Orden);
+
         var area = areas.FirstOrDefault(a => Coincide(a.Nombre, fila.Area));
         fila.ObservacionArea = area is null
             ? "Area nueva."
@@ -583,6 +612,14 @@ public class IndexModel : PageModel
             fila.Observacion = fila.Estado == EstadoImportacion.SinCambios
                 ? "Ya existe exactamente igual."
                 : "Solo se actualizaran datos del area.";
+            return;
+        }
+
+        var idRegistroBase = exacto?.Id ?? mismaAreaNombre?.Id ?? 0;
+        if (mismaAreaOrden is not null && mismaAreaOrden.Id != idRegistroBase)
+        {
+            fila.Estado = EstadoImportacion.Conflicto;
+            fila.Observacion = $"El orden interno ya existe para {mismaAreaOrden.Nombre}. Revisar antes de importar.";
             return;
         }
 
@@ -633,7 +670,12 @@ public class IndexModel : PageModel
     private static bool EsDuplicadoDirectorio(MySqlException ex) =>
         ex.Number == 1062 &&
         (ex.Message.Contains("uk_directorio_area_nombre", StringComparison.OrdinalIgnoreCase) ||
-         ex.Message.Contains("uk_directorio_area_extension", StringComparison.OrdinalIgnoreCase));
+         ex.Message.Contains("uk_directorio_area_extension", StringComparison.OrdinalIgnoreCase) ||
+         ex.Message.Contains("uk_directorio_area_orden", StringComparison.OrdinalIgnoreCase));
+
+    private static bool EsDuplicadoOrdenDirectorio(MySqlException ex) =>
+        ex.Number == 1062 &&
+        ex.Message.Contains("uk_directorio_area_orden", StringComparison.OrdinalIgnoreCase);
 
     private static string Clave(string area, string nombre, string extension) =>
         $"{area.Trim()}|{nombre.Trim()}|{extension.Trim()}";
