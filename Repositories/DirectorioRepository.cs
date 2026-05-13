@@ -17,6 +17,8 @@ public class DirectorioRepository : IDirectorioRepository
 
     public async Task<IEnumerable<DirectorioEntrada>> ObtenerTodosAsync(bool soloActivos = false)
     {
+        // El orden publico combina orden del area + orden interno. No cambiarlo
+        // sin revisar /Directorio y el drag/drop del Admin.
         using var con = _db.CrearConexion();
         var filtro = soloActivos ? "WHERE d.activo = 1" : "";
         return await con.QueryAsync<DirectorioEntrada>(
@@ -101,12 +103,16 @@ public class DirectorioRepository : IDirectorioRepository
             new { area = areaNombre },
             tx)).ToList();
 
+        // El drag/drop solo debe ordenar dentro de la misma area. Si falta un ID
+        // o llega uno de otra area, se rechaza para no romper los indices unicos.
         if (existentes.Count != ids.Count ||
             ids.Any(id => existentes.All(e => e.Id != id)))
         {
             throw new InvalidOperationException("Las extensiones seleccionadas no pertenecen a la misma area.");
         }
 
+        // Dos fases para evitar choque temporal con uk_directorio_area_orden:
+        // primero mueve todos los registros a ordenes negativos, luego asigna 1..N.
         for (var i = 0; i < ids.Count; i++)
         {
             await con.ExecuteAsync(
@@ -203,6 +209,8 @@ public class DirectorioRepository : IDirectorioRepository
         string? ubicacion,
         string? correo)
     {
+        // La importacion solo actualiza metadata del area cuando el CSV trae
+        // datos. No borra titular/ubicacion/correo existentes si llega vacio.
         using var con = _db.CrearConexion();
         await con.ExecuteAsync(
             @"UPDATE directorio_areas
@@ -223,6 +231,8 @@ public class DirectorioRepository : IDirectorioRepository
         System.Data.IDbConnection con,
         string nombre)
     {
+        // Defensa de compatibilidad: el Admin exige areas existentes, pero este
+        // helper evita fallas si otro flujo legado intenta guardar una nueva area.
         if (string.IsNullOrWhiteSpace(nombre))
             return;
 

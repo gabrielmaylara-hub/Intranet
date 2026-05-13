@@ -9,6 +9,8 @@ namespace Intranet.Pages.Admin.Configuracion;
 
 public class IndexModel : PageModel
 {
+    // Estos grupos deben coincidir con sitio_enlaces.grupo y con el render del
+    // header/footer publico. No usar texto visible como clave persistente.
     private const string GrupoHeader = "header_principal";
     private const string GrupoFooterRecursos = "footer_recursos";
     private const string GrupoFooterSistemas = "footer_sistemas";
@@ -98,6 +100,8 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostGuardarAsync()
     {
+        // Un solo handler guarda todas las pestanas para preservar el modelo
+        // completo. La UI lo presenta por bloques, pero la validacion es central.
         var errorValidacion = ValidarYNormalizarConfiguracion();
         if (errorValidacion is not null)
         {
@@ -107,6 +111,8 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        // Las claves son el contrato con configuracion_sitio y las vistas
+        // publicas. Cambiarlas exige migracion/seed y ajuste del render.
         var valores = new Dictionary<string, string>
         {
             ["nombre_sitio"] = NombreSitio,
@@ -166,6 +172,7 @@ public class IndexModel : PageModel
 
         Mensaje = "Configuración guardada correctamente.";
         EsError = false;
+        // POST-Redirect-GET: evita reenvio al actualizar y conserva la pestana.
         return RedirectToPage(null, null, null, FragmentoTabActiva());
     }
 
@@ -198,6 +205,8 @@ public class IndexModel : PageModel
 
         try
         {
+            // Reusa ArchivoService para validar extension, firma, tamano y ruta.
+            // No guardar logos directamente en wwwroot ni confiar en FileName.
             rutaRelativa = await _archivos.GuardarAsync(Logo, "config", "logo");
 
             if (!string.IsNullOrWhiteSpace(logoAnterior)
@@ -321,6 +330,8 @@ public class IndexModel : PageModel
 
     private string? ValidarYNormalizarConfiguracion()
     {
+        // Validacion backend: el navegador ayuda, pero no es la frontera de
+        // seguridad. Todo lo visible en publico pasa por este saneamiento.
         NombreSitio = NormalizarTexto(NombreSitio);
         HeaderSubtitulo = NormalizarTexto(HeaderSubtitulo);
         HomeHeroEtiqueta = NormalizarTexto(HomeHeroEtiqueta);
@@ -448,6 +459,8 @@ public class IndexModel : PageModel
         List<SitioEnlaceInput> enlaces,
         string grupoVisible)
     {
+        // URL permitida: ruta interna /... o http/https. Evita javascript:,
+        // rutas UNC y controles que puedan romper el render publico.
         for (var i = 0; i < enlaces.Count; i++)
         {
             var enlace = enlaces[i];

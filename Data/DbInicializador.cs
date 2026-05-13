@@ -36,7 +36,15 @@ public class DbInicializador
         try
         {
             await con.OpenAsync();
+            // Compatibilidad con instalaciones antiguas: esta rutina solo toca
+            // columnas puntuales si la tabla ya existe. En una BD vacia no crea
+            // nada; las migraciones versionadas son la fuente de verdad.
             await AsegurarEstructuraAsync(con);
+
+            // Las migraciones se aplican antes de cualquier seed funcional.
+            // schema_migrations manda: si una version ya esta registrada, el
+            // script no se reejecuta aunque sea idempotente. Esto protege futuras
+            // migraciones que no puedan repetirse sin riesgo.
             await AplicarMigracionesAsync(con);
         }
         catch (Exception ex)
@@ -54,6 +62,9 @@ public class DbInicializador
 
             if (totalUsuarios == 0)
             {
+                // No hay password fijo en codigo. Para una BD recien creada, el
+                // primer admin solo se genera si el operador definio esta variable
+                // de entorno en la sesion local o en el ambiente de despliegue.
                 var passwordInicial = Environment.GetEnvironmentVariable("INTRANET_ADMIN_INITIAL_PASSWORD");
                 if (string.IsNullOrWhiteSpace(passwordInicial))
                 {
@@ -82,6 +93,9 @@ public class DbInicializador
 
     private async Task AplicarMigracionesAsync(IDbConnection con)
     {
+        // El orden alfabetico por prefijo 001, 002, ... define el historial.
+        // No insertar migraciones "entre medias" cuando ya existen ambientes con
+        // versiones aplicadas; crea una nueva version siguiente.
         var carpetaMigraciones = Path.Combine(
             _entorno.ContentRootPath,
             "Data",
@@ -115,6 +129,9 @@ public class DbInicializador
             try
             {
                 var contenido = await File.ReadAllTextAsync(script);
+                // Los scripts versionados usan sentencias simples separadas por ;
+                // Evitar procedimientos complejos con delimitadores personalizados
+                // sin ajustar antes este separador.
                 foreach (var sentencia in SepararSentenciasSql(contenido))
                     await con.ExecuteAsync(sentencia);
 
@@ -137,6 +154,9 @@ public class DbInicializador
 
     private static async Task<HashSet<string>> ObtenerMigracionesRegistradasAsync(IDbConnection con)
     {
+        // En una BD completamente vacia, schema_migrations todavia no existe.
+        // La migracion 001 debe crearla; por eso aqui se devuelve conjunto vacio
+        // y el runner arranca desde el primer script versionado.
         var existeTablaMigraciones = await con.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*)
               FROM INFORMATION_SCHEMA.TABLES
@@ -195,6 +215,9 @@ public class DbInicializador
 
     private static async Task AsegurarEstructuraAsync(IDbConnection con)
     {
+        // Parche defensivo para bases legadas previas a las migraciones actuales.
+        // No reemplaza a los scripts SQL ni debe crecer como sistema paralelo de
+        // migraciones; cualquier cambio nuevo debe ir en Data/Scripts/Migrations.
         var existeAccesosRapidos = await con.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*)
               FROM INFORMATION_SCHEMA.TABLES

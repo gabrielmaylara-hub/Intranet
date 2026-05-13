@@ -14,7 +14,9 @@ public class ArchivoService : IArchivoService
     private const long MaxTamanoSvg = 2L * 1024L * 1024L;
     private const long MaxTamanoGeneralPredeterminado = 524_288_000L;
 
-    // Extensiones permitidas por tipo de contenido
+    // Defensa en capas para uploads: extension visible, MIME declarado y firma
+    // real del archivo. No relajar esta lista sin revisar tambien Program.cs,
+    // porque /storage solo sirve extensiones autorizadas.
     private static readonly HashSet<string> ExtPermitidas = new(StringComparer.OrdinalIgnoreCase)
     {
         ".pdf", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".mp4"
@@ -73,6 +75,9 @@ public class ArchivoService : IArchivoService
             _rutaBaseStorage,
             subcarpetaSegura.Replace('/', Path.DirectorySeparatorChar)));
 
+        // La ruta final siempre debe quedar dentro de Storage/. Esta validacion
+        // protege contra path traversal aunque el nombre o subcarpeta vengan
+        // de un formulario manipulado.
         if (!EstaDentroDeStorage(carpeta))
             throw new InvalidOperationException("La ruta de almacenamiento no es válida.");
 
@@ -86,7 +91,8 @@ public class ArchivoService : IArchivoService
         await using var stream = File.Create(rutaFisica);
         await archivo.CopyToAsync(stream);
 
-        // Retorna la ruta relativa desde Storage/ con separador Unix para portabilidad
+        // Retorna la ruta relativa desde Storage/ con separador Unix. Esa ruta
+        // es la que se guarda en BD y luego se resuelve via /storage/{ruta}.
         return Path.Combine(subcarpetaSegura, nombreArchivo).Replace('\\', '/');
     }
 
@@ -120,6 +126,7 @@ public class ArchivoService : IArchivoService
 
     private static string NormalizarSubcarpeta(string subcarpeta)
     {
+        // Evita que una subcarpeta manipulada salga de Storage usando ..
         var normalizada = subcarpeta.Replace('\\', '/').Trim('/');
         if (normalizada.Contains("..", StringComparison.Ordinal))
             throw new InvalidOperationException("La subcarpeta de almacenamiento no es válida.");
@@ -129,6 +136,8 @@ public class ArchivoService : IArchivoService
 
     private static async Task ValidarSvgAsync(IFormFile archivo)
     {
+        // SVG es texto y puede traer script embebido. Se permite por el logo,
+        // pero se bloquean patrones de ejecucion comunes antes de guardarlo.
         if (archivo.Length > MaxTamanoSvg)
             throw new InvalidOperationException("El archivo SVG excede el tamaño máximo permitido.");
 
@@ -156,6 +165,8 @@ public class ArchivoService : IArchivoService
 
     private static async Task ValidarTipoArchivoAsync(IFormFile archivo, string extension)
     {
+        // El navegador puede mentir sobre Content-Type; por eso tambien se lee
+        // la firma de los primeros bytes antes de aceptar el archivo.
         ValidarMimeDeclarado(archivo.ContentType, extension);
 
         if (extension == ".svg")

@@ -56,6 +56,8 @@ public class IndexModel : PageModel
 
     public IActionResult OnGetPlantilla()
     {
+        // La plantilla nueva solo pide datos de captura. Orden y Activo siguen
+        // aceptandose si llegan de un CSV legado, pero ya no son obligatorios.
         var csv = new StringBuilder();
         csv.AppendLine("Area,Nombre,Extension,Titular,Ubicacion,Correo");
 
@@ -89,6 +91,8 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        // La importacion siempre pasa por previsualizacion. No se escriben datos
+        // hasta que todas las filas aplicables estan clasificadas sin conflictos.
         var filas = await LeerCsvAsync(ArchivoCsv);
         Importacion = await PrepararImportacionAsync(filas);
         ImportacionJson = JsonSerializer.Serialize(filas, JsonOptions);
@@ -125,6 +129,8 @@ public class IndexModel : PageModel
         Importacion = await PrepararImportacionAsync(filas);
         ImportacionJson = JsonSerializer.Serialize(filas, JsonOptions);
 
+        // Si existe una fila en error/conflicto se bloquea toda la confirmacion:
+        // evita importaciones parciales que no coincidan con la vista previa.
         if (Importacion.Filas.Any(f => !f.PuedeAplicarse && f.Estado != EstadoImportacion.SinCambios))
         {
             EsError = true;
@@ -204,6 +210,8 @@ public class IndexModel : PageModel
     public async Task<IActionResult> OnPostReordenarExtensionesAsync(
         [FromBody] ReordenarExtensionesRequest? solicitud)
     {
+        // Reordenamiento AJAX protegido por antiforgery. El repositorio valida
+        // que todos los IDs pertenezcan a la misma area antes de tocar orden.
         if (solicitud is null ||
             solicitud.AreaId <= 0 ||
             solicitud.Ids.Count == 0)
@@ -254,6 +262,8 @@ public class IndexModel : PageModel
         var extensionNormalizada = Extension.Trim();
         var entradas = (await _directorioRepo.ObtenerTodosAsync()).ToList();
 
+        // Reglas de negocio del Directorio: dentro de una misma area no se
+        // repiten Nombre, Extension ni Orden interno. La BD tambien lo protege.
         if (entradas.Any(e =>
             e.Id != Id &&
             Coincide(e.Area, areaSeleccionada.Nombre) &&
@@ -489,6 +499,8 @@ public class IndexModel : PageModel
     private async Task<ImportacionDirectorioPreview> PrepararImportacionAsync(
         List<DirectorioCsvFila> filas)
     {
+        // Prepara una vista previa deterministica: valida el CSV, detecta
+        // duplicados internos, asigna orden automatico si falta y clasifica filas.
         var existentes = (await _directorioRepo.ObtenerTodosAsync()).ToList();
         var areas = (await _directorioRepo.ObtenerAreasAsync()).ToList();
         var clavesExactas = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -532,6 +544,8 @@ public class IndexModel : PageModel
         Dictionary<string, int> clavesAreaExtension,
         Dictionary<string, int> clavesAreaOrden)
     {
+        // Estas validaciones son intraarchivo; los indices unicos de BD cubren
+        // concurrencia y duplicados entre previsualizar y confirmar.
         var claveExacta = Clave(fila.Area, fila.Nombre, fila.Extension);
         if (clavesExactas.TryGetValue(claveExacta, out var lineaExacta))
         {
@@ -611,6 +625,8 @@ public class IndexModel : PageModel
         List<DirectorioEntrada> existentes,
         Dictionary<string, int> ultimoOrdenPorArea)
     {
+        // Orden y Activo ya no son obligatorios en plantilla. Si falta Orden,
+        // se usa el siguiente disponible dentro del area; si falta Activo, queda activo.
         if (fila.OrdenInformado)
         {
             RegistrarOrden(fila.Area, fila.Orden, ultimoOrdenPorArea);

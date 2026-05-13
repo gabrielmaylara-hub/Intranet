@@ -8,11 +8,16 @@ namespace Intranet.Services;
 /// </summary>
 public class AuthService : IAuthService
 {
+    // bcrypt ya incluye salt y costo dentro del hash. No guardar ni mostrar el
+    // hash en logs; basta conservarlo en usuarios_admin.password_hash.
     public string HashearPassword(string password) =>
         BC.HashPassword(password, BC.GenerateSalt(12));
 
     public bool VerificarPassword(string password, string hash)
     {
+        // Un hash nulo, vacio o corrupto no debe tumbar el login. Se rechaza
+        // como credencial invalida para que el usuario vea un mensaje generico
+        // y la app no exponga stack trace ni detalles de bcrypt.
         if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(hash))
             return false;
 

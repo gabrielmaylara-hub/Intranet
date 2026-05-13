@@ -128,11 +128,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/health/live", () =>
+    // Liveness: solo confirma que el proceso web esta levantado.
+    // No valida MySQL; esa diferencia ayuda a diagnosticar dependencia vs app.
     Results.Json(new { status = "ok" }))
     .AllowAnonymous();
 
 app.MapGet("/health/ready", async (ConexionDb db) =>
 {
+    // Readiness: valida la dependencia minima de la intranet, MySQL.
+    // La respuesta no incluye cadena de conexion, version ni rutas locales.
     try
     {
         await using var con = db.CrearConexion();
@@ -156,6 +160,9 @@ app.MapGet("/health/ready", async (ConexionDb db) =>
     .AllowAnonymous();
 
 // ─── Endpoint de Storage: sirve archivos fuera de wwwroot con control ────────
+// Storage no se versiona: contiene assets subidos por Admin y datos locales de
+// entrega. Centralizar su salida aqui permite validar extension y bloquear
+// path traversal antes de leer del disco.
 // Punto de extensión: agregar validaciones de sesión por sección aquí en el futuro.
 IResult ServirArchivoStorage(string? ruta)
 {
