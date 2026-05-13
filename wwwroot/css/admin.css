@@ -511,6 +511,39 @@ button { cursor: pointer; font-family: inherit; }
   flex-wrap: wrap;
 }
 
+.usuario-reset {
+  display: inline-flex;
+  position: relative;
+}
+
+.usuario-reset > summary {
+  list-style: none;
+}
+
+.usuario-reset > summary::-webkit-details-marker {
+  display: none;
+}
+
+.usuario-reset-form {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  background: var(--negro-suave);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.usuario-reset:not([open]) .usuario-reset-form {
+  display: none;
+}
+
+.usuario-reset .campo-input-inline {
+  width: 150px;
+}
+
 .td-vacio { text-align: center; color: var(--gris-texto); padding: 2rem; }
 
 .tabla-icono-preview {

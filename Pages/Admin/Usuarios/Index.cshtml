@@ -47,14 +47,15 @@
         <div class="form-dos-columnas">
             <div class="campo-grupo">
                 <label class="campo-label" asp-for="Rol">Rol <span class="campo-requerido">*</span></label>
-                <select class="campo-input" asp-for="Rol">
+                <select class="campo-input" asp-for="Rol" data-usuario-rol>
                     <option value="admin_general">admin_general</option>
                     <option value="usuario_area">usuario_area</option>
                 </select>
             </div>
-            <div class="campo-grupo">
+            <div class="campo-grupo" data-usuario-area-grupo>
                 <label class="campo-label" asp-for="AreaPublicacionId">Área de publicación</label>
-                <select class="campo-input" asp-for="AreaPublicacionId">
+                <span class="campo-requerido" data-usuario-area-requerida>*</span>
+                <select class="campo-input" asp-for="AreaPublicacionId" data-usuario-area-select>
                     <option value="">Sin área</option>
                     @foreach (var area in Model.Areas)
                     {
@@ -63,7 +64,7 @@
                         </option>
                     }
                 </select>
-                <span class="campo-ayuda">Obligatoria solo para usuario_area.</span>
+                <span class="campo-ayuda" data-usuario-area-ayuda>Obligatoria solo para usuario_area.</span>
             </div>
         </div>
 
@@ -145,7 +146,10 @@
 
                             @if (usuario.Activo)
                             {
-                                <form method="post" asp-page-handler="Desactivar" class="form-inline">
+                                <form method="post"
+                                      asp-page-handler="Desactivar"
+                                      class="form-inline"
+                                      data-confirm-submit="Desactivar este usuario? Podras reactivarlo despues.">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@usuario.Id" />
                                     <button type="submit" class="btn btn-sm btn-advertencia">Desactivar</button>
@@ -160,25 +164,28 @@
                                 </form>
                             }
 
-                            <form method="post" asp-page-handler="ResetearPassword" class="form-inline">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@usuario.Id" />
-                                <input type="password"
-                                       name="nuevoPassword"
-                                       class="campo-input campo-input-inline"
-                                       placeholder="Nueva temporal"
-                                       autocomplete="new-password"
-                                       minlength="10"
-                                       required />
-                                <input type="password"
-                                       name="confirmarPassword"
-                                       class="campo-input campo-input-inline"
-                                       placeholder="Confirmar"
-                                       autocomplete="new-password"
-                                       minlength="10"
-                                       required />
-                                <button type="submit" class="btn btn-sm btn-secundario">Resetear</button>
-                            </form>
+                            <details class="usuario-reset">
+                                <summary class="btn btn-sm btn-secundario">Resetear password</summary>
+                                <form method="post" asp-page-handler="ResetearPassword" class="usuario-reset-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@usuario.Id" />
+                                    <input type="password"
+                                           name="nuevoPassword"
+                                           class="campo-input campo-input-inline"
+                                           placeholder="Nueva temporal"
+                                           autocomplete="new-password"
+                                           minlength="10"
+                                           required />
+                                    <input type="password"
+                                           name="confirmarPassword"
+                                           class="campo-input campo-input-inline"
+                                           placeholder="Confirmar"
+                                           autocomplete="new-password"
+                                           minlength="10"
+                                           required />
+                                    <button type="submit" class="btn btn-sm btn-secundario">Guardar nueva</button>
+                                </form>
+                            </details>
                         </td>
                     </tr>
                 }

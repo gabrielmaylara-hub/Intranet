@@ -107,6 +107,49 @@
   });
 
   // ---------------------------------------------------------------------------
+  // Usuarios: el area solo aplica cuando el rol es usuario_area.
+  // ---------------------------------------------------------------------------
+  const rolUsuario = document.querySelector("[data-usuario-rol]");
+  const areaUsuario = document.querySelector("[data-usuario-area-select]");
+  const ayudaAreaUsuario = document.querySelector("[data-usuario-area-ayuda]");
+  const requeridoAreaUsuario = document.querySelector("[data-usuario-area-requerida]");
+
+  if (rolUsuario && areaUsuario) {
+    const sincronizarAreaUsuario = () => {
+      const requiereArea = rolUsuario.value === "usuario_area";
+
+      areaUsuario.disabled = !requiereArea;
+      areaUsuario.required = requiereArea;
+      if (!requiereArea) areaUsuario.value = "";
+
+      if (requeridoAreaUsuario) {
+        requeridoAreaUsuario.hidden = !requiereArea;
+      }
+
+      if (ayudaAreaUsuario) {
+        ayudaAreaUsuario.textContent = requiereArea
+          ? "Obligatoria para usuario_area."
+          : "No aplica para admin_general.";
+      }
+    };
+
+    rolUsuario.addEventListener("change", sincronizarAreaUsuario);
+    sincronizarAreaUsuario();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Confirmaciones simples antes de acciones administrativas sensibles.
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll("[data-confirm-submit]").forEach((formulario) => {
+    formulario.addEventListener("submit", (evento) => {
+      const mensaje = formulario.dataset.confirmSubmit || "Confirma la accion.";
+      if (!window.confirm(mensaje)) {
+        evento.preventDefault();
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Formularios reutilizados de alta y edicion.
   // Las paginas de Accesos, Avisos y Tutoriales comparten los mismos ids base.
   // ---------------------------------------------------------------------------
