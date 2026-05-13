@@ -57,7 +57,7 @@ public class IndexModel : PageModel
     public IActionResult OnGetPlantilla()
     {
         var csv = new StringBuilder();
-        csv.AppendLine("Area,Titular,Ubicacion,Correo,Nombre,Extension,Orden,Activo");
+        csv.AppendLine("Area,Nombre,Extension,Titular,Ubicacion,Correo");
 
         var contenido = Encoding.UTF8.GetPreamble()
             .Concat(Encoding.UTF8.GetBytes(csv.ToString()))
@@ -495,6 +495,9 @@ public class IndexModel : PageModel
         var clavesAreaNombre = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var clavesAreaExtension = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var clavesAreaOrden = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var ultimoOrdenPorArea = existentes
+            .GroupBy(e => NormalizarClave(e.Area), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Max(e => e.Orden), StringComparer.OrdinalIgnoreCase);
         var resultado = new List<DirectorioImportacionFila>();
 
         foreach (var fila in filas)
@@ -509,6 +512,9 @@ public class IndexModel : PageModel
                     clavesAreaNombre,
                     clavesAreaExtension,
                     clavesAreaOrden);
+
+            if (vista.Errores.Count == 0)
+                ResolverOrdenImportacion(vista, existentes, ultimoOrdenPorArea);
 
             if (vista.Errores.Count == 0)
                 ClasificarFila(vista, existentes, areas);
@@ -544,15 +550,19 @@ public class IndexModel : PageModel
                 fila.Errores.Add($"El area y extension ya aparecen en la fila {lineaExtension}.");
         }
 
-        var claveOrden = Clave(fila.Area, fila.Orden.ToString());
-        if (clavesAreaOrden.TryGetValue(claveOrden, out var lineaOrden))
-            fila.Errores.Add($"El area y orden interno ya aparecen en la fila {lineaOrden}.");
+        if (fila.OrdenInformado)
+        {
+            var claveOrden = Clave(fila.Area, fila.Orden.ToString());
+            if (clavesAreaOrden.TryGetValue(claveOrden, out var lineaOrden))
+                fila.Errores.Add($"El area y orden interno ya aparecen en la fila {lineaOrden}.");
+        }
 
         clavesExactas[claveExacta] = fila.Linea;
         clavesAreaNombre[claveNombre] = fila.Linea;
         if (!string.IsNullOrWhiteSpace(fila.Extension))
             clavesAreaExtension[Clave(fila.Area, fila.Extension)] = fila.Linea;
-        clavesAreaOrden[claveOrden] = fila.Linea;
+        if (fila.OrdenInformado)
+            clavesAreaOrden[Clave(fila.Area, fila.Orden.ToString())] = fila.Linea;
     }
 
     private static void ValidarFila(DirectorioImportacionFila fila)
@@ -574,23 +584,68 @@ public class IndexModel : PageModel
         if (!CorreoValido(fila.Correo))
             fila.Errores.Add("Correo invalido.");
 
-        if (!string.IsNullOrWhiteSpace(fila.OrdenTexto) &&
+        fila.OrdenInformado = !string.IsNullOrWhiteSpace(fila.OrdenTexto);
+        fila.ActivoInformado = !string.IsNullOrWhiteSpace(fila.ActivoTexto);
+
+        if (fila.OrdenInformado &&
             !int.TryParse(fila.OrdenTexto, out _))
         {
             fila.Errores.Add("Orden invalido.");
         }
 
-        if (!string.IsNullOrWhiteSpace(fila.ActivoTexto) &&
+        if (fila.ActivoInformado &&
             !TryParseActivo(fila.ActivoTexto, out _))
         {
             fila.Errores.Add("Activo debe ser 1, 0, true, false, si o no.");
         }
 
-        fila.Orden = int.TryParse(fila.OrdenTexto, out var orden)
+        fila.Orden = fila.OrdenInformado && int.TryParse(fila.OrdenTexto, out var orden)
             ? orden
-            : fila.Linea;
-        fila.Activo = string.IsNullOrWhiteSpace(fila.ActivoTexto) ||
+            : 0;
+        fila.Activo = !fila.ActivoInformado ||
             TryParseActivo(fila.ActivoTexto, out var activo) && activo;
+    }
+
+    private static void ResolverOrdenImportacion(
+        DirectorioImportacionFila fila,
+        List<DirectorioEntrada> existentes,
+        Dictionary<string, int> ultimoOrdenPorArea)
+    {
+        if (fila.OrdenInformado)
+        {
+            RegistrarOrden(fila.Area, fila.Orden, ultimoOrdenPorArea);
+            return;
+        }
+
+        var existente = existentes.FirstOrDefault(e =>
+            Coincide(e.Area, fila.Area) &&
+            Coincide(e.Nombre, fila.Nombre));
+
+        if (existente is not null)
+        {
+            fila.Orden = existente.Orden;
+            if (!fila.ActivoInformado)
+                fila.Activo = existente.Activo;
+            return;
+        }
+
+        var areaKey = NormalizarClave(fila.Area);
+        var siguienteOrden = ultimoOrdenPorArea.TryGetValue(areaKey, out var ultimoOrden)
+            ? ultimoOrden + 1
+            : 1;
+
+        fila.Orden = siguienteOrden;
+        ultimoOrdenPorArea[areaKey] = siguienteOrden;
+    }
+
+    private static void RegistrarOrden(
+        string area,
+        int orden,
+        Dictionary<string, int> ultimoOrdenPorArea)
+    {
+        var areaKey = NormalizarClave(area);
+        if (!ultimoOrdenPorArea.TryGetValue(areaKey, out var ultimoOrden) || orden > ultimoOrden)
+            ultimoOrdenPorArea[areaKey] = orden;
     }
 
     private static void ValidarLongitud(
@@ -723,6 +778,9 @@ public class IndexModel : PageModel
     private static string Clave(string area, string valor) =>
         $"{area.Trim()}|{valor.Trim()}";
 
+    private static string NormalizarClave(string valor) =>
+        valor.Trim().ToUpperInvariant();
+
     private static string NormalizarEncabezado(string encabezado)
     {
         var valor = encabezado.Trim().Trim('\uFEFF').ToLowerInvariant();
@@ -819,6 +877,8 @@ public sealed class DirectorioImportacionFila : DirectorioCsvFila
 {
     public int Orden { get; set; }
     public bool Activo { get; set; } = true;
+    public bool OrdenInformado { get; set; }
+    public bool ActivoInformado { get; set; }
     public EstadoImportacion Estado { get; set; } = EstadoImportacion.Error;
     public string Observacion { get; set; } = string.Empty;
     public string ObservacionArea { get; set; } = string.Empty;
