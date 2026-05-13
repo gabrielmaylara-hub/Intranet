@@ -147,6 +147,46 @@
   if (panelUsuariosForm) {
     const formUsuarios = panelUsuariosForm.querySelector("form");
     const primerCampoUsuario = panelUsuariosForm.querySelector("#Usuario");
+    const nombreUsuario = panelUsuariosForm.querySelector("[data-usuario-nombre]");
+    const activoUsuario = panelUsuariosForm.querySelector("#Activo");
+    let usuarioEditadoManual = false;
+
+    const limpiarParteUsuario = (valor) =>
+      (valor || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+    const sugerirUsuario = (nombreCompleto) => {
+      const partes = (nombreCompleto || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .split(/\s+/)
+        .map(limpiarParteUsuario)
+        .filter(Boolean);
+
+      if (partes.length === 0) return "";
+      if (partes.length === 1) return partes[0].charAt(0);
+
+      const primerNombre = partes[0];
+      const primerApellido = partes.length >= 3 ? partes[partes.length - 2] : partes[1];
+      const segundoApellido = partes.length >= 3 ? partes[partes.length - 1] : "";
+
+      return `${primerNombre.charAt(0)}${primerApellido}${segundoApellido.charAt(0)}`;
+    };
+
+    const esAltaUsuario = () => {
+      const id = panelUsuariosForm.querySelector("#Id")?.value || "0";
+      return id === "0";
+    };
+
+    const aplicarDefaultsAlta = () => {
+      if (rolUsuario) rolUsuario.value = "usuario_area";
+      if (activoUsuario) activoUsuario.checked = true;
+      usuarioEditadoManual = false;
+    };
 
     const sincronizarRolUsuario = () => {
       if (rolUsuario) {
@@ -156,16 +196,29 @@
 
     btnNuevoUsuario?.addEventListener("click", () => {
       if (formUsuarios) formUsuarios.reset();
+      aplicarDefaultsAlta();
       panelUsuariosForm.hidden = false;
       sincronizarRolUsuario();
       panelUsuariosForm.scrollIntoView({ behavior: "smooth", block: "start" });
-      primerCampoUsuario?.focus();
+      nombreUsuario?.focus();
     });
 
     btnCancelarUsuario?.addEventListener("click", () => {
       if (formUsuarios) formUsuarios.reset();
       panelUsuariosForm.hidden = true;
+      aplicarDefaultsAlta();
       sincronizarRolUsuario();
+    });
+
+    nombreUsuario?.addEventListener("input", () => {
+      if (!esAltaUsuario() || usuarioEditadoManual || !primerCampoUsuario) return;
+      primerCampoUsuario.value = sugerirUsuario(nombreUsuario.value);
+    });
+
+    primerCampoUsuario?.addEventListener("input", () => {
+      if (esAltaUsuario()) {
+        usuarioEditadoManual = true;
+      }
     });
   }
 

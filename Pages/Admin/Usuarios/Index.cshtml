@@ -4,6 +4,7 @@
     Layout = "_LayoutAdmin";
     ViewData["TituloAdmin"] = "Usuarios";
     var editando = Model.Id > 0;
+    var esAdminPrincipalEditando = editando && string.Equals(Model.Usuario, "admin", StringComparison.OrdinalIgnoreCase);
     var mostrarFormulario = editando || (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase) && Model.EsError);
 }
 
@@ -40,19 +41,24 @@
     <form method="post" asp-page-handler="Guardar">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Estado" />
 
         <div class="form-dos-columnas">
             <div class="campo-grupo">
                 <label class="campo-label" asp-for="Usuario">Usuario <span class="campo-requerido">*</span></label>
-                <input class="campo-input" asp-for="Usuario" maxlength="100" required readonly="@editando" />
-                @if (editando)
+                <input class="campo-input" asp-for="Usuario" maxlength="100" required readonly="@esAdminPrincipalEditando" data-usuario-login />
+                @if (esAdminPrincipalEditando)
                 {
-                    <span class="campo-ayuda">El nombre de acceso se conserva estable después de creado.</span>
+                    <span class="campo-ayuda">El usuario admin principal se conserva protegido.</span>
+                }
+                else if (!editando)
+                {
+                    <span class="campo-ayuda">Se sugiere automáticamente desde el nombre, pero puedes editarlo.</span>
                 }
             </div>
             <div class="campo-grupo">
                 <label class="campo-label" asp-for="NombreCompleto">Nombre <span class="campo-requerido">*</span></label>
-                <input class="campo-input" asp-for="NombreCompleto" maxlength="200" required />
+                <input class="campo-input" asp-for="NombreCompleto" maxlength="200" required data-usuario-nombre />
             </div>
         </div>
 
@@ -60,8 +66,8 @@
             <div class="campo-grupo">
                 <label class="campo-label" asp-for="Rol">Rol <span class="campo-requerido">*</span></label>
                 <select class="campo-input" asp-for="Rol" data-usuario-rol>
-                    <option value="admin_general">admin_general</option>
                     <option value="usuario_area">usuario_area</option>
+                    <option value="admin_general">admin_general</option>
                 </select>
             </div>
             <div class="campo-grupo" data-usuario-area-grupo>
@@ -119,6 +125,21 @@
 
 <div class="admin-panel">
     <h2 class="admin-panel-titulo">Listado</h2>
+
+    <nav class="admin-tabs" aria-label="Filtro de usuarios">
+        <a class="admin-tab @(Model.EstadoFiltro == "activos" ? "admin-tab--activo" : "")"
+           href="/Admin/Usuarios?estado=activos">
+            Activos (@Model.TotalActivos)
+        </a>
+        <a class="admin-tab @(Model.EstadoFiltro == "inactivos" ? "admin-tab--activo" : "")"
+           href="/Admin/Usuarios?estado=inactivos">
+            Inactivos (@Model.TotalInactivos)
+        </a>
+        <a class="admin-tab @(Model.EstadoFiltro == "todos" ? "admin-tab--activo" : "")"
+           href="/Admin/Usuarios?estado=todos">
+            Todos (@Model.TotalUsuarios)
+        </a>
+    </nav>
 
     <div class="tabla-wrap">
         <table class="admin-tabla">

@@ -95,7 +95,8 @@ public class UsuarioRepository : IUsuarioRepository
         using var con = _db.CrearConexion();
         var filas = await con.ExecuteAsync(
             @"UPDATE usuarios_admin
-              SET nombre_completo = @NombreCompleto,
+              SET usuario = @Usuario,
+                  nombre_completo = @NombreCompleto,
                   activo = @Activo,
                   rol = @Rol,
                   area_publicacion_id = @AreaPublicacionId,

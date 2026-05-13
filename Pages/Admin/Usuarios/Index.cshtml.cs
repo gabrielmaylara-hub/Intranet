@@ -40,6 +40,12 @@ public class IndexModel : AdminPageModel
     [BindProperty] public bool Activo { get; set; } = true;
     [BindProperty] public string PasswordTemporal { get; set; } = string.Empty;
     [BindProperty] public string ConfirmarPasswordTemporal { get; set; } = string.Empty;
+    [BindProperty(SupportsGet = true)] public string Estado { get; set; } = "activos";
+
+    public int TotalActivos { get; private set; }
+    public int TotalInactivos { get; private set; }
+    public int TotalUsuarios { get; private set; }
+    public string EstadoFiltro => NormalizarEstado(Estado);
 
     [TempData] public string? Mensaje { get; set; }
     [TempData] public bool EsError { get; set; }
@@ -116,6 +122,16 @@ public class IndexModel : AdminPageModel
                     return Page();
                 }
 
+                if (string.Equals(usuario.Usuario, "admin", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Usuario, usuario.Usuario, StringComparison.Ordinal))
+                {
+                    EsError = true;
+                    Mensaje = "El usuario admin principal no puede cambiar su nombre de acceso.";
+                    await CargarListasAsync();
+                    return Page();
+                }
+
+                usuario.Usuario = Usuario;
                 usuario.NombreCompleto = NombreCompleto;
                 usuario.Rol = Rol;
                 usuario.AreaPublicacionId = AreaPublicacionId;
@@ -296,9 +312,29 @@ public class IndexModel : AdminPageModel
 
     private async Task CargarListasAsync()
     {
-        Usuarios = await _usuariosRepo.ListarAsync();
+        var usuarios = (await _usuariosRepo.ListarAsync()).ToList();
+        TotalActivos = usuarios.Count(u => u.Activo);
+        TotalInactivos = usuarios.Count(u => !u.Activo);
+        TotalUsuarios = usuarios.Count;
+
+        Estado = NormalizarEstado(Estado);
+        Usuarios = Estado switch
+        {
+            "inactivos" => usuarios.Where(u => !u.Activo),
+            "todos" => usuarios,
+            _ => usuarios.Where(u => u.Activo)
+        };
+
         Areas = await _areasRepo.ObtenerTodasAsync();
     }
+
+    private static string NormalizarEstado(string? estado) =>
+        estado?.Trim().ToLowerInvariant() switch
+        {
+            "inactivos" => "inactivos",
+            "todos" => "todos",
+            _ => "activos"
+        };
 
     private static string? ValidarPasswordTemporal(string password, string confirmacion)
     {
