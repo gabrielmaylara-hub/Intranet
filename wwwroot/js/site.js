@@ -63,8 +63,13 @@
   const gridAccesos = document.getElementById("gridAccesos");
   const sinResultados = document.getElementById("sinResultados");
   const filtrosBusqueda = document.querySelectorAll("[data-busqueda]");
+  const formularioBusquedaGlobal = buscador?.closest("[data-busqueda-global]");
 
-  if (buscador && gridAccesos) {
+  if (buscador && formularioBusquedaGlobal) {
+    formularioBusquedaGlobal.addEventListener("submit", () => {
+      buscador.value = (buscador.value || "").trim().slice(0, 100);
+    });
+  } else if (buscador && gridAccesos) {
     const accesos = Array.from(gridAccesos.querySelectorAll(".acceso-card"));
 
     const normalizar = (texto) =>

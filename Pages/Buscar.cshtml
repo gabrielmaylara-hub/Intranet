@@ -1,0 +1,84 @@
+@page
+@model BuscarModel
+@{
+    ViewData["Title"] = "Resultados de búsqueda";
+}
+
+<section class="seccion-pagina busqueda-pagina" aria-labelledby="tituloBusqueda">
+    <div class="seccion-inner">
+        <div class="pagina-encabezado busqueda-encabezado">
+            <span class="home-seccion-kicker">Búsqueda global</span>
+            <h1 class="pagina-titulo" id="tituloBusqueda">Resultados de búsqueda</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Consulta))
+            {
+                <p class="pagina-descripcion">Resultados para: "@Model.Consulta"</p>
+            }
+            else
+            {
+                <p class="pagina-descripcion">Busca documentos, avisos, tutoriales, ligas y secciones de la intranet.</p>
+            }
+        </div>
+
+        <form method="get" class="busqueda-global-form" role="search" aria-label="Buscar en la intranet">
+            <label class="sr-only" for="q">Buscar en la intranet</label>
+            <input type="search"
+                   id="q"
+                   name="q"
+                   value="@Model.Consulta"
+                   maxlength="100"
+                   placeholder="Buscar en la intranet"
+                   class="busqueda-global-input" />
+            <button type="submit" class="busqueda-global-boton">Buscar</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Consulta))
+            {
+                <a class="busqueda-global-limpiar" href="/Buscar">Limpiar búsqueda</a>
+            }
+        </form>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Mensaje))
+        {
+            <div class="seccion-vacia busqueda-mensaje">
+                <p>@Model.Mensaje</p>
+            </div>
+        }
+
+        @if (Model.Resultados.Any())
+        {
+            <div class="busqueda-resultados" aria-live="polite">
+                @foreach (var resultado in Model.Resultados)
+                {
+                    <article class="busqueda-resultado">
+                        <div class="busqueda-resultado-meta">
+                            <span class="busqueda-resultado-tipo">@resultado.Tipo</span>
+                            @if (!string.IsNullOrWhiteSpace(resultado.Contexto))
+                            {
+                                <span class="busqueda-resultado-contexto">@resultado.Contexto</span>
+                            }
+                        </div>
+                        <h2 class="busqueda-resultado-titulo">@resultado.Titulo</h2>
+                        @if (!string.IsNullOrWhiteSpace(resultado.Descripcion))
+                        {
+                            <p class="busqueda-resultado-descripcion">@resultado.Descripcion</p>
+                        }
+                        <div class="busqueda-resultado-acciones">
+                            <a class="busqueda-resultado-accion"
+                               href="@resultado.Url"
+                               target="@(resultado.EsExterno ? "_blank" : null)"
+                               rel="@(resultado.EsExterno ? "noopener noreferrer" : null)">
+                                @resultado.TextoAccion
+                            </a>
+                            @if (!string.IsNullOrWhiteSpace(resultado.UrlSecundaria) &&
+                                !string.IsNullOrWhiteSpace(resultado.TextoAccionSecundaria))
+                            {
+                                <a class="busqueda-resultado-accion busqueda-resultado-accion--secundaria"
+                                   href="@resultado.UrlSecundaria">
+                                    @resultado.TextoAccionSecundaria
+                                </a>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

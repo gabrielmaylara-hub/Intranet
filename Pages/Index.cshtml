@@ -27,7 +27,7 @@
         <div class="seccion-inner">
             <div class="home-busqueda-panel">
                 <label for="buscadorAccesos" class="buscador-label">Busqueda rapida</label>
-                <div class="home-buscador-barra">
+                <form class="home-buscador-barra" method="get" action="/Buscar" data-busqueda-global>
                     <div class="buscador-campo">
                         <svg class="buscador-icono" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -36,13 +36,15 @@
                         </svg>
                         <input type="search"
                                id="buscadorAccesos"
+                               name="q"
                                class="buscador-input"
+                               maxlength="100"
                                placeholder="@Texto("home_buscador_placeholder", "Busca formatos, correo, manuales, capacitación...")"
                                autocomplete="off"
-                               aria-label="Buscar en los accesos rapidos" />
+                               aria-label="Buscar en la intranet" />
                     </div>
-                    <button type="button" class="buscador-boton" id="btnBuscarAccesos">Buscar</button>
-                </div>
+                    <button type="submit" class="buscador-boton" id="btnBuscarAccesos">Buscar</button>
+                </form>
 
             </div>
         </div>
