@@ -1,0 +1,53 @@
+@page
+@model AvisosModel
+@{
+    ViewData["Title"] = Model.Titulo;
+    var cultura = new System.Globalization.CultureInfo("es-MX");
+}
+
+<section class="seccion-pagina avisos-pagina" aria-labelledby="tituloAvisosPagina">
+    <div class="seccion-inner">
+        <div class="pagina-encabezado avisos-pagina-encabezado">
+            <span class="home-seccion-kicker">@Model.Etiqueta</span>
+            <h1 class="pagina-titulo" id="tituloAvisosPagina">@Model.Titulo</h1>
+            <p class="pagina-descripcion">@Model.Descripcion</p>
+        </div>
+
+        @if (Model.Avisos.Any())
+        {
+            <div class="avisos-pagina-lista">
+                @foreach (var aviso in Model.Avisos)
+                {
+                    var fechaAviso = aviso.FechaPublicacion
+                        .ToString("dd MMM yyyy", cultura)
+                        .Replace(".", "")
+                        .ToUpperInvariant();
+
+                    <article class="aviso-publico" id="aviso-@aviso.Id">
+                        <div class="aviso-publico-meta">
+                            <time class="aviso-fecha" datetime="@aviso.FechaPublicacion.ToString("yyyy-MM-dd")">
+                                @fechaAviso
+                            </time>
+                            @if (!string.IsNullOrWhiteSpace(aviso.AreaPublicacionNombre))
+                            {
+                                <span class="aviso-area">@aviso.AreaPublicacionNombre</span>
+                            }
+                        </div>
+
+                        <h2 class="aviso-publico-titulo">@aviso.Titulo</h2>
+                        @if (!string.IsNullOrWhiteSpace(aviso.Contenido))
+                        {
+                            <p class="aviso-publico-contenido">@aviso.Contenido</p>
+                        }
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="seccion-vacia">
+                <p>@Model.MensajeVacio</p>
+            </div>
+        }
+    </div>
+</section>

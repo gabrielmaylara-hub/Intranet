@@ -1407,6 +1407,7 @@ button { cursor: pointer; font-family: inherit; }
 
 .home-redisenado .seccion-ver-todos {
   flex-shrink: 0;
+  margin-top: 1.05rem;
   color: var(--home-verde);
   font-weight: 700;
 }
@@ -1490,6 +1491,85 @@ button { cursor: pointer; font-family: inherit; }
 .home-redisenado .aviso-contenido {
   margin: 0;
   line-height: 1.65;
+  white-space: pre-line;
+}
+
+.avisos-pagina {
+  background:
+    linear-gradient(135deg, rgba(23,63,54,0.06), transparent 32%),
+    var(--home-fondo);
+}
+
+.avisos-pagina-encabezado {
+  max-width: 820px;
+}
+
+.avisos-pagina .pagina-titulo {
+  color: var(--home-tinta);
+}
+
+.avisos-pagina .pagina-descripcion {
+  color: var(--home-tinta-suave);
+}
+
+.avisos-pagina-lista {
+  display: grid;
+  gap: 1rem;
+}
+
+.aviso-publico {
+  padding: 1.35rem 1.5rem;
+  border: 1px solid var(--home-linea);
+  border-left: 4px solid rgba(0,72,58,0.78);
+  background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(247,247,244,0.98));
+  box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+}
+
+.aviso-publico-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.avisos-pagina .aviso-fecha {
+  min-width: auto;
+  padding: 0.28rem 0.62rem;
+  border: 1px solid rgba(0,72,58,0.16);
+  background: rgba(0,72,58,0.07);
+  color: var(--home-verde);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.avisos-pagina .aviso-area {
+  padding: 0.28rem 0.62rem;
+  border: 1px solid rgba(201,146,42,0.24);
+  background: rgba(201,146,42,0.09);
+  color: var(--home-tinta);
+  font-family: var(--fuente-cond);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.aviso-publico-titulo {
+  margin: 0 0 0.65rem;
+  color: var(--home-tinta);
+  font-family: var(--fuente-cond);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.aviso-publico-contenido {
+  max-width: 900px;
+  margin: 0;
+  color: var(--home-tinta-suave);
+  font-size: 1rem;
+  line-height: 1.75;
   white-space: pre-line;
 }
 
@@ -1588,6 +1668,14 @@ button { cursor: pointer; font-family: inherit; }
 
   .home-redisenado .tutorial-card-home {
     grid-template-columns: 1fr;
+  }
+
+  .aviso-publico {
+    padding: 1.1rem;
+  }
+
+  .aviso-publico-titulo {
+    font-size: 1.2rem;
   }
 }
 
