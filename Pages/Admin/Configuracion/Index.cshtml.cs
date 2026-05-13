@@ -1,13 +1,13 @@
 using Intranet.Models;
+using Intranet.Pages.Admin;
 using Intranet.Repositories.Interfaces;
 using Intranet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Net.Mail;
 
 namespace Intranet.Pages.Admin.Configuracion;
 
-public class IndexModel : PageModel
+public class IndexModel : AdminPageModel
 {
     // Estos grupos deben coincidir con sitio_enlaces.grupo y con el render del
     // header/footer publico. No usar texto visible como clave persistente.
@@ -96,10 +96,20 @@ public class IndexModel : PageModel
     [TempData] public bool EsError { get; set; }
     public string LogoActual { get; private set; } = string.Empty;
 
-    public async Task OnGetAsync() => await CargarFormularioAsync();
+    public async Task<IActionResult> OnGetAsync()
+    {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
+        await CargarFormularioAsync();
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostGuardarAsync()
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         // Un solo handler guarda todas las pestanas para preservar el modelo
         // completo. La UI lo presenta por bloques, pero la validacion es central.
         var errorValidacion = ValidarYNormalizarConfiguracion();
@@ -178,6 +188,9 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostSubirLogoAsync()
     {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
         if (Logo is null || Logo.Length == 0)
         {
             EsError = true;

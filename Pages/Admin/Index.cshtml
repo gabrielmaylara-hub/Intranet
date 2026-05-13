@@ -3,6 +3,11 @@
 @{
     Layout = "_LayoutAdmin";
     ViewData["TituloAdmin"] = "Dashboard";
+
+    var esAdminGeneral = string.Equals(
+        User.FindFirst("rol")?.Value,
+        "admin_general",
+        StringComparison.OrdinalIgnoreCase);
 }
 
 <!-- Tarjetas de estadisticas rapidas del panel administrativo. -->
@@ -33,10 +38,13 @@
 <div class="dashboard-modulos">
     <h2 class="admin-subtitulo">Modulos del sistema</h2>
     <div class="modulos-grid">
-        <a href="/Admin/Configuracion" class="modulo-card">
-            <span class="modulo-titulo">Configuracion visual</span>
-            <span class="modulo-desc">Logo, colores, textos del footer y datos de contacto</span>
-        </a>
+        @if (esAdminGeneral)
+        {
+            <a href="/Admin/Configuracion" class="modulo-card">
+                <span class="modulo-titulo">Configuracion visual</span>
+                <span class="modulo-desc">Logo, colores, textos del footer y datos de contacto</span>
+            </a>
+        }
         <a href="/Admin/AccesosRapidos" class="modulo-card">
             <span class="modulo-titulo">Accesos rapidos</span>
             <span class="modulo-desc">Agregar, editar, reordenar y subir banners por acceso</span>
