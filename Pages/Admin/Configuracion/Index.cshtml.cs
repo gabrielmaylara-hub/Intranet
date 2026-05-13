@@ -67,8 +67,8 @@ public class IndexModel : PageModel
     [BindProperty] public List<SitioEnlaceInput> FooterRecursosLinks { get; set; } = [];
     [BindProperty] public List<SitioEnlaceInput> FooterSistemasLinks { get; set; } = [];
 
-    public string? Mensaje { get; private set; }
-    public bool EsError { get; private set; }
+    [TempData] public string? Mensaje { get; set; }
+    [TempData] public bool EsError { get; set; }
     public string LogoActual { get; private set; } = string.Empty;
 
     public async Task OnGetAsync() => await CargarFormularioAsync();
@@ -121,8 +121,8 @@ public class IndexModel : PageModel
         await _configRepo.GuardarEnlacesAsync(GrupoFooterSistemas, AModelo(FooterSistemasLinks, GrupoFooterSistemas));
 
         Mensaje = "Configuración guardada correctamente.";
-        await CargarFormularioAsync();
-        return Page();
+        EsError = false;
+        return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostSubirLogoAsync()
