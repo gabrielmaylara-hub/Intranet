@@ -1,47 +1,68 @@
 @{
-    var config      = ViewData["siteConfig"] as Dictionary<string, string> ?? new();
-    var textoFoot   = config.GetValueOrDefault("footer_texto",    "Fiscalía General del Estado de Tabasco");
-    var subTexto    = config.GetValueOrDefault("footer_subtexto", "Dirección General de Informática y Estadística");
-    var email       = config.GetValueOrDefault("footer_contacto_email", "");
-    var telefono    = config.GetValueOrDefault("footer_contacto_tel",   "");
-    var direccion   = config.GetValueOrDefault("footer_direccion",      "Villahermosa, Tabasco, México");
-    var direccionVisible = direccion.Replace("M" + "?" + "xico", "México").Replace("Mexico", "México");
+    var config = ViewData["siteConfig"] as Dictionary<string, string> ?? new();
+    var recursos = ViewData["footerRecursosLinks"] as IEnumerable<SitioEnlace> ?? Enumerable.Empty<SitioEnlace>();
+    var sistemas = ViewData["footerSistemasLinks"] as IEnumerable<SitioEnlace> ?? Enumerable.Empty<SitioEnlace>();
+    var textoFoot = config.GetValueOrDefault("footer_texto", "Fiscalía General del Estado de Tabasco");
+    var subTexto = config.GetValueOrDefault("footer_subtexto", "Dirección General de Informática y Estadística");
+    var recursosTitulo = config.GetValueOrDefault("footer_recursos_titulo", "RECURSOS");
+    var sistemasTitulo = config.GetValueOrDefault("footer_sistemas_titulo", "SISTEMAS");
+    var contactoTitulo = config.GetValueOrDefault("footer_contacto_titulo", "CONTACTO");
+    var email = config.GetValueOrDefault("footer_contacto_email", "");
+    var telefono = config.GetValueOrDefault("footer_contacto_tel", "");
+    var direccion = config.GetValueOrDefault("footer_direccion", "Villahermosa, Tabasco, México");
+    var copyright = config.GetValueOrDefault(
+        "footer_copyright",
+        "© 2026 Fiscalía General del Estado de Tabasco. Todos los derechos reservados.");
+
+    bool EsExterno(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 }
 <footer class="site-footer">
     <div class="footer-inner">
-        <!-- Columna 1: Identidad institucional -->
         <div class="footer-col footer-col--identidad">
             <p class="footer-nombre">@textoFoot</p>
             <p class="footer-sub">@subTexto</p>
         </div>
 
-        <!-- Columna 2: Accesos rápidos al pie -->
         <div class="footer-col">
-            <h3 class="footer-titulo">Recursos</h3>
+            <h3 class="footer-titulo">@recursosTitulo</h3>
             <ul class="footer-lista" role="list">
-                <li><a href="/formatos"     class="footer-enlace">Formatos Contraloría</a></li>
-                <li><a href="/manuales"     class="footer-enlace">Manuales Justicia NET</a></li>
-                <li><a href="/dgie"         class="footer-enlace">Solicitudes DGIE</a></li>
-                <li><a href="/identidad"    class="footer-enlace">Identidad Gráfica</a></li>
-                <li><a href="/capacitacion" class="footer-enlace">Oferta Académica</a></li>
-                <li><a href="/tutoriales"   class="footer-enlace">Tutoriales</a></li>
+                @foreach (var enlace in recursos)
+                {
+                    var externo = EsExterno(enlace.Url);
+                    <li>
+                        <a href="@enlace.Url"
+                           class="footer-enlace"
+                           target="@(externo ? "_blank" : null)"
+                           rel="@(externo ? "noopener noreferrer" : null)">
+                            @enlace.Texto
+                        </a>
+                    </li>
+                }
             </ul>
         </div>
 
-        <!-- Columna 3: Sistemas externos -->
         <div class="footer-col">
-            <h3 class="footer-titulo">Sistemas</h3>
+            <h3 class="footer-titulo">@sistemasTitulo</h3>
             <ul class="footer-lista" role="list">
-                <li><a href="https://www.fiscaliatabasco.gob.mx/" target="_blank" rel="noopener" class="footer-enlace">Página web FGE</a></li>
-                <li><a href="https://correo.fiscaliatabasco.gob.mx/" target="_blank" rel="noopener" class="footer-enlace">Correo institucional</a></li>
-                <li><a href="https://transparencia.fiscaliatabasco.gob.mx/account" target="_blank" rel="noopener" class="footer-enlace">Transparencia</a></li>
-                <li><a href="https://sigaacej.tsj-tabasco.gob.mx/" target="_blank" rel="noopener" class="footer-enlace">SIGAACEJ</a></li>
+                @foreach (var enlace in sistemas)
+                {
+                    var externo = EsExterno(enlace.Url);
+                    <li>
+                        <a href="@enlace.Url"
+                           class="footer-enlace"
+                           target="@(externo ? "_blank" : null)"
+                           rel="@(externo ? "noopener noreferrer" : null)">
+                            @enlace.Texto
+                        </a>
+                    </li>
+                }
             </ul>
         </div>
 
-        <!-- Columna 4: Contacto -->
         <div class="footer-col">
-            <h3 class="footer-titulo">Contacto</h3>
+            <h3 class="footer-titulo">@contactoTitulo</h3>
             <ul class="footer-lista footer-lista--contacto" role="list">
                 @if (!string.IsNullOrWhiteSpace(email))
                 {
@@ -53,12 +74,15 @@
                 {
                     <li><span class="footer-texto">@telefono</span></li>
                 }
-                <li><span class="footer-texto">@direccionVisible</span></li>
+                @if (!string.IsNullOrWhiteSpace(direccion))
+                {
+                    <li><span class="footer-texto">@direccion</span></li>
+                }
             </ul>
         </div>
     </div>
 
     <div class="footer-copy">
-        <p>&copy; @DateTime.Now.Year @textoFoot. Todos los derechos reservados.</p>
+        <p>@copyright</p>
     </div>
 </footer>

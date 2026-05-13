@@ -1,15 +1,28 @@
 @{
-    var logoPath    = ViewData["logoPath"]    as string ?? "";
+    var logoPath = ViewData["logoPath"] as string ?? "";
     var nombreSitio = ViewData["nombreSitio"] as string ?? "Intranet FGET";
-    var rutaActual  = Context.Request.Path.Value ?? "";
+    var config = ViewData["siteConfig"] as Dictionary<string, string> ?? new();
+    var subtitulo = config.GetValueOrDefault("header_subtitulo", "Fiscalía General del Estado de Tabasco");
+    var enlaces = ViewData["headerLinks"] as IEnumerable<SitioEnlace> ?? Enumerable.Empty<SitioEnlace>();
+    var rutaActual = Context.Request.Path.Value ?? "";
 
-    // Determina si una ruta de navegación está activa
-    bool EsActivo(string ruta) =>
-        ruta == "/" ? rutaActual == "/" : rutaActual.StartsWith(ruta, StringComparison.OrdinalIgnoreCase);
+    bool EsExterno(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
+    bool EsActivo(string ruta)
+    {
+        if (EsExterno(ruta))
+            return false;
+
+        var rutaBase = ruta.Split('?', '#')[0];
+        return rutaBase == "/"
+            ? rutaActual == "/"
+            : rutaActual.StartsWith(rutaBase, StringComparison.OrdinalIgnoreCase);
+    }
 }
 <header class="site-header">
     <div class="header-inner">
-        <!-- Identidad: logo y nombre del sistema -->
         <a href="/" class="header-marca" aria-label="Ir al inicio">
             @if (!string.IsNullOrWhiteSpace(logoPath))
             {
@@ -17,27 +30,31 @@
             }
             else
             {
-                <!-- Logo institucional base hasta que se suba uno desde el panel administrativo -->
                 <img src="~/img/logo-fget.jpeg" alt="FGET" class="header-logo" asp-append-version="true" />
             }
             <div class="header-nombre">
                 <span class="header-nombre-principal">@nombreSitio</span>
-                <span class="header-nombre-sub">Fiscalía General del Estado de Tabasco</span>
+                <span class="header-nombre-sub">@subtitulo</span>
             </div>
         </a>
 
-        <!-- Navegación principal -->
         <nav class="header-nav" aria-label="Navegación principal">
             <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-lista" id="navLista" role="list">
-                <li><a href="/formatos"     class="nav-enlace @(EsActivo("/formatos")     ? "nav-enlace--activo" : "")">Formatos</a></li>
-                <li><a href="/manuales"     class="nav-enlace @(EsActivo("/manuales")     ? "nav-enlace--activo" : "")">Manuales</a></li>
-                <li><a href="/dgie"         class="nav-enlace @(EsActivo("/dgie")         ? "nav-enlace--activo" : "")">DGIE</a></li>
-                <li><a href="/identidad"    class="nav-enlace @(EsActivo("/identidad")    ? "nav-enlace--activo" : "")">Identidad</a></li>
-                <li><a href="/capacitacion" class="nav-enlace @(EsActivo("/capacitacion") ? "nav-enlace--activo" : "")">Capacitación</a></li>
-                <li><a href="/tutoriales"   class="nav-enlace @(EsActivo("/tutoriales")   ? "nav-enlace--activo" : "")">Tutoriales</a></li>
+                @foreach (var enlace in enlaces)
+                {
+                    var externo = EsExterno(enlace.Url);
+                    <li>
+                        <a href="@enlace.Url"
+                           class="nav-enlace @(EsActivo(enlace.Url) ? "nav-enlace--activo" : "")"
+                           target="@(externo ? "_blank" : null)"
+                           rel="@(externo ? "noopener noreferrer" : null)">
+                            @enlace.Texto
+                        </a>
+                    </li>
+                }
             </ul>
         </nav>
     </div>

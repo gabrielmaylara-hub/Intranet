@@ -2,7 +2,7 @@
 @model Intranet.Pages.Admin.Configuracion.IndexModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["TituloAdmin"] = "Configuración Visual";
+    ViewData["TituloAdmin"] = "Configuración del sitio";
 }
 
 @if (!string.IsNullOrEmpty(Model.Mensaje))
@@ -12,81 +12,284 @@
     </div>
 }
 
-<div class="admin-dos-columnas">
+<form method="post" asp-page-handler="Guardar">
+    @Html.AntiForgeryToken()
 
-    <!-- Columna 1: Texto y datos de contacto -->
-    <div class="admin-panel">
-        <h2 class="admin-panel-titulo">Textos del sitio</h2>
-        <form method="post" asp-page-handler="Guardar">
-            @Html.AntiForgeryToken()
+    <div class="admin-dos-columnas">
+        <div class="admin-panel">
+            <h2 class="admin-panel-titulo">Header y marca</h2>
 
             <div class="campo-grupo">
                 <label class="campo-label">Nombre del sitio</label>
-                <input type="text" name="NombreSitio" value="@Model.NombreSitio" class="campo-input" />
+                <input type="text" name="NombreSitio" value="@Model.NombreSitio" class="campo-input" maxlength="120" />
             </div>
             <div class="campo-grupo">
-                <label class="campo-label">Texto principal del footer</label>
-                <input type="text" name="FooterTexto" value="@Model.FooterTexto" class="campo-input" />
+                <label class="campo-label">Subtítulo del header</label>
+                <input type="text" name="HeaderSubtitulo" value="@Model.HeaderSubtitulo" class="campo-input" maxlength="150" />
+            </div>
+
+            <h3 class="admin-subtitulo">Menú superior</h3>
+            <div class="tabla-wrap">
+                <table class="admin-tabla">
+                    <thead>
+                        <tr>
+                            <th>Texto</th>
+                            <th>URL</th>
+                            <th>Orden</th>
+                            <th>Activo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.HeaderLinks.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <input type="hidden" name="HeaderLinks[@i].Id" value="@Model.HeaderLinks[i].Id" />
+                                <input type="text" name="HeaderLinks[@i].Texto" value="@Model.HeaderLinks[i].Texto" class="campo-input" maxlength="150" />
+                            </td>
+                            <td>
+                                <input type="text" name="HeaderLinks[@i].Url" value="@Model.HeaderLinks[i].Url" class="campo-input" maxlength="500" />
+                            </td>
+                            <td>
+                                <input type="number" name="HeaderLinks[@i].Orden" value="@Model.HeaderLinks[i].Orden" class="campo-input" min="1" />
+                            </td>
+                            <td>
+                                <input type="hidden" name="HeaderLinks[@i].Activo" value="false" />
+                                <input type="checkbox" name="HeaderLinks[@i].Activo" value="true" @(Model.HeaderLinks[i].Activo ? "checked" : "") />
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <h2 class="admin-panel-titulo">Home</h2>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Etiqueta del hero</label>
+                <input type="text" name="HomeHeroEtiqueta" value="@Model.HomeHeroEtiqueta" class="campo-input" maxlength="150" />
             </div>
             <div class="campo-grupo">
-                <label class="campo-label">Subtexto del footer</label>
-                <input type="text" name="FooterSubtexto" value="@Model.FooterSubtexto" class="campo-input" />
+                <label class="campo-label">Título del hero</label>
+                <input type="text" name="HomeHeroTitulo" value="@Model.HomeHeroTitulo" class="campo-input" maxlength="150" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Descripción del hero</label>
+                <textarea name="HomeHeroDescripcion" class="campo-input" maxlength="500" rows="3">@Model.HomeHeroDescripcion</textarea>
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Placeholder del buscador</label>
+                <input type="text" name="HomeBuscadorPlaceholder" value="@Model.HomeBuscadorPlaceholder" class="campo-input" maxlength="300" />
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-dos-columnas">
+        <div class="admin-panel">
+            <h2 class="admin-panel-titulo">Accesos, avisos y tutoriales</h2>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Etiqueta de accesos rápidos</label>
+                <input type="text" name="HomeAccesosEtiqueta" value="@Model.HomeAccesosEtiqueta" class="campo-input" maxlength="150" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Título de accesos rápidos</label>
+                <input type="text" name="HomeAccesosTitulo" value="@Model.HomeAccesosTitulo" class="campo-input" maxlength="150" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Descripción de accesos rápidos</label>
+                <textarea name="HomeAccesosDescripcion" class="campo-input" maxlength="500" rows="3">@Model.HomeAccesosDescripcion</textarea>
+            </div>
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label">Etiqueta de avisos</label>
+                    <input type="text" name="HomeAvisosEtiqueta" value="@Model.HomeAvisosEtiqueta" class="campo-input" maxlength="150" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Título de avisos</label>
+                    <input type="text" name="HomeAvisosTitulo" value="@Model.HomeAvisosTitulo" class="campo-input" maxlength="150" />
+                </div>
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Mensaje sin avisos</label>
+                <input type="text" name="HomeAvisosVacio" value="@Model.HomeAvisosVacio" class="campo-input" maxlength="300" />
+            </div>
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label">Etiqueta de tutoriales</label>
+                    <input type="text" name="HomeTutorialesEtiqueta" value="@Model.HomeTutorialesEtiqueta" class="campo-input" maxlength="150" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Título de tutoriales</label>
+                    <input type="text" name="HomeTutorialesTitulo" value="@Model.HomeTutorialesTitulo" class="campo-input" maxlength="150" />
+                </div>
+            </div>
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label">Texto de Ver todos</label>
+                    <input type="text" name="HomeTutorialesVerTodos" value="@Model.HomeTutorialesVerTodos" class="campo-input" maxlength="150" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Mensaje sin tutoriales</label>
+                    <input type="text" name="HomeTutorialesVacio" value="@Model.HomeTutorialesVacio" class="campo-input" maxlength="300" />
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <h2 class="admin-panel-titulo">Footer y contacto</h2>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Texto principal</label>
+                <input type="text" name="FooterTexto" value="@Model.FooterTexto" class="campo-input" maxlength="150" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Subtexto</label>
+                <input type="text" name="FooterSubtexto" value="@Model.FooterSubtexto" class="campo-input" maxlength="150" />
+            </div>
+            <div class="form-dos-columnas">
+                <div class="campo-grupo">
+                    <label class="campo-label">Título Recursos</label>
+                    <input type="text" name="FooterRecursosTitulo" value="@Model.FooterRecursosTitulo" class="campo-input" maxlength="150" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Título Sistemas</label>
+                    <input type="text" name="FooterSistemasTitulo" value="@Model.FooterSistemasTitulo" class="campo-input" maxlength="150" />
+                </div>
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Título Contacto</label>
+                <input type="text" name="FooterContactoTitulo" value="@Model.FooterContactoTitulo" class="campo-input" maxlength="150" />
             </div>
             <div class="campo-grupo">
                 <label class="campo-label">Correo de contacto</label>
-                <input type="email" name="FooterEmail" value="@Model.FooterEmail" class="campo-input" />
+                <input type="email" name="FooterEmail" value="@Model.FooterEmail" class="campo-input" maxlength="254" />
             </div>
             <div class="campo-grupo">
                 <label class="campo-label">Teléfono de contacto</label>
-                <input type="tel" name="FooterTelefono" value="@Model.FooterTelefono" class="campo-input" />
+                <input type="tel" name="FooterTelefono" value="@Model.FooterTelefono" class="campo-input" maxlength="60" />
             </div>
             <div class="campo-grupo">
-                <label class="campo-label">Dirección</label>
-                <input type="text" name="FooterDireccion" value="@Model.FooterDireccion" class="campo-input" />
+                <label class="campo-label">Ubicación</label>
+                <input type="text" name="FooterDireccion" value="@Model.FooterDireccion" class="campo-input" maxlength="250" />
             </div>
-
-            <div class="form-dos-columnas">
-                <div class="campo-grupo">
-                    <label class="campo-label">Color dorado principal</label>
-                    <input type="color" name="ColorDorado" value="@Model.ColorDorado" class="campo-input campo-color" />
-                </div>
-                <div class="campo-grupo">
-                    <label class="campo-label">Color dorado brillante</label>
-                    <input type="color" name="ColorDoradoBrillo" value="@Model.ColorDoradoBrillo" class="campo-input campo-color" />
-                </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Copyright</label>
+                <input type="text" name="FooterCopyright" value="@Model.FooterCopyright" class="campo-input" maxlength="300" />
             </div>
-
-            <button type="submit" class="btn btn-primario">Guardar cambios</button>
-        </form>
+        </div>
     </div>
 
-    <!-- Columna 2: Logo institucional -->
+    <div class="admin-dos-columnas">
+        <div class="admin-panel">
+            <h2 class="admin-panel-titulo">Footer: recursos</h2>
+            <div class="tabla-wrap">
+                <table class="admin-tabla">
+                    <thead>
+                        <tr>
+                            <th>Texto</th>
+                            <th>URL</th>
+                            <th>Orden</th>
+                            <th>Activo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.FooterRecursosLinks.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <input type="hidden" name="FooterRecursosLinks[@i].Id" value="@Model.FooterRecursosLinks[i].Id" />
+                                <input type="text" name="FooterRecursosLinks[@i].Texto" value="@Model.FooterRecursosLinks[i].Texto" class="campo-input" maxlength="150" />
+                            </td>
+                            <td><input type="text" name="FooterRecursosLinks[@i].Url" value="@Model.FooterRecursosLinks[i].Url" class="campo-input" maxlength="500" /></td>
+                            <td><input type="number" name="FooterRecursosLinks[@i].Orden" value="@Model.FooterRecursosLinks[i].Orden" class="campo-input" min="1" /></td>
+                            <td>
+                                <input type="hidden" name="FooterRecursosLinks[@i].Activo" value="false" />
+                                <input type="checkbox" name="FooterRecursosLinks[@i].Activo" value="true" @(Model.FooterRecursosLinks[i].Activo ? "checked" : "") />
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <h2 class="admin-panel-titulo">Footer: sistemas</h2>
+            <div class="tabla-wrap">
+                <table class="admin-tabla">
+                    <thead>
+                        <tr>
+                            <th>Texto</th>
+                            <th>URL</th>
+                            <th>Orden</th>
+                            <th>Activo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.FooterSistemasLinks.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <input type="hidden" name="FooterSistemasLinks[@i].Id" value="@Model.FooterSistemasLinks[i].Id" />
+                                <input type="text" name="FooterSistemasLinks[@i].Texto" value="@Model.FooterSistemasLinks[i].Texto" class="campo-input" maxlength="150" />
+                            </td>
+                            <td><input type="text" name="FooterSistemasLinks[@i].Url" value="@Model.FooterSistemasLinks[i].Url" class="campo-input" maxlength="500" /></td>
+                            <td><input type="number" name="FooterSistemasLinks[@i].Orden" value="@Model.FooterSistemasLinks[i].Orden" class="campo-input" min="1" /></td>
+                            <td>
+                                <input type="hidden" name="FooterSistemasLinks[@i].Activo" value="false" />
+                                <input type="checkbox" name="FooterSistemasLinks[@i].Activo" value="true" @(Model.FooterSistemasLinks[i].Activo ? "checked" : "") />
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="admin-panel">
-        <h2 class="admin-panel-titulo">Logo institucional</h2>
-        <p class="campo-ayuda">
-            El logo se mostrará en el header del sitio. Formatos aceptados: PNG, SVG, JPG.
-            Dimensiones recomendadas: altura máxima de 60px.
-        </p>
-
-        @if (!string.IsNullOrWhiteSpace(Model.LogoActual))
-        {
-            <div class="logo-preview">
-                <img src="/storage/@Model.LogoActual" alt="Logo actual" />
-                <span class="logo-preview-label">Logo actual</span>
-            </div>
-        }
-
-        <form method="post" asp-page-handler="SubirLogo" enctype="multipart/form-data">
-            @Html.AntiForgeryToken()
+        <h2 class="admin-panel-titulo">Colores institucionales</h2>
+        <div class="form-dos-columnas">
             <div class="campo-grupo">
-                <label class="campo-label">Seleccionar nuevo logo</label>
-                <input type="file"
-                       name="Logo"
-                       class="campo-input campo-archivo"
-                       accept=".png,.svg,.jpg,.jpeg" />
+                <label class="campo-label">Color dorado principal</label>
+                <input type="color" name="ColorDorado" value="@Model.ColorDorado" class="campo-input campo-color" />
             </div>
-            <button type="submit" class="btn btn-primario">Subir logo</button>
-        </form>
+            <div class="campo-grupo">
+                <label class="campo-label">Color dorado brillante</label>
+                <input type="color" name="ColorDoradoBrillo" value="@Model.ColorDoradoBrillo" class="campo-input campo-color" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primario">Guardar cambios</button>
     </div>
+</form>
 
+<div class="admin-panel">
+    <h2 class="admin-panel-titulo">Logo institucional</h2>
+    <p class="campo-ayuda">
+        El logo se mostrará en el header del sitio. Formatos aceptados: PNG, SVG, JPG.
+        Dimensiones recomendadas: altura máxima de 60px.
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.LogoActual))
+    {
+        <div class="logo-preview">
+            <img src="/storage/@Model.LogoActual" alt="Logo actual" />
+            <span class="logo-preview-label">Logo actual</span>
+        </div>
+    }
+
+    <form method="post" asp-page-handler="SubirLogo" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div class="campo-grupo">
+            <label class="campo-label">Seleccionar nuevo logo</label>
+            <input type="file"
+                   name="Logo"
+                   class="campo-input campo-archivo"
+                   accept=".png,.svg,.jpg,.jpeg" />
+        </div>
+        <button type="submit" class="btn btn-primario">Subir logo</button>
+    </form>
 </div>

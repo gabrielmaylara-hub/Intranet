@@ -5,6 +5,7 @@
 
     // Preparacion de datos de presentacion para no duplicar calculos en el marcado.
     var accesos = Model.AccesosRapidos.ToList();
+    string Texto(string clave, string fallback) => Model.Config.GetValueOrDefault(clave, fallback);
 }
 
 <div class="home-redisenado">
@@ -12,10 +13,10 @@
     <section class="home-hero-interno" aria-labelledby="tituloHome">
         <div class="home-hero-inner">
             <div class="home-hero-copy">
-                <span class="home-etiqueta">Portal institucional</span>
-                <h1 class="home-titulo" id="tituloHome">Intranet FGET</h1>
+                <span class="home-etiqueta">@Texto("home_hero_etiqueta", "Portal institucional")</span>
+                <h1 class="home-titulo" id="tituloHome">@Texto("home_hero_titulo", "INTRANET FGET")</h1>
                 <p class="home-descripcion">
-                    Punto de acceso para sistemas, formatos, manuales, solicitudes y recursos de trabajo de la Fiscalia General del Estado de Tabasco.
+                    @Texto("home_hero_descripcion", "Punto de acceso para sistemas, formatos, manuales, solicitudes y recursos de trabajo de la Fiscalía General del Estado de Tabasco.")
                 </p>
             </div>
         </div>
@@ -36,7 +37,7 @@
                         <input type="search"
                                id="buscadorAccesos"
                                class="buscador-input"
-                               placeholder="Busca formatos, correo, manuales, capacitacion..."
+                               placeholder="@Texto("home_buscador_placeholder", "Busca formatos, correo, manuales, capacitación...")"
                                autocomplete="off"
                                aria-label="Buscar en los accesos rapidos" />
                     </div>
@@ -51,10 +52,10 @@
     <section class="seccion-accesos home-accesos-panel" aria-labelledby="tituloAccesos">
         <div class="seccion-inner home-accesos-inner">
             <aside class="home-accesos-intro">
-                <span class="home-seccion-kicker">Directorio de servicios</span>
-                <h2 class="seccion-titulo" id="tituloAccesos">Accesos rapidos</h2>
+                <span class="home-seccion-kicker">@Texto("home_accesos_etiqueta", "Directorio de servicios")</span>
+                <h2 class="seccion-titulo" id="tituloAccesos">@Texto("home_accesos_titulo", "ACCESOS RÁPIDOS")</h2>
                 <p>
-                    Accesos concentrados para consulta del personal. Cada elemento dirige al sistema, seccion o recurso correspondiente.
+                    @Texto("home_accesos_descripcion", "Accesos concentrados para consulta del personal. Cada elemento dirige al sistema, sección o recurso correspondiente.")
                 </p>
             </aside>
 
@@ -95,8 +96,8 @@
             <section class="seccion-avisos home-tarjeta-info" aria-labelledby="tituloAvisos">
                 <div class="seccion-cabecera">
                     <div>
-                        <span class="home-seccion-kicker">Comunicacion interna</span>
-                        <h2 class="seccion-titulo" id="tituloAvisos">Avisos y comunicados</h2>
+                        <span class="home-seccion-kicker">@Texto("home_avisos_etiqueta", "Comunicación interna")</span>
+                        <h2 class="seccion-titulo" id="tituloAvisos">@Texto("home_avisos_titulo", "AVISOS Y COMUNICADOS")</h2>
                     </div>
                 </div>
 
@@ -123,7 +124,7 @@
                 else
                 {
                     <div class="seccion-vacia">
-                        <p>No hay avisos publicados en este momento.</p>
+                        <p>@Texto("home_avisos_vacio", "No hay avisos publicados en este momento.")</p>
                     </div>
                 }
             </section>
@@ -131,10 +132,10 @@
             <section class="seccion-tutoriales-home home-tarjeta-info" aria-labelledby="tituloTutorialesHome">
                 <div class="seccion-cabecera">
                     <div>
-                        <span class="home-seccion-kicker">Material de apoyo</span>
-                        <h2 class="seccion-titulo" id="tituloTutorialesHome">Tutoriales y videos</h2>
+                        <span class="home-seccion-kicker">@Texto("home_tutoriales_etiqueta", "Material de apoyo")</span>
+                        <h2 class="seccion-titulo" id="tituloTutorialesHome">@Texto("home_tutoriales_titulo", "TUTORIALES Y VIDEOS")</h2>
                     </div>
-                    <a href="/tutoriales" class="seccion-ver-todos">Ver todos &rarr;</a>
+                    <a href="/tutoriales" class="seccion-ver-todos">@Texto("home_tutoriales_ver_todos", "Ver todos →")</a>
                 </div>
 
                 @if (Model.Tutoriales.Any())
@@ -172,7 +173,7 @@
                 else
                 {
                     <div class="seccion-vacia">
-                        <p>No hay tutoriales publicados en este momento.</p>
+                        <p>@Texto("home_tutoriales_vacio", "No hay tutoriales publicados en este momento.")</p>
                     </div>
                 }
             </section>

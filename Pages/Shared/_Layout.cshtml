@@ -15,6 +15,9 @@
     var logoPath    = siteConfig.GetValueOrDefault("logo_path", "");
     var colorDorado = CssHex(siteConfig.GetValueOrDefault("color_dorado", "#c9922a"), "#c9922a");
     var colorDoradoBrillo = CssHex(siteConfig.GetValueOrDefault("color_dorado_bri", "#e8a820"), "#e8a820");
+    var headerLinks = await ConfigRepo.ObtenerEnlacesAsync("header_principal", soloActivos: true);
+    var footerRecursosLinks = await ConfigRepo.ObtenerEnlacesAsync("footer_recursos", soloActivos: true);
+    var footerSistemasLinks = await ConfigRepo.ObtenerEnlacesAsync("footer_sistemas", soloActivos: true);
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -43,7 +46,9 @@
     @await Html.PartialAsync("_Header", new ViewDataDictionary(ViewData)
     {
         ["logoPath"]    = logoPath,
-        ["nombreSitio"] = nombreSitio
+        ["nombreSitio"] = nombreSitio,
+        ["siteConfig"] = siteConfig,
+        ["headerLinks"] = headerLinks
     })
 
     <main class="contenido-principal">
@@ -52,7 +57,9 @@
 
     @await Html.PartialAsync("_Footer", new ViewDataDictionary(ViewData)
     {
-        ["siteConfig"] = siteConfig
+        ["siteConfig"] = siteConfig,
+        ["footerRecursosLinks"] = footerRecursosLinks,
+        ["footerSistemasLinks"] = footerSistemasLinks
     })
 
     <script src="~/js/site.js" asp-append-version="true"></script>
