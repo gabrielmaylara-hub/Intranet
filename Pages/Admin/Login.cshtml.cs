@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Intranet.Models;
 using Intranet.Repositories.Interfaces;
 using Intranet.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -77,6 +78,13 @@ public class LoginModel : PageModel
             return Page();
         }
 
+        if (EsUsuarioAreaSinArea(usuario))
+        {
+            await CargarLogoAsync();
+            ErrorMensaje = "El usuario no tiene un área de publicación asignada. Contacta al administrador.";
+            return Page();
+        }
+
         _intentosLogin.RegistrarExito(HttpContext, Usuario);
 
         // Crea los claims de la sesión. NameIdentifier se mantiene como Id para
@@ -122,4 +130,8 @@ public class LoginModel : PageModel
     {
         LogoPath = await _configRepo.ObtenerValorAsync("logo_path") ?? string.Empty;
     }
+
+    private static bool EsUsuarioAreaSinArea(UsuarioAdmin usuario) =>
+        string.Equals(usuario.Rol, "usuario_area", StringComparison.OrdinalIgnoreCase) &&
+        usuario.AreaPublicacionId is null;
 }
