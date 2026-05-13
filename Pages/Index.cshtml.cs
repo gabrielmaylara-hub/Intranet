@@ -35,7 +35,9 @@ public class IndexModel : PageModel
 
         // Solo los 5 avisos más recientes activos
         var todosAvisos = await _avisosRepo.ObtenerTodosAsync(soloActivos: true);
-        Avisos = todosAvisos.Take(5);
+        Avisos = todosAvisos
+            .OrderByDescending(a => a.FechaPublicacion)
+            .Take(5);
 
         // Solo los 4 tutoriales más recientes activos
         var todosTutoriales = await _tutorialesRepo.ObtenerTodosAsync(soloActivos: true);

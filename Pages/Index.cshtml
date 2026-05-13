@@ -106,9 +106,20 @@
                     <ul class="avisos-lista" role="list">
                         @foreach (var aviso in Model.Avisos)
                         {
+                            var fechaAviso = aviso.FechaPublicacion
+                                .ToString("dd MMM yyyy", new System.Globalization.CultureInfo("es-MX"))
+                                .Replace(".", "")
+                                .ToUpperInvariant();
+
                             <li class="aviso-item">
-                                <div class="aviso-fecha">
-                                    @aviso.FechaPublicacion.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("es-MX"))
+                                <div class="aviso-meta">
+                                    <time class="aviso-fecha" datetime="@aviso.FechaPublicacion.ToString("yyyy-MM-dd")">
+                                        @fechaAviso
+                                    </time>
+                                    @if (!string.IsNullOrWhiteSpace(aviso.AreaPublicacionNombre))
+                                    {
+                                        <span class="aviso-area">@aviso.AreaPublicacionNombre</span>
+                                    }
                                 </div>
                                 <div class="aviso-cuerpo">
                                     <h3 class="aviso-titulo">@aviso.Titulo</h3>

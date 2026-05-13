@@ -1424,12 +1424,51 @@ button { cursor: pointer; font-family: inherit; }
   text-align: left;
 }
 
+.home-redisenado .avisos-lista {
+  gap: 0.85rem;
+}
+
 .home-redisenado .aviso-item {
-  border-bottom: 1px solid var(--home-linea);
+  display: block;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--home-linea);
+  border-left: 4px solid rgba(0, 72, 58, 0.72);
+  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(247,247,244,0.96));
+  box-shadow: 0 10px 22px rgba(0,0,0,0.04);
+}
+
+.home-redisenado .aviso-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
 }
 
 .home-redisenado .aviso-fecha {
+  min-width: auto;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(0,72,58,0.16);
+  background: rgba(0,72,58,0.06);
   color: var(--home-verde);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+}
+
+.home-redisenado .aviso-area {
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(201,146,42,0.24);
+  background: rgba(201,146,42,0.08);
+  color: var(--home-tinta);
+  font-family: var(--fuente-cond);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.home-redisenado .aviso-cuerpo {
+  padding-top: 0.2rem;
 }
 
 .home-redisenado .aviso-titulo,
@@ -1437,9 +1476,21 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--home-tinta);
 }
 
+.home-redisenado .aviso-titulo {
+  margin-bottom: 0.45rem;
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+
 .home-redisenado .aviso-contenido,
 .home-redisenado .tutorial-desc {
   color: var(--home-tinta-suave);
+}
+
+.home-redisenado .aviso-contenido {
+  margin: 0;
+  line-height: 1.65;
+  white-space: pre-line;
 }
 
 .home-redisenado .tutoriales-grid-home {
