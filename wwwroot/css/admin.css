@@ -789,6 +789,103 @@ button { cursor: pointer; font-family: inherit; }
 .admin-tab:hover { color: var(--blanco); border-color: var(--gris-texto); }
 .admin-tab--activo { color: var(--dorado); border-color: var(--dorado); background: rgba(201,146,42,0.08); }
 
+.admin-tabs--config {
+  position: sticky;
+  top: 72px;
+  z-index: 20;
+  padding: 0.75rem;
+  background: rgba(17,17,17,0.96);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  backdrop-filter: blur(8px);
+}
+
+.admin-tabs--config .admin-tab {
+  background: transparent;
+}
+
+.admin-tab-panel {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.admin-tab-panel[hidden] {
+  display: none;
+}
+
+.config-acordeon {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  background: rgba(0,0,0,0.16);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.config-acordeon:last-child {
+  margin-bottom: 0;
+}
+
+.config-acordeon > summary {
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  font-family: var(--fuente-cond);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--blanco);
+  background: rgba(201,146,42,0.06);
+  border-bottom: 1px solid var(--gris-borde);
+}
+
+.config-acordeon[open] > summary {
+  color: var(--dorado-bri);
+}
+
+.config-acordeon-cuerpo {
+  padding: 1rem;
+}
+
+.config-acciones-panel {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+
+.admin-tabla--config-enlaces {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.admin-tabla--config-enlaces th:nth-child(1),
+.admin-tabla--config-enlaces td:nth-child(1) {
+  width: 30%;
+}
+
+.admin-tabla--config-enlaces th:nth-child(2),
+.admin-tabla--config-enlaces td:nth-child(2) {
+  width: auto;
+}
+
+.admin-tabla--config-enlaces th:nth-child(3),
+.admin-tabla--config-enlaces td:nth-child(3) {
+  width: 78px;
+  text-align: center;
+}
+
+.admin-tabla--config-enlaces th:nth-child(4),
+.admin-tabla--config-enlaces td:nth-child(4) {
+  width: 68px;
+  text-align: center;
+}
+
+.admin-tabla--config-enlaces .campo-input {
+  width: 100%;
+  min-width: 0;
+}
+
 /* ─── Página de login ─────────────────────────────────────────────────────────── */
 .login-body {
   display: flex;

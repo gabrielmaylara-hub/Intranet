@@ -55,6 +55,58 @@
   });
 
   // ---------------------------------------------------------------------------
+  // Configuracion: pestañas internas sin recargar ni perder valores escritos.
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll("[data-config-tabs]").forEach((contenedor) => {
+    const tabs = Array.from(contenedor.querySelectorAll("[data-config-tab]"));
+    const panels = Array.from(contenedor.querySelectorAll("[data-config-panel]"));
+    const inputTab = contenedor.querySelector("#configTabActiva");
+
+    if (tabs.length === 0 || panels.length === 0) return;
+
+    const activar = (nombre, actualizarHash = false) => {
+      const existe = tabs.some((tab) => tab.dataset.configTab === nombre);
+      const tabActiva = existe ? nombre : tabs[0].dataset.configTab;
+
+      tabs.forEach((tab) => {
+        const activo = tab.dataset.configTab === tabActiva;
+        tab.classList.toggle("admin-tab--activo", activo);
+        tab.setAttribute("aria-selected", activo ? "true" : "false");
+      });
+
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.configPanel !== tabActiva;
+      });
+
+      if (inputTab) inputTab.value = tabActiva;
+
+      if (actualizarHash && tabActiva) {
+        const url = `${window.location.pathname}${window.location.search}#config-${tabActiva}`;
+        window.history.replaceState(null, "", url);
+      }
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => activar(tab.dataset.configTab, true));
+    });
+
+    contenedor.querySelectorAll("[data-config-submit-tab]").forEach((boton) => {
+      boton.addEventListener("click", () => {
+        if (inputTab && boton.dataset.configSubmitTab) {
+          inputTab.value = boton.dataset.configSubmitTab;
+        }
+      });
+    });
+
+    const hash = window.location.hash.replace("#config-", "");
+    const inicial = tabs.some((tab) => tab.dataset.configTab === hash)
+      ? hash
+      : inputTab?.value;
+
+    activar(inicial || "identidad");
+  });
+
+  // ---------------------------------------------------------------------------
   // Formularios reutilizados de alta y edicion.
   // Las paginas de Accesos, Avisos y Tutoriales comparten los mismos ids base.
   // ---------------------------------------------------------------------------

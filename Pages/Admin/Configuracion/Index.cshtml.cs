@@ -84,6 +84,7 @@ public class IndexModel : PageModel
     [BindProperty] public string ColorDorado { get; set; } = "#c9922a";
     [BindProperty] public string ColorDoradoBrillo { get; set; } = "#e8a820";
     [BindProperty] public IFormFile? Logo { get; set; }
+    [BindProperty] public string TabActiva { get; set; } = "identidad";
 
     [BindProperty] public List<SitioEnlaceInput> HeaderLinks { get; set; } = [];
     [BindProperty] public List<SitioEnlaceInput> FooterRecursosLinks { get; set; } = [];
@@ -165,7 +166,7 @@ public class IndexModel : PageModel
 
         Mensaje = "Configuración guardada correctamente.";
         EsError = false;
-        return RedirectToPage();
+        return RedirectToPage(null, null, null, FragmentoTabActiva());
     }
 
     public async Task<IActionResult> OnPostSubirLogoAsync()
@@ -174,6 +175,7 @@ public class IndexModel : PageModel
         {
             EsError = true;
             Mensaje = "Selecciona un archivo de imagen.";
+            TabActiva = "identidad";
             await CargarFormularioAsync();
             return Page();
         }
@@ -185,6 +187,7 @@ public class IndexModel : PageModel
         {
             EsError = true;
             Mensaje = "Solo se permiten imágenes PNG, SVG o JPG.";
+            TabActiva = "identidad";
             await CargarFormularioAsync();
             return Page();
         }
@@ -207,6 +210,7 @@ public class IndexModel : PageModel
         {
             EsError = true;
             Mensaje = ex.Message;
+            TabActiva = "identidad";
             await CargarFormularioAsync();
             return Page();
         }
@@ -214,8 +218,9 @@ public class IndexModel : PageModel
         await _configRepo.GuardarAsync("logo_path", rutaRelativa);
 
         Mensaje = "Logo actualizado correctamente.";
-        await CargarFormularioAsync();
-        return Page();
+        EsError = false;
+        TabActiva = "identidad";
+        return RedirectToPage(null, null, null, "config-identidad");
     }
 
     private async Task CargarFormularioAsync()
@@ -524,6 +529,16 @@ public class IndexModel : PageModel
         return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
             (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
+
+    private string FragmentoTabActiva() =>
+        (TabActiva ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "home" => "config-home",
+            "menu" => "config-menu",
+            "paginas" => "config-paginas",
+            "footer" => "config-footer",
+            _ => "config-identidad"
+        };
 
     private static string NormalizarHex(string? valor, string fallback)
     {

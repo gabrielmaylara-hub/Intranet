@@ -12,25 +12,199 @@
     </div>
 }
 
-<form method="post" asp-page-handler="Guardar">
+<form method="post" asp-page-handler="Guardar" enctype="multipart/form-data" data-config-tabs>
     @Html.AntiForgeryToken()
+    <input type="hidden" name="TabActiva" id="configTabActiva" value="@(string.IsNullOrWhiteSpace(Model.TabActiva) ? "identidad" : Model.TabActiva)" />
 
-    <div class="admin-dos-columnas">
+    <nav class="admin-tabs admin-tabs--config" aria-label="Secciones de configuración">
+        <button type="button" class="admin-tab admin-tab--activo" data-config-tab="identidad" aria-controls="config-identidad" aria-selected="true">
+            Identidad y marca
+        </button>
+        <button type="button" class="admin-tab" data-config-tab="home" aria-controls="config-home" aria-selected="false">
+            Home
+        </button>
+        <button type="button" class="admin-tab" data-config-tab="menu" aria-controls="config-menu" aria-selected="false">
+            Menú superior
+        </button>
+        <button type="button" class="admin-tab" data-config-tab="paginas" aria-controls="config-paginas" aria-selected="false">
+            Páginas públicas
+        </button>
+        <button type="button" class="admin-tab" data-config-tab="footer" aria-controls="config-footer" aria-selected="false">
+            Footer
+        </button>
+    </nav>
+
+    <section class="admin-tab-panel" id="config-identidad" data-config-panel="identidad">
+        <div class="admin-dos-columnas">
+            <div class="admin-panel">
+                <h2 class="admin-panel-titulo">Identidad y marca</h2>
+
+                <div class="campo-grupo">
+                    <label class="campo-label">Nombre del sitio</label>
+                    <input type="text" name="NombreSitio" value="@Model.NombreSitio" class="campo-input" maxlength="120" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Subtítulo del header</label>
+                    <input type="text" name="HeaderSubtitulo" value="@Model.HeaderSubtitulo" class="campo-input" maxlength="150" />
+                </div>
+
+                <h3 class="admin-subtitulo">Colores institucionales</h3>
+                <div class="form-dos-columnas">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Color dorado principal</label>
+                        <input type="color" name="ColorDorado" value="@Model.ColorDorado" class="campo-input campo-color" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Color dorado brillante</label>
+                        <input type="color" name="ColorDoradoBrillo" value="@Model.ColorDoradoBrillo" class="campo-input campo-color" />
+                    </div>
+                </div>
+
+                <div class="form-acciones">
+                    <button type="submit" class="btn btn-primario" data-config-submit-tab="identidad">
+                        Guardar identidad
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <h2 class="admin-panel-titulo">Logo institucional</h2>
+                <p class="campo-ayuda">
+                    El logo se mostrará en el header del sitio. Formatos aceptados: PNG, SVG, JPG.
+                    Dimensiones recomendadas: altura máxima de 60px.
+                </p>
+
+                @if (!string.IsNullOrWhiteSpace(Model.LogoActual))
+                {
+                    <div class="logo-preview">
+                        <img src="/storage/@Model.LogoActual" alt="Logo actual" />
+                        <span class="logo-preview-label">Logo actual</span>
+                    </div>
+                }
+
+                <div class="campo-grupo">
+                    <label class="campo-label">Seleccionar nuevo logo</label>
+                    <input type="file"
+                           name="Logo"
+                           class="campo-input campo-archivo"
+                           accept=".png,.svg,.jpg,.jpeg" />
+                </div>
+                <div class="form-acciones">
+                    <button type="submit"
+                            class="btn btn-primario"
+                            asp-page-handler="SubirLogo"
+                            formenctype="multipart/form-data"
+                            data-config-submit-tab="identidad">
+                        Subir logo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-tab-panel" id="config-home" data-config-panel="home" hidden>
+        <div class="admin-dos-columnas">
+            <div class="admin-panel">
+                <h2 class="admin-panel-titulo">Home</h2>
+
+                <div class="campo-grupo">
+                    <label class="campo-label">Etiqueta del hero</label>
+                    <input type="text" name="HomeHeroEtiqueta" value="@Model.HomeHeroEtiqueta" class="campo-input" maxlength="150" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Título del hero</label>
+                    <input type="text" name="HomeHeroTitulo" value="@Model.HomeHeroTitulo" class="campo-input" maxlength="150" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Descripción del hero</label>
+                    <textarea name="HomeHeroDescripcion" class="campo-input" maxlength="500" rows="3">@Model.HomeHeroDescripcion</textarea>
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Placeholder del buscador</label>
+                    <input type="text" name="HomeBuscadorPlaceholder" value="@Model.HomeBuscadorPlaceholder" class="campo-input" maxlength="300" />
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <h2 class="admin-panel-titulo">Accesos, avisos y tutoriales</h2>
+
+                <details class="config-acordeon" open>
+                    <summary>Accesos rápidos</summary>
+                    <div class="config-acordeon-cuerpo">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Etiqueta</label>
+                            <input type="text" name="HomeAccesosEtiqueta" value="@Model.HomeAccesosEtiqueta" class="campo-input" maxlength="150" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Título</label>
+                            <input type="text" name="HomeAccesosTitulo" value="@Model.HomeAccesosTitulo" class="campo-input" maxlength="150" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Descripción</label>
+                            <textarea name="HomeAccesosDescripcion" class="campo-input" maxlength="500" rows="3">@Model.HomeAccesosDescripcion</textarea>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="config-acordeon">
+                    <summary>Avisos</summary>
+                    <div class="config-acordeon-cuerpo">
+                        <div class="form-dos-columnas">
+                            <div class="campo-grupo">
+                                <label class="campo-label">Etiqueta</label>
+                                <input type="text" name="HomeAvisosEtiqueta" value="@Model.HomeAvisosEtiqueta" class="campo-input" maxlength="150" />
+                            </div>
+                            <div class="campo-grupo">
+                                <label class="campo-label">Título</label>
+                                <input type="text" name="HomeAvisosTitulo" value="@Model.HomeAvisosTitulo" class="campo-input" maxlength="150" />
+                            </div>
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Mensaje sin avisos</label>
+                            <input type="text" name="HomeAvisosVacio" value="@Model.HomeAvisosVacio" class="campo-input" maxlength="300" />
+                        </div>
+                    </div>
+                </details>
+
+                <details class="config-acordeon">
+                    <summary>Tutoriales</summary>
+                    <div class="config-acordeon-cuerpo">
+                        <div class="form-dos-columnas">
+                            <div class="campo-grupo">
+                                <label class="campo-label">Etiqueta</label>
+                                <input type="text" name="HomeTutorialesEtiqueta" value="@Model.HomeTutorialesEtiqueta" class="campo-input" maxlength="150" />
+                            </div>
+                            <div class="campo-grupo">
+                                <label class="campo-label">Título</label>
+                                <input type="text" name="HomeTutorialesTitulo" value="@Model.HomeTutorialesTitulo" class="campo-input" maxlength="150" />
+                            </div>
+                        </div>
+                        <div class="form-dos-columnas">
+                            <div class="campo-grupo">
+                                <label class="campo-label">Texto de Ver todos</label>
+                                <input type="text" name="HomeTutorialesVerTodos" value="@Model.HomeTutorialesVerTodos" class="campo-input" maxlength="150" />
+                            </div>
+                            <div class="campo-grupo">
+                                <label class="campo-label">Mensaje sin tutoriales</label>
+                                <input type="text" name="HomeTutorialesVacio" value="@Model.HomeTutorialesVacio" class="campo-input" maxlength="300" />
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+        <div class="admin-panel config-acciones-panel">
+            <button type="submit" class="btn btn-primario" data-config-submit-tab="home">
+                Guardar Home
+            </button>
+        </div>
+    </section>
+
+    <section class="admin-tab-panel" id="config-menu" data-config-panel="menu" hidden>
         <div class="admin-panel">
-            <h2 class="admin-panel-titulo">Header y marca</h2>
-
-            <div class="campo-grupo">
-                <label class="campo-label">Nombre del sitio</label>
-                <input type="text" name="NombreSitio" value="@Model.NombreSitio" class="campo-input" maxlength="120" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Subtítulo del header</label>
-                <input type="text" name="HeaderSubtitulo" value="@Model.HeaderSubtitulo" class="campo-input" maxlength="150" />
-            </div>
-
-            <h3 class="admin-subtitulo">Menú superior</h3>
+            <h2 class="admin-panel-titulo">Menú superior</h2>
             <div class="tabla-wrap">
-                <table class="admin-tabla">
+                <table class="admin-tabla admin-tabla--config-enlaces">
                     <thead>
                         <tr>
                             <th>Texto</th>
@@ -51,7 +225,7 @@
                                 <input type="text" name="HeaderLinks[@i].Url" value="@Model.HeaderLinks[i].Url" class="campo-input" maxlength="500" />
                             </td>
                             <td>
-                                <input type="number" name="HeaderLinks[@i].Orden" value="@Model.HeaderLinks[i].Orden" class="campo-input" min="1" />
+                                <input type="number" name="HeaderLinks[@i].Orden" value="@Model.HeaderLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" />
                             </td>
                             <td>
                                 <input type="checkbox" name="HeaderLinks[@i].Activo" value="true" @(Model.HeaderLinks[i].Activo ? "checked" : "") />
@@ -62,343 +236,281 @@
                     </tbody>
                 </table>
             </div>
+            <div class="form-acciones">
+                <button type="submit" class="btn btn-primario" data-config-submit-tab="menu">
+                    Guardar menú
+                </button>
+            </div>
         </div>
+    </section>
 
+    <section class="admin-tab-panel" id="config-paginas" data-config-panel="paginas" hidden>
         <div class="admin-panel">
-            <h2 class="admin-panel-titulo">Home</h2>
+            <h2 class="admin-panel-titulo">Páginas públicas</h2>
 
-            <div class="campo-grupo">
-                <label class="campo-label">Etiqueta del hero</label>
-                <input type="text" name="HomeHeroEtiqueta" value="@Model.HomeHeroEtiqueta" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Título del hero</label>
-                <input type="text" name="HomeHeroTitulo" value="@Model.HomeHeroTitulo" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Descripción del hero</label>
-                <textarea name="HomeHeroDescripcion" class="campo-input" maxlength="500" rows="3">@Model.HomeHeroDescripcion</textarea>
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Placeholder del buscador</label>
-                <input type="text" name="HomeBuscadorPlaceholder" value="@Model.HomeBuscadorPlaceholder" class="campo-input" maxlength="300" />
-            </div>
+            <details class="config-acordeon" open>
+                <summary>Formatos</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título</label>
+                        <input type="text" name="PaginaFormatosTitulo" value="@Model.PaginaFormatosTitulo" class="campo-input" maxlength="150" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción</label>
+                        <textarea name="PaginaFormatosDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaFormatosDescripcion</textarea>
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-acordeon">
+                <summary>Manuales</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título</label>
+                        <input type="text" name="PaginaManualesTitulo" value="@Model.PaginaManualesTitulo" class="campo-input" maxlength="150" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción</label>
+                        <textarea name="PaginaManualesDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaManualesDescripcion</textarea>
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-acordeon">
+                <summary>DGIE</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título</label>
+                        <input type="text" name="PaginaDgieTitulo" value="@Model.PaginaDgieTitulo" class="campo-input" maxlength="150" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción</label>
+                        <textarea name="PaginaDgieDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaDgieDescripcion</textarea>
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-acordeon">
+                <summary>Identidad</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título</label>
+                        <input type="text" name="PaginaIdentidadTitulo" value="@Model.PaginaIdentidadTitulo" class="campo-input" maxlength="150" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción</label>
+                        <textarea name="PaginaIdentidadDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaIdentidadDescripcion</textarea>
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-acordeon">
+                <summary>Capacitación</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="form-dos-columnas">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Título</label>
+                            <input type="text" name="PaginaCapacitacionTitulo" value="@Model.PaginaCapacitacionTitulo" class="campo-input" maxlength="150" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Título de materiales internos</label>
+                            <input type="text" name="PaginaCapacitacionInternosTitulo" value="@Model.PaginaCapacitacionInternosTitulo" class="campo-input" maxlength="150" />
+                        </div>
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción</label>
+                        <textarea name="PaginaCapacitacionDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaCapacitacionDescripcion</textarea>
+                    </div>
+                    <div class="campo-grupo campo-grupo--checks">
+                        <label class="campo-check">
+                            <input type="checkbox" name="PaginaCapacitacionExternoActivo" value="true" @(Model.PaginaCapacitacionExternoActivo ? "checked" : "") />
+                            Mostrar enlace académico externo
+                        </label>
+                        <input type="hidden" name="PaginaCapacitacionExternoActivo" value="false" />
+                    </div>
+                    <div class="form-dos-columnas">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Título del enlace</label>
+                            <input type="text" name="PaginaCapacitacionExternoTitulo" value="@Model.PaginaCapacitacionExternoTitulo" class="campo-input" maxlength="150" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Texto del botón</label>
+                            <input type="text" name="PaginaCapacitacionExternoBotonTexto" value="@Model.PaginaCapacitacionExternoBotonTexto" class="campo-input" maxlength="150" />
+                        </div>
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">URL del botón</label>
+                        <input type="text" name="PaginaCapacitacionExternoBotonUrl" value="@Model.PaginaCapacitacionExternoBotonUrl" class="campo-input" maxlength="500" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción del enlace</label>
+                        <textarea name="PaginaCapacitacionExternoDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaCapacitacionExternoDescripcion</textarea>
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-acordeon">
+                <summary>Tutoriales</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título</label>
+                        <input type="text" name="PaginaTutorialesTitulo" value="@Model.PaginaTutorialesTitulo" class="campo-input" maxlength="150" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Descripción</label>
+                        <textarea name="PaginaTutorialesDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaTutorialesDescripcion</textarea>
+                    </div>
+                    <div class="form-dos-columnas">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Mensaje sin tutoriales</label>
+                            <input type="text" name="PaginaTutorialesVacio" value="@Model.PaginaTutorialesVacio" class="campo-input" maxlength="300" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Video próximamente</label>
+                            <input type="text" name="PaginaTutorialesVideoProximamente" value="@Model.PaginaTutorialesVideoProximamente" class="campo-input" maxlength="150" />
+                        </div>
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Mensaje de video no soportado</label>
+                        <input type="text" name="PaginaTutorialesVideoNoSoportado" value="@Model.PaginaTutorialesVideoNoSoportado" class="campo-input" maxlength="300" />
+                    </div>
+                </div>
+            </details>
         </div>
-    </div>
+        <div class="admin-panel config-acciones-panel">
+            <button type="submit" class="btn btn-primario" data-config-submit-tab="paginas">
+                Guardar páginas públicas
+            </button>
+        </div>
+    </section>
 
-    <div class="admin-dos-columnas">
+    <section class="admin-tab-panel" id="config-footer" data-config-panel="footer" hidden>
         <div class="admin-panel">
-            <h2 class="admin-panel-titulo">Accesos, avisos y tutoriales</h2>
+            <h2 class="admin-panel-titulo">Footer</h2>
 
-            <div class="campo-grupo">
-                <label class="campo-label">Etiqueta de accesos rápidos</label>
-                <input type="text" name="HomeAccesosEtiqueta" value="@Model.HomeAccesosEtiqueta" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Título de accesos rápidos</label>
-                <input type="text" name="HomeAccesosTitulo" value="@Model.HomeAccesosTitulo" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Descripción de accesos rápidos</label>
-                <textarea name="HomeAccesosDescripcion" class="campo-input" maxlength="500" rows="3">@Model.HomeAccesosDescripcion</textarea>
-            </div>
-            <div class="form-dos-columnas">
-                <div class="campo-grupo">
-                    <label class="campo-label">Etiqueta de avisos</label>
-                    <input type="text" name="HomeAvisosEtiqueta" value="@Model.HomeAvisosEtiqueta" class="campo-input" maxlength="150" />
+            <details class="config-acordeon" open>
+                <summary>Textos del footer</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="form-dos-columnas">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Texto principal</label>
+                            <input type="text" name="FooterTexto" value="@Model.FooterTexto" class="campo-input" maxlength="150" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Subtexto</label>
+                            <input type="text" name="FooterSubtexto" value="@Model.FooterSubtexto" class="campo-input" maxlength="150" />
+                        </div>
+                    </div>
+                    <div class="form-dos-columnas">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Título Recursos</label>
+                            <input type="text" name="FooterRecursosTitulo" value="@Model.FooterRecursosTitulo" class="campo-input" maxlength="150" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Título Sistemas</label>
+                            <input type="text" name="FooterSistemasTitulo" value="@Model.FooterSistemasTitulo" class="campo-input" maxlength="150" />
+                        </div>
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título Contacto</label>
+                        <input type="text" name="FooterContactoTitulo" value="@Model.FooterContactoTitulo" class="campo-input" maxlength="150" />
+                    </div>
+                    <div class="form-dos-columnas">
+                        <div class="campo-grupo">
+                            <label class="campo-label">Correo de contacto</label>
+                            <input type="email" name="FooterEmail" value="@Model.FooterEmail" class="campo-input" maxlength="254" />
+                        </div>
+                        <div class="campo-grupo">
+                            <label class="campo-label">Teléfono de contacto</label>
+                            <input type="tel" name="FooterTelefono" value="@Model.FooterTelefono" class="campo-input" maxlength="60" />
+                        </div>
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Ubicación</label>
+                        <input type="text" name="FooterDireccion" value="@Model.FooterDireccion" class="campo-input" maxlength="250" />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">Copyright</label>
+                        <input type="text" name="FooterCopyright" value="@Model.FooterCopyright" class="campo-input" maxlength="300" />
+                    </div>
                 </div>
-                <div class="campo-grupo">
-                    <label class="campo-label">Título de avisos</label>
-                    <input type="text" name="HomeAvisosTitulo" value="@Model.HomeAvisosTitulo" class="campo-input" maxlength="150" />
+            </details>
+
+            <details class="config-acordeon" open>
+                <summary>Footer: Recursos</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="tabla-wrap">
+                        <table class="admin-tabla admin-tabla--enlaces-footer">
+                            <thead>
+                                <tr>
+                                    <th>Texto</th>
+                                    <th>URL</th>
+                                    <th>Orden</th>
+                                    <th>Activo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @for (var i = 0; i < Model.FooterRecursosLinks.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="FooterRecursosLinks[@i].Id" value="@Model.FooterRecursosLinks[i].Id" />
+                                        <input type="text" name="FooterRecursosLinks[@i].Texto" value="@Model.FooterRecursosLinks[i].Texto" class="campo-input" maxlength="150" />
+                                    </td>
+                                    <td><input type="text" name="FooterRecursosLinks[@i].Url" value="@Model.FooterRecursosLinks[i].Url" class="campo-input" maxlength="500" /></td>
+                                    <td><input type="number" name="FooterRecursosLinks[@i].Orden" value="@Model.FooterRecursosLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" /></td>
+                                    <td>
+                                        <input type="checkbox" name="FooterRecursosLinks[@i].Activo" value="true" @(Model.FooterRecursosLinks[i].Activo ? "checked" : "") />
+                                        <input type="hidden" name="FooterRecursosLinks[@i].Activo" value="false" />
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Mensaje sin avisos</label>
-                <input type="text" name="HomeAvisosVacio" value="@Model.HomeAvisosVacio" class="campo-input" maxlength="300" />
-            </div>
-            <div class="form-dos-columnas">
-                <div class="campo-grupo">
-                    <label class="campo-label">Etiqueta de tutoriales</label>
-                    <input type="text" name="HomeTutorialesEtiqueta" value="@Model.HomeTutorialesEtiqueta" class="campo-input" maxlength="150" />
+            </details>
+
+            <details class="config-acordeon">
+                <summary>Footer: Sistemas</summary>
+                <div class="config-acordeon-cuerpo">
+                    <div class="tabla-wrap">
+                        <table class="admin-tabla admin-tabla--enlaces-footer">
+                            <thead>
+                                <tr>
+                                    <th>Texto</th>
+                                    <th>URL</th>
+                                    <th>Orden</th>
+                                    <th>Activo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @for (var i = 0; i < Model.FooterSistemasLinks.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="FooterSistemasLinks[@i].Id" value="@Model.FooterSistemasLinks[i].Id" />
+                                        <input type="text" name="FooterSistemasLinks[@i].Texto" value="@Model.FooterSistemasLinks[i].Texto" class="campo-input" maxlength="150" />
+                                    </td>
+                                    <td><input type="text" name="FooterSistemasLinks[@i].Url" value="@Model.FooterSistemasLinks[i].Url" class="campo-input" maxlength="500" /></td>
+                                    <td><input type="number" name="FooterSistemasLinks[@i].Orden" value="@Model.FooterSistemasLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" /></td>
+                                    <td>
+                                        <input type="checkbox" name="FooterSistemasLinks[@i].Activo" value="true" @(Model.FooterSistemasLinks[i].Activo ? "checked" : "") />
+                                        <input type="hidden" name="FooterSistemasLinks[@i].Activo" value="false" />
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="campo-grupo">
-                    <label class="campo-label">Título de tutoriales</label>
-                    <input type="text" name="HomeTutorialesTitulo" value="@Model.HomeTutorialesTitulo" class="campo-input" maxlength="150" />
-                </div>
-            </div>
-            <div class="form-dos-columnas">
-                <div class="campo-grupo">
-                    <label class="campo-label">Texto de Ver todos</label>
-                    <input type="text" name="HomeTutorialesVerTodos" value="@Model.HomeTutorialesVerTodos" class="campo-input" maxlength="150" />
-                </div>
-                <div class="campo-grupo">
-                    <label class="campo-label">Mensaje sin tutoriales</label>
-                    <input type="text" name="HomeTutorialesVacio" value="@Model.HomeTutorialesVacio" class="campo-input" maxlength="300" />
-                </div>
-            </div>
-        </div>
+            </details>
 
-        <div class="admin-panel">
-            <h2 class="admin-panel-titulo">Footer y contacto</h2>
-
-            <div class="campo-grupo">
-                <label class="campo-label">Texto principal</label>
-                <input type="text" name="FooterTexto" value="@Model.FooterTexto" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Subtexto</label>
-                <input type="text" name="FooterSubtexto" value="@Model.FooterSubtexto" class="campo-input" maxlength="150" />
-            </div>
-            <div class="form-dos-columnas">
-                <div class="campo-grupo">
-                    <label class="campo-label">Título Recursos</label>
-                    <input type="text" name="FooterRecursosTitulo" value="@Model.FooterRecursosTitulo" class="campo-input" maxlength="150" />
-                </div>
-                <div class="campo-grupo">
-                    <label class="campo-label">Título Sistemas</label>
-                    <input type="text" name="FooterSistemasTitulo" value="@Model.FooterSistemasTitulo" class="campo-input" maxlength="150" />
-                </div>
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Título Contacto</label>
-                <input type="text" name="FooterContactoTitulo" value="@Model.FooterContactoTitulo" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Correo de contacto</label>
-                <input type="email" name="FooterEmail" value="@Model.FooterEmail" class="campo-input" maxlength="254" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Teléfono de contacto</label>
-                <input type="tel" name="FooterTelefono" value="@Model.FooterTelefono" class="campo-input" maxlength="60" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Ubicación</label>
-                <input type="text" name="FooterDireccion" value="@Model.FooterDireccion" class="campo-input" maxlength="250" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Copyright</label>
-                <input type="text" name="FooterCopyright" value="@Model.FooterCopyright" class="campo-input" maxlength="300" />
+            <div class="form-acciones">
+                <button type="submit" class="btn btn-primario" data-config-submit-tab="footer">
+                    Guardar footer
+                </button>
             </div>
         </div>
-    </div>
-
-    <div class="admin-panel">
-        <h2 class="admin-panel-titulo">Páginas públicas</h2>
-
-        <h3 class="admin-subtitulo">Formatos</h3>
-        <div class="campo-grupo">
-            <label class="campo-label">Título</label>
-            <input type="text" name="PaginaFormatosTitulo" value="@Model.PaginaFormatosTitulo" class="campo-input" maxlength="150" />
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción</label>
-            <textarea name="PaginaFormatosDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaFormatosDescripcion</textarea>
-        </div>
-
-        <h3 class="admin-subtitulo">Manuales</h3>
-        <div class="campo-grupo">
-            <label class="campo-label">Título</label>
-            <input type="text" name="PaginaManualesTitulo" value="@Model.PaginaManualesTitulo" class="campo-input" maxlength="150" />
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción</label>
-            <textarea name="PaginaManualesDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaManualesDescripcion</textarea>
-        </div>
-
-        <h3 class="admin-subtitulo">DGIE</h3>
-        <div class="campo-grupo">
-            <label class="campo-label">Título</label>
-            <input type="text" name="PaginaDgieTitulo" value="@Model.PaginaDgieTitulo" class="campo-input" maxlength="150" />
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción</label>
-            <textarea name="PaginaDgieDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaDgieDescripcion</textarea>
-        </div>
-
-        <h3 class="admin-subtitulo">Identidad gráfica</h3>
-        <div class="campo-grupo">
-            <label class="campo-label">Título</label>
-            <input type="text" name="PaginaIdentidadTitulo" value="@Model.PaginaIdentidadTitulo" class="campo-input" maxlength="150" />
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción</label>
-            <textarea name="PaginaIdentidadDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaIdentidadDescripcion</textarea>
-        </div>
-
-        <h3 class="admin-subtitulo">Capacitación</h3>
-        <div class="form-dos-columnas">
-            <div class="campo-grupo">
-                <label class="campo-label">Título</label>
-                <input type="text" name="PaginaCapacitacionTitulo" value="@Model.PaginaCapacitacionTitulo" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Título de materiales internos</label>
-                <input type="text" name="PaginaCapacitacionInternosTitulo" value="@Model.PaginaCapacitacionInternosTitulo" class="campo-input" maxlength="150" />
-            </div>
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción</label>
-            <textarea name="PaginaCapacitacionDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaCapacitacionDescripcion</textarea>
-        </div>
-        <div class="campo-grupo campo-grupo--checks">
-            <label class="campo-check">
-                <input type="checkbox" name="PaginaCapacitacionExternoActivo" value="true" @(Model.PaginaCapacitacionExternoActivo ? "checked" : "") />
-                Mostrar enlace académico externo
-            </label>
-            <input type="hidden" name="PaginaCapacitacionExternoActivo" value="false" />
-        </div>
-        <div class="form-dos-columnas">
-            <div class="campo-grupo">
-                <label class="campo-label">Título del enlace</label>
-                <input type="text" name="PaginaCapacitacionExternoTitulo" value="@Model.PaginaCapacitacionExternoTitulo" class="campo-input" maxlength="150" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Texto del botón</label>
-                <input type="text" name="PaginaCapacitacionExternoBotonTexto" value="@Model.PaginaCapacitacionExternoBotonTexto" class="campo-input" maxlength="150" />
-            </div>
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">URL del botón</label>
-            <input type="text" name="PaginaCapacitacionExternoBotonUrl" value="@Model.PaginaCapacitacionExternoBotonUrl" class="campo-input" maxlength="500" />
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción del enlace</label>
-            <textarea name="PaginaCapacitacionExternoDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaCapacitacionExternoDescripcion</textarea>
-        </div>
-
-        <h3 class="admin-subtitulo">Tutoriales</h3>
-        <div class="campo-grupo">
-            <label class="campo-label">Título</label>
-            <input type="text" name="PaginaTutorialesTitulo" value="@Model.PaginaTutorialesTitulo" class="campo-input" maxlength="150" />
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Descripción</label>
-            <textarea name="PaginaTutorialesDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaTutorialesDescripcion</textarea>
-        </div>
-        <div class="form-dos-columnas">
-            <div class="campo-grupo">
-                <label class="campo-label">Mensaje sin tutoriales</label>
-                <input type="text" name="PaginaTutorialesVacio" value="@Model.PaginaTutorialesVacio" class="campo-input" maxlength="300" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Video próximamente</label>
-                <input type="text" name="PaginaTutorialesVideoProximamente" value="@Model.PaginaTutorialesVideoProximamente" class="campo-input" maxlength="150" />
-            </div>
-        </div>
-        <div class="campo-grupo">
-            <label class="campo-label">Mensaje de video no soportado</label>
-            <input type="text" name="PaginaTutorialesVideoNoSoportado" value="@Model.PaginaTutorialesVideoNoSoportado" class="campo-input" maxlength="300" />
-        </div>
-    </div>
-
-    <div class="admin-dos-columnas">
-        <div class="admin-panel">
-            <h2 class="admin-panel-titulo">Footer: recursos</h2>
-            <div class="tabla-wrap">
-                <table class="admin-tabla admin-tabla--enlaces-footer">
-                    <thead>
-                        <tr>
-                            <th>Texto</th>
-                            <th>URL</th>
-                            <th>Orden</th>
-                            <th>Activo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @for (var i = 0; i < Model.FooterRecursosLinks.Count; i++)
-                    {
-                        <tr>
-                            <td>
-                                <input type="hidden" name="FooterRecursosLinks[@i].Id" value="@Model.FooterRecursosLinks[i].Id" />
-                                <input type="text" name="FooterRecursosLinks[@i].Texto" value="@Model.FooterRecursosLinks[i].Texto" class="campo-input" maxlength="150" />
-                            </td>
-                            <td><input type="text" name="FooterRecursosLinks[@i].Url" value="@Model.FooterRecursosLinks[i].Url" class="campo-input" maxlength="500" /></td>
-                            <td><input type="number" name="FooterRecursosLinks[@i].Orden" value="@Model.FooterRecursosLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" /></td>
-                            <td>
-                                <input type="checkbox" name="FooterRecursosLinks[@i].Activo" value="true" @(Model.FooterRecursosLinks[i].Activo ? "checked" : "") />
-                                <input type="hidden" name="FooterRecursosLinks[@i].Activo" value="false" />
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="admin-panel">
-            <h2 class="admin-panel-titulo">Footer: sistemas</h2>
-            <div class="tabla-wrap">
-                <table class="admin-tabla admin-tabla--enlaces-footer">
-                    <thead>
-                        <tr>
-                            <th>Texto</th>
-                            <th>URL</th>
-                            <th>Orden</th>
-                            <th>Activo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @for (var i = 0; i < Model.FooterSistemasLinks.Count; i++)
-                    {
-                        <tr>
-                            <td>
-                                <input type="hidden" name="FooterSistemasLinks[@i].Id" value="@Model.FooterSistemasLinks[i].Id" />
-                                <input type="text" name="FooterSistemasLinks[@i].Texto" value="@Model.FooterSistemasLinks[i].Texto" class="campo-input" maxlength="150" />
-                            </td>
-                            <td><input type="text" name="FooterSistemasLinks[@i].Url" value="@Model.FooterSistemasLinks[i].Url" class="campo-input" maxlength="500" /></td>
-                            <td><input type="number" name="FooterSistemasLinks[@i].Orden" value="@Model.FooterSistemasLinks[i].Orden" class="campo-input campo-input--orden-enlace" min="1" /></td>
-                            <td>
-                                <input type="checkbox" name="FooterSistemasLinks[@i].Activo" value="true" @(Model.FooterSistemasLinks[i].Activo ? "checked" : "") />
-                                <input type="hidden" name="FooterSistemasLinks[@i].Activo" value="false" />
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="admin-panel">
-        <h2 class="admin-panel-titulo">Colores institucionales</h2>
-        <div class="form-dos-columnas">
-            <div class="campo-grupo">
-                <label class="campo-label">Color dorado principal</label>
-                <input type="color" name="ColorDorado" value="@Model.ColorDorado" class="campo-input campo-color" />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label">Color dorado brillante</label>
-                <input type="color" name="ColorDoradoBrillo" value="@Model.ColorDoradoBrillo" class="campo-input campo-color" />
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primario">Guardar cambios</button>
-    </div>
+    </section>
 </form>
-
-<div class="admin-panel">
-    <h2 class="admin-panel-titulo">Logo institucional</h2>
-    <p class="campo-ayuda">
-        El logo se mostrará en el header del sitio. Formatos aceptados: PNG, SVG, JPG.
-        Dimensiones recomendadas: altura máxima de 60px.
-    </p>
-
-    @if (!string.IsNullOrWhiteSpace(Model.LogoActual))
-    {
-        <div class="logo-preview">
-            <img src="/storage/@Model.LogoActual" alt="Logo actual" />
-            <span class="logo-preview-label">Logo actual</span>
-        </div>
-    }
-
-    <form method="post" asp-page-handler="SubirLogo" enctype="multipart/form-data">
-        @Html.AntiForgeryToken()
-        <div class="campo-grupo">
-            <label class="campo-label">Seleccionar nuevo logo</label>
-            <input type="file"
-                   name="Logo"
-                   class="campo-input campo-archivo"
-                   accept=".png,.svg,.jpg,.jpeg" />
-        </div>
-        <button type="submit" class="btn btn-primario">Subir logo</button>
-    </form>
-</div>
