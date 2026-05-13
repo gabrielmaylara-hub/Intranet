@@ -2,7 +2,6 @@
 @model CapacitacionModel
 @{
     ViewData["Title"] = Model.Titulo;
-    var botonExterno = Uri.TryCreate(Model.ExternoBotonUrl, UriKind.Absolute, out _);
 }
 
 <section class="seccion-pagina">
@@ -24,7 +23,7 @@
         @if (Model.LigasOfertaAcademica.Any())
         {
             <div class="capacitacion-seccion">
-                <h2 class="subseccion-titulo">Ligas de Oferta Academica</h2>
+                <h2 class="subseccion-titulo">Ligas de Oferta Académica</h2>
                 <ul class="archivos-lista" role="list">
                     @foreach (var liga in Model.LigasOfertaAcademica)
                     {
@@ -56,30 +55,5 @@
             </div>
         }
 
-        <!-- Enlace externo a SIGAACEJ -->
-        @if (Model.ExternoActivo && !string.IsNullOrWhiteSpace(Model.ExternoBotonUrl))
-        {
-            <div class="capacitacion-externa">
-            <div class="externa-card">
-                <div class="externa-icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/>
-                        <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
-                </div>
-                <div class="externa-info">
-                    <h2 class="externa-titulo">@Model.ExternoTitulo</h2>
-                    <p class="externa-desc">@Model.ExternoDescripcion</p>
-                    <a href="@Model.ExternoBotonUrl"
-                       target="@(botonExterno ? "_blank" : null)"
-                       rel="@(botonExterno ? "noopener noreferrer" : null)"
-                       class="btn btn-primario">
-                        @Model.ExternoBotonTexto
-                    </a>
-                </div>
-            </div>
-        </div>
-        }
     </div>
 </section>

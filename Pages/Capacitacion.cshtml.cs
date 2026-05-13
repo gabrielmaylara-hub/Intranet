@@ -7,7 +7,6 @@ namespace Intranet.Pages;
 
 public class CapacitacionModel : PageModel
 {
-    private const string ClaveLigasCapacitacion = "capacitacion_ligas_json";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -30,12 +29,6 @@ public class CapacitacionModel : PageModel
     public string Descripcion { get; private set; } =
         "Cursos de capacitación y formación profesional disponibles para el personal de la Fiscalía General del Estado de Tabasco.";
     public string InternosTitulo { get; private set; } = "Cursos y Materiales Internos";
-    public bool ExternoActivo { get; private set; } = true;
-    public string ExternoTitulo { get; private set; } = "Sistema Integral de Gestión Académica";
-    public string ExternoDescripcion { get; private set; } =
-        "Accede al sistema SIGAACEJ del Tribunal Superior de Justicia del Estado de Tabasco para consultar la oferta académica institucional compartida.";
-    public string ExternoBotonTexto { get; private set; } = "Acceder a SIGAACEJ ↗";
-    public string ExternoBotonUrl { get; private set; } = "https://sigaacej.tsj-tabasco.gob.mx/";
 
     public async Task OnGetAsync()
     {
@@ -43,30 +36,24 @@ public class CapacitacionModel : PageModel
         Titulo = config.GetValueOrDefault("pagina_capacitacion_titulo", Titulo);
         Descripcion = config.GetValueOrDefault("pagina_capacitacion_descripcion", Descripcion);
         InternosTitulo = config.GetValueOrDefault("pagina_capacitacion_internos_titulo", InternosTitulo);
-        ExternoActivo = EsActivo(config.GetValueOrDefault("pagina_capacitacion_externo_activo", "1"));
-        ExternoTitulo = config.GetValueOrDefault("pagina_capacitacion_externo_titulo", ExternoTitulo);
-        ExternoDescripcion = config.GetValueOrDefault("pagina_capacitacion_externo_descripcion", ExternoDescripcion);
-        ExternoBotonTexto = config.GetValueOrDefault("pagina_capacitacion_externo_boton_texto", ExternoBotonTexto);
-        ExternoBotonUrl = config.GetValueOrDefault("pagina_capacitacion_externo_boton_url", ExternoBotonUrl);
         ArchivosInternos = await _archivosRepo.ObtenerPorSeccionAsync("capacitacion", soloActivos: true);
-        LigasOfertaAcademica = ObtenerLigas(config.GetValueOrDefault(ClaveLigasCapacitacion));
-
-        static bool EsActivo(string? valor) =>
-            string.IsNullOrWhiteSpace(valor) ||
-            valor.Equals("1", StringComparison.OrdinalIgnoreCase) ||
-            valor.Equals("true", StringComparison.OrdinalIgnoreCase) ||
-            valor.Equals("activo", StringComparison.OrdinalIgnoreCase);
+        LigasOfertaAcademica = await ObtenerLigasAsync(config);
     }
 
-    private static IEnumerable<OfertaAcademicaLiga> ObtenerLigas(string? json)
+    private async Task<IEnumerable<OfertaAcademicaLiga>> ObtenerLigasAsync(
+        IReadOnlyDictionary<string, string> config)
     {
-        if (string.IsNullOrWhiteSpace(json))
-            return [];
-
         try
         {
-            return (JsonSerializer.Deserialize<List<OfertaAcademicaLiga>>(json, JsonOptions) ?? [])
-                .Where(l => l.Activa)
+            var json = config.GetValueOrDefault(OfertaAcademicaLiga.ClaveConfiguracion);
+            var ligas = string.IsNullOrWhiteSpace(json)
+                ? new List<OfertaAcademicaLiga>()
+                : JsonSerializer.Deserialize<List<OfertaAcademicaLiga>>(json, JsonOptions) ?? [];
+
+            ligas = await AsegurarLigaInicialAsync(config, ligas);
+
+            return ligas
+                .Where(l => l.Activa && UrlPermitida(l.Url))
                 .OrderBy(l => l.Orden)
                 .ThenBy(l => l.Titulo)
                 .ToList();
@@ -75,5 +62,38 @@ public class CapacitacionModel : PageModel
         {
             return [];
         }
+    }
+
+    private async Task<List<OfertaAcademicaLiga>> AsegurarLigaInicialAsync(
+        IReadOnlyDictionary<string, string> config,
+        List<OfertaAcademicaLiga> ligas)
+    {
+        if (config.GetValueOrDefault(OfertaAcademicaLiga.ClaveSemillaAplicada) == "1")
+            return ligas;
+
+        if (!ligas.Any(OfertaAcademicaLiga.EsSigaacej))
+        {
+            ligas.Add(OfertaAcademicaLiga.CrearSigaacej(
+                config,
+                ligas.Count == 0 ? 1 : ligas.Max(l => l.Id) + 1,
+                ligas.Count == 0 ? 1 : ligas.Max(l => l.Orden) + 1));
+        }
+
+        await _configRepo.GuardarMultiplesAsync(new Dictionary<string, string>
+        {
+            [OfertaAcademicaLiga.ClaveConfiguracion] = JsonSerializer.Serialize(ligas, JsonOptions),
+            [OfertaAcademicaLiga.ClaveSemillaAplicada] = "1"
+        });
+
+        return ligas;
+    }
+
+    private static bool UrlPermitida(string url)
+    {
+        if (url.StartsWith("/", StringComparison.Ordinal) && !url.StartsWith("//", StringComparison.Ordinal))
+            return !url.Contains('\\') && !url.Contains("..", StringComparison.Ordinal);
+
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+               (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
 }

@@ -11,7 +11,6 @@ public class IndexModel : AdminPageModel
 {
     protected override bool RequiereAdminGeneral => true;
 
-    private const string ClaveLigasCapacitacion = "capacitacion_ligas_json";
     private const int MaxNombre = 180;
     private const int MaxDescripcion = 300;
     private const int MaxUrl = 500;
@@ -365,13 +364,17 @@ public class IndexModel : AdminPageModel
 
     private async Task<List<OfertaAcademicaLiga>> ObtenerLigasOfertaAcademicaAsync(bool soloActivas = false)
     {
-        var json = await _configRepo.ObtenerValorAsync(ClaveLigasCapacitacion);
-        if (string.IsNullOrWhiteSpace(json))
-            return [];
+        var config = await _configRepo.ObtenerTodosAsync();
+        var json = config.GetValueOrDefault(OfertaAcademicaLiga.ClaveConfiguracion);
 
         try
         {
-            var ligas = JsonSerializer.Deserialize<List<OfertaAcademicaLiga>>(json, JsonOptions) ?? [];
+            var ligas = string.IsNullOrWhiteSpace(json)
+                ? new List<OfertaAcademicaLiga>()
+                : JsonSerializer.Deserialize<List<OfertaAcademicaLiga>>(json, JsonOptions) ?? [];
+
+            ligas = await AsegurarLigaInicialAsync(config, ligas);
+
             return ligas
                 .Where(l => !soloActivas || l.Activa)
                 .OrderBy(l => l.Orden)
@@ -385,16 +388,43 @@ public class IndexModel : AdminPageModel
         }
     }
 
-    private async Task GuardarLigasOfertaAcademicaAsync(IEnumerable<OfertaAcademicaLiga> ligas)
+    private async Task<List<OfertaAcademicaLiga>> AsegurarLigaInicialAsync(
+        IReadOnlyDictionary<string, string> config,
+        List<OfertaAcademicaLiga> ligas)
+    {
+        if (config.GetValueOrDefault(OfertaAcademicaLiga.ClaveSemillaAplicada) == "1")
+            return ligas;
+
+        if (!ligas.Any(OfertaAcademicaLiga.EsSigaacej))
+        {
+            ligas.Add(OfertaAcademicaLiga.CrearSigaacej(
+                config,
+                ligas.Count == 0 ? 1 : ligas.Max(l => l.Id) + 1,
+                ligas.Count == 0 ? 1 : ligas.Max(l => l.Orden) + 1));
+        }
+
+        await GuardarLigasOfertaAcademicaAsync(ligas, marcarSemilla: true);
+        return ligas;
+    }
+
+    private async Task GuardarLigasOfertaAcademicaAsync(
+        IEnumerable<OfertaAcademicaLiga> ligas,
+        bool marcarSemilla = true)
     {
         var ordenadas = ligas
             .OrderBy(l => l.Orden)
             .ThenBy(l => l.Titulo)
             .ToList();
 
-        await _configRepo.GuardarAsync(
-            ClaveLigasCapacitacion,
-            JsonSerializer.Serialize(ordenadas, JsonOptions));
+        var valores = new Dictionary<string, string>
+        {
+            [OfertaAcademicaLiga.ClaveConfiguracion] = JsonSerializer.Serialize(ordenadas, JsonOptions)
+        };
+
+        if (marcarSemilla)
+            valores[OfertaAcademicaLiga.ClaveSemillaAplicada] = "1";
+
+        await _configRepo.GuardarMultiplesAsync(valores);
     }
 
     private string? ValidarDocumento()
