@@ -17,6 +17,44 @@
             </p>
         </header>
 
+        <form method="get" class="directorio-buscador" aria-label="Buscar en Directorio">
+            <div class="directorio-buscador-principal">
+                <label for="directorio-q">B&uacute;squeda general</label>
+                <input type="search"
+                       id="directorio-q"
+                       name="q"
+                       value="@Model.Q"
+                       placeholder="Buscar por &aacute;rea, unidad, extensi&oacute;n, titular, ubicaci&oacute;n o correo" />
+            </div>
+
+            <div class="directorio-buscador-grid">
+                <div>
+                    <label for="directorio-area">&Aacute;rea</label>
+                    <input type="search"
+                           id="directorio-area"
+                           name="area"
+                           value="@Model.Area"
+                           placeholder="Ej. DESPACHO" />
+                </div>
+                <div>
+                    <label for="directorio-extension">Extensi&oacute;n</label>
+                    <input type="search"
+                           id="directorio-extension"
+                           name="extension"
+                           value="@Model.Extension"
+                           placeholder="Ej. 4017" />
+                </div>
+            </div>
+
+            <div class="directorio-buscador-acciones">
+                <button type="submit" class="btn btn-primario">Buscar</button>
+                @if (Model.TieneBusqueda)
+                {
+                    <a class="directorio-buscador-limpiar" asp-page="/Directorio">Limpiar b&uacute;squeda</a>
+                }
+            </div>
+        </form>
+
         @if (Model.Grupos.Any())
         {
             <div class="directorio-lista" aria-label="Listado de areas y extensiones">
@@ -70,7 +108,11 @@
         }
         else
         {
-            <p class="directorio-vacio">No hay extensiones publicadas por el momento.</p>
+            <p class="directorio-vacio">
+                @(Model.TieneBusqueda
+                    ? "No se encontraron extensiones con los criterios seleccionados."
+                    : "No hay extensiones publicadas por el momento.")
+            </p>
         }
     </div>
 </section>
