@@ -149,6 +149,7 @@
 
     <div class="panel-cuerpo" data-colapsable-contenido>
         <p class="campo-ayuda">Arrastra las extensiones para reordenarlas dentro de su area. El orden se guarda como 1, 2, 3... por cada grupo.</p>
+        <p class="directorio-orden-estado" data-directorio-orden-estado role="status" aria-live="polite"></p>
 
         <div class="tabla-wrap">
             <table class="admin-tabla admin-tabla-directorio">
@@ -165,8 +166,11 @@
                 @foreach (var grupo in Model.Entradas.GroupBy(e => e.Area))
                 {
                     var entradasGrupo = grupo.OrderBy(e => e.Orden).ThenBy(e => e.Nombre).ToList();
+                    var areaCatalogo = Model.Areas.FirstOrDefault(a => a.Nombre == grupo.Key);
 
-                    <tbody class="directorio-area-bloque" data-directorio-area="@grupo.Key">
+                    <tbody class="directorio-area-bloque"
+                           data-directorio-area="@grupo.Key"
+                           data-directorio-area-id="@(areaCatalogo?.Id ?? 0)">
                     <tr class="admin-tabla-grupo">
                         <td colspan="6">
                             <div class="admin-tabla-grupo-titulo">

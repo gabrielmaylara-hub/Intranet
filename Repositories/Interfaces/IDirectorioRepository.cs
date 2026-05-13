@@ -10,7 +10,7 @@ public interface IDirectorioRepository
     Task ActualizarAsync(DirectorioEntrada entrada);
     Task EliminarAsync(int id);
     Task CambiarEstadoAsync(int id, bool activo);
-    Task ReordenarExtensionesAsync(string area, IReadOnlyList<int> idsOrdenados);
+    Task ReordenarExtensionesAsync(int areaId, IReadOnlyList<int> idsOrdenados);
 
     Task<IEnumerable<DirectorioArea>> ObtenerAreasAsync(bool soloActivas = false);
     Task<DirectorioArea?> ObtenerAreaPorIdAsync(int id);

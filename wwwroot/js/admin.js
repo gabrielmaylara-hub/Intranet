@@ -225,11 +225,34 @@
 
   if (bloquesDirectorio.length > 0) {
     const token = document.querySelector("input[name='__RequestVerificationToken']")?.value || "";
+    const estadoOrden = document.querySelector("[data-directorio-orden-estado]");
     let filaArrastrada = null;
     let bloqueOrigen = null;
+    let firmaOrdenInicial = "";
 
     const filasDeBloque = (bloque) =>
       Array.from(bloque.querySelectorAll(".directorio-reordenable"));
+
+    const obtenerFirmaOrden = (bloque) =>
+      filasDeBloque(bloque)
+        .map((fila) => fila.dataset.directorioId || "")
+        .join(",");
+
+    const mostrarEstadoOrden = (mensaje, esError = false) => {
+      if (!estadoOrden) return;
+      estadoOrden.textContent = mensaje;
+      estadoOrden.classList.toggle("directorio-orden-estado--error", esError);
+      estadoOrden.classList.toggle("directorio-orden-estado--ok", !esError && mensaje.length > 0);
+
+      if (mensaje && !esError) {
+        window.setTimeout(() => {
+          if (estadoOrden.textContent === mensaje) {
+            estadoOrden.textContent = "";
+            estadoOrden.classList.remove("directorio-orden-estado--ok");
+          }
+        }, 2400);
+      }
+    };
 
     const actualizarOrdenVisual = (bloque) => {
       filasDeBloque(bloque).forEach((fila, indice) => {
@@ -241,24 +264,28 @@
       });
     };
 
-    const guardarOrden = async (bloque) => {
+    const guardarOrden = async (bloque, firmaAnterior) => {
       const ids = filasDeBloque(bloque)
         .map((fila) => Number(fila.dataset.directorioId))
         .filter((id) => Number.isInteger(id) && id > 0);
+      const areaId = Number(bloque.dataset.directorioAreaId);
 
-      if (ids.length === 0) return;
+      if (ids.length === 0 || !Number.isInteger(areaId) || areaId <= 0) return;
+      if (obtenerFirmaOrden(bloque) === firmaAnterior) return;
 
       bloque.classList.add("directorio-guardando");
+      mostrarEstadoOrden("Guardando orden...");
 
       try {
         const respuesta = await fetch(`${window.location.pathname}?handler=ReordenarExtensiones`, {
           method: "POST",
+          credentials: "same-origin",
           headers: {
             "Content-Type": "application/json",
             "X-XSRF-TOKEN": token
           },
           body: JSON.stringify({
-            area: bloque.dataset.directorioArea || "",
+            areaId,
             ids
           })
         });
@@ -269,7 +296,10 @@
         }
 
         actualizarOrdenVisual(bloque);
+        bloque.dataset.directorioOrdenOriginal = obtenerFirmaOrden(bloque);
+        mostrarEstadoOrden("Orden guardado.");
       } catch (error) {
+        mostrarEstadoOrden(error.message || "No se pudo guardar el orden.", true);
         window.alert(error.message || "No se pudo guardar el orden.");
         window.location.reload();
       } finally {
@@ -278,12 +308,15 @@
     };
 
     bloquesDirectorio.forEach((bloque) => {
+      bloque.dataset.directorioOrdenOriginal = obtenerFirmaOrden(bloque);
+
       bloque.addEventListener("dragstart", (evento) => {
         const fila = evento.target.closest(".directorio-reordenable");
         if (!fila || !bloque.contains(fila)) return;
 
         filaArrastrada = fila;
         bloqueOrigen = bloque;
+        firmaOrdenInicial = obtenerFirmaOrden(bloque);
         fila.classList.add("directorio-dragging");
         evento.dataTransfer.effectAllowed = "move";
       });
@@ -304,14 +337,21 @@
         if (!filaArrastrada || bloqueOrigen !== bloque) return;
 
         evento.preventDefault();
-        guardarOrden(bloque);
       });
     });
 
     document.addEventListener("dragend", () => {
+      const bloqueParaGuardar = bloqueOrigen;
+      const firmaAnterior = firmaOrdenInicial;
+
       filaArrastrada?.classList.remove("directorio-dragging");
       filaArrastrada = null;
       bloqueOrigen = null;
+      firmaOrdenInicial = "";
+
+      if (bloqueParaGuardar) {
+        guardarOrden(bloqueParaGuardar, firmaAnterior);
+      }
     });
   }
 })();

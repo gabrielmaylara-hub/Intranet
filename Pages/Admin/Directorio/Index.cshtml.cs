@@ -199,7 +199,7 @@ public class IndexModel : PageModel
         [FromBody] ReordenarExtensionesRequest? solicitud)
     {
         if (solicitud is null ||
-            string.IsNullOrWhiteSpace(solicitud.Area) ||
+            solicitud.AreaId <= 0 ||
             solicitud.Ids.Count == 0)
         {
             return BadRequest(new { mensaje = "La solicitud de reordenamiento no es valida." });
@@ -208,7 +208,7 @@ public class IndexModel : PageModel
         try
         {
             await _directorioRepo.ReordenarExtensionesAsync(
-                solicitud.Area,
+                solicitud.AreaId,
                 solicitud.Ids);
         }
         catch (InvalidOperationException ex)
@@ -799,7 +799,7 @@ public class DirectorioCsvFila
 
 public sealed class ReordenarExtensionesRequest
 {
-    public string Area { get; set; } = string.Empty;
+    public int AreaId { get; set; }
     public List<int> Ids { get; set; } = [];
 }
 

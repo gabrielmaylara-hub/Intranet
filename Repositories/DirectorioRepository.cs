@@ -73,12 +73,11 @@ public class DirectorioRepository : IDirectorioRepository
             new { id, activo });
     }
 
-    public async Task ReordenarExtensionesAsync(string area, IReadOnlyList<int> idsOrdenados)
+    public async Task ReordenarExtensionesAsync(int areaId, IReadOnlyList<int> idsOrdenados)
     {
-        if (string.IsNullOrWhiteSpace(area) || idsOrdenados.Count == 0)
+        if (areaId <= 0 || idsOrdenados.Count == 0)
             throw new InvalidOperationException("Solicitud de reordenamiento incompleta.");
 
-        var areaNormalizada = area.Trim();
         var ids = idsOrdenados.Distinct().ToList();
         if (ids.Count != idsOrdenados.Count)
             throw new InvalidOperationException("La solicitud contiene extensiones repetidas.");
@@ -87,11 +86,19 @@ public class DirectorioRepository : IDirectorioRepository
         await con.OpenAsync();
         using var tx = await con.BeginTransactionAsync();
 
+        var areaNombre = await con.QueryFirstOrDefaultAsync<string>(
+            "SELECT nombre FROM directorio_areas WHERE id = @areaId",
+            new { areaId },
+            tx);
+
+        if (string.IsNullOrWhiteSpace(areaNombre))
+            throw new InvalidOperationException("El area seleccionada no existe.");
+
         var existentes = (await con.QueryAsync<DirectorioEntrada>(
             @"SELECT id, area, nombre, extension, orden, activo
               FROM directorio
               WHERE area = @area",
-            new { area = areaNormalizada },
+            new { area = areaNombre },
             tx)).ToList();
 
         if (existentes.Count != ids.Count ||
@@ -109,7 +116,7 @@ public class DirectorioRepository : IDirectorioRepository
                 new
                 {
                     id = ids[i],
-                    area = areaNormalizada,
+                    area = areaNombre,
                     ordenTemporal = -1000000 - i
                 },
                 tx);
@@ -124,7 +131,7 @@ public class DirectorioRepository : IDirectorioRepository
                 new
                 {
                     id = ids[i],
-                    area = areaNormalizada,
+                    area = areaNombre,
                     orden = i + 1
                 },
                 tx);
