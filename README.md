@@ -85,12 +85,13 @@ No versionar contrasenas reales, cadenas de conexion productivas ni archivos `.e
 
 ## Usuario de desarrollo
 
-Al primer arranque, si no existen usuarios activos, la aplicacion siembra:
+Al primer arranque, si no existen usuarios activos, la aplicacion puede sembrar el
+usuario `admin` solo cuando este configurada la variable de entorno
+`INTRANET_ADMIN_INITIAL_PASSWORD`.
 
-- Usuario: `admin`
-- Contrasena: `Fget2025*`
-
-La contrasena se guarda con hash BCrypt desde `DbInicializador`.
+No existe una contrasena fija versionada. La contrasena inicial debe cargarse
+desde el entorno local o del servidor y no debe guardarse en archivos del
+repositorio.
 
 ## Base de datos
 
@@ -101,7 +102,7 @@ El script principal esta en `Data/Scripts/init.sql` e incluye:
 - Accesos rapidos iniciales.
 - Estructura para avisos, tutoriales y archivos por seccion.
 
-El usuario administrador tambien puede ser sembrado automaticamente por la aplicacion al primer arranque.
+El usuario administrador tambien puede ser sembrado automaticamente por la aplicacion al primer arranque si se proporciona `INTRANET_ADMIN_INITIAL_PASSWORD`.
 
 Las migraciones idempotentes viven en `Data/Scripts/Migrations/` y se registran en
 `schema_migrations`. Consulta la guia operativa en `docs/BASE_DE_DATOS.md`.

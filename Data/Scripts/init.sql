@@ -133,5 +133,5 @@ VALUES
     (13, 'NUBE PRIVADA',           'https://nube.fiscaliatabasco.gob.mx',                    NULL, NULL, 13, 1, 1),
     (14, 'DIRECTORIO',             '/directorio',                                            NULL, NULL, 14, 0, 1);
 
--- Nota: el usuario administrador es sembrado automaticamente por DbInicializador
--- al primer arranque de la aplicacion (usuario: admin / contrasena: Fget2025*).
+-- Nota: el usuario administrador no se siembra con una contrasena fija en SQL.
+-- El bootstrap real lo realiza DbInicializador usando INTRANET_ADMIN_INITIAL_PASSWORD.
