@@ -57,9 +57,6 @@ public class IndexModel : PageModel
     {
         var csv = new StringBuilder();
         csv.AppendLine("Area,Titular,Ubicacion,Correo,Nombre,Extension,Orden,Activo");
-        csv.AppendLine("DESPACHO,Nombre del titular,Edificio central planta alta,despacho@fiscaliatabasco.gob.mx,SECRETARIA FISCAL GENERAL,4017,1,1");
-        csv.AppendLine("DESPACHO,Nombre del titular,Edificio central planta alta,despacho@fiscaliatabasco.gob.mx,RECEPCION,4019,2,1");
-        csv.AppendLine("DIRECCION GENERAL DE INFORMATICA Y ESTADISTICA,,,informatica@fiscaliatabasco.gob.mx,MESA DE AYUDA,4010 Y 4011,3,1");
 
         var contenido = Encoding.UTF8.GetPreamble()
             .Concat(Encoding.UTF8.GetBytes(csv.ToString()))
@@ -142,7 +139,6 @@ public class IndexModel : PageModel
         {
             foreach (var fila in Importacion.Filas)
             {
-                await _directorioRepo.AsegurarAreaAsync(fila.Area);
                 await _directorioRepo.ActualizarAreaDesdeImportacionAsync(
                     fila.Area,
                     fila.Titular,
@@ -619,11 +615,16 @@ public class IndexModel : PageModel
             e.Orden == fila.Orden);
 
         var area = areas.FirstOrDefault(a => Coincide(a.Nombre, fila.Area));
-        fila.ObservacionArea = area is null
-            ? "Area nueva."
-            : MetadataCambia(area, fila)
-                ? "Actualizara datos del area si vienen informados."
-                : string.Empty;
+        if (area is null)
+        {
+            fila.Estado = EstadoImportacion.Conflicto;
+            fila.ObservacionArea = "El area debe existir previamente en Datos por area.";
+            return;
+        }
+
+        fila.ObservacionArea = MetadataCambia(area, fila)
+            ? "Actualizara datos del area si vienen informados."
+            : string.Empty;
 
         if (exacto is not null)
         {

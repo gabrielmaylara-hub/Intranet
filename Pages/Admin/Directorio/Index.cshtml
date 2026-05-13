@@ -243,9 +243,15 @@
         <a class="btn btn-secundario btn-sm" asp-page-handler="Plantilla">Descargar plantilla</a>
     </div>
 
-    <p class="campo-ayuda">
-        Importa extensiones desde CSV. Primero se muestra una vista previa con nuevos, duplicados, actualizaciones y conflictos.
-    </p>
+    <div class="campo-ayuda">
+        <p>Importa extensiones desde CSV. Primero se muestra una vista previa con nuevos, duplicados, actualizaciones y conflictos.</p>
+        <ul>
+            <li>El area debe existir previamente en Datos por area.</li>
+            <li>El orden interno aplica solo dentro de cada area y no puede repetirse en la misma area.</li>
+            <li>Si el orden queda vacio, el sistema usa el numero de linea del CSV como orden inicial.</li>
+            <li>El orden tambien puede ajustarse despues arrastrando las extensiones en el panel.</li>
+        </ul>
+    </div>
 
     <form method="post" asp-page-handler="PrevisualizarImportacion" enctype="multipart/form-data" class="form-importacion">
         @Html.AntiForgeryToken()
