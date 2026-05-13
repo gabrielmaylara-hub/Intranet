@@ -34,7 +34,7 @@
             </div>
         }
 
-        <form method="post" class="login-form" novalidate>
+        <form method="post" class="login-form" autocomplete="on" novalidate>
             @Html.AntiForgeryToken()
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
 
