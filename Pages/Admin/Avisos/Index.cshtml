@@ -17,6 +17,15 @@
     <div class="admin-panel">
         <form method="get" class="form-dos-columnas">
             <div class="campo-grupo">
+                <label class="campo-label" for="Busqueda">Buscar aviso</label>
+                <input type="search"
+                       class="campo-input"
+                       id="Busqueda"
+                       name="Busqueda"
+                       value="@Model.Busqueda"
+                       placeholder="Buscar por titulo, contenido, area o PDF" />
+            </div>
+            <div class="campo-grupo">
                 <label class="campo-label" for="AreaFiltro">Filtrar por área</label>
                 <select class="campo-input" id="AreaFiltro" name="AreaFiltro" onchange="this.form.submit()">
                     <option value="">Todas las áreas</option>
@@ -30,7 +39,14 @@
             </div>
             <div class="campo-grupo">
                 <label class="campo-label">&nbsp;</label>
-                <a class="btn btn-neutro" href="/Admin/Avisos">Limpiar filtro</a>
+                <div class="form-acciones">
+                    <button type="submit" class="btn btn-primario">Buscar</button>
+                    <a class="btn btn-neutro"
+                       href="@(Model.AreaFiltro is > 0 ? $"/Admin/Avisos?AreaFiltro={Model.AreaFiltro}" : "/Admin/Avisos")">
+                        Limpiar búsqueda
+                    </a>
+                    <a class="btn btn-neutro" href="/Admin/Avisos">Limpiar filtros</a>
+                </div>
             </div>
         </form>
     </div>
@@ -39,6 +55,26 @@ else if (!string.IsNullOrWhiteSpace(Model.AreaActualNombre))
 {
     <div class="alerta alerta-exito" role="status">
         Publicando como: @Model.AreaActualNombre
+    </div>
+    <div class="admin-panel">
+        <form method="get" class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label" for="Busqueda">Buscar aviso</label>
+                <input type="search"
+                       class="campo-input"
+                       id="Busqueda"
+                       name="Busqueda"
+                       value="@Model.Busqueda"
+                       placeholder="Buscar por titulo o contenido" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">&nbsp;</label>
+                <div class="form-acciones">
+                    <button type="submit" class="btn btn-primario">Buscar</button>
+                    <a class="btn btn-neutro" href="/Admin/Avisos">Limpiar búsqueda</a>
+                </div>
+            </div>
+        </form>
     </div>
 }
 else
@@ -119,6 +155,7 @@ else
                                 <form method="post" asp-page-handler="Toggle" class="form-inline">
                                     <input type="hidden" name="id" value="@aviso.Id" />
                                     <input type="hidden" name="AreaFiltro" value="@Model.AreaFiltro" />
+                                    <input type="hidden" name="Busqueda" value="@Model.Busqueda" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit"
                                             class="btn btn-sm @(aviso.Activo ? "btn-advertencia" : "btn-exito")">
@@ -130,6 +167,7 @@ else
                                       onsubmit="return confirm('¿Eliminar el aviso «@aviso.Titulo»?')">
                                     <input type="hidden" name="id" value="@aviso.Id" />
                                     <input type="hidden" name="AreaFiltro" value="@Model.AreaFiltro" />
+                                    <input type="hidden" name="Busqueda" value="@Model.Busqueda" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
                                 </form>
@@ -157,6 +195,7 @@ else
             @Html.AntiForgeryToken()
             <input type="hidden" name="Id" id="formId" value="0" />
             <input type="hidden" name="AreaFiltro" value="@Model.AreaFiltro" />
+            <input type="hidden" name="Busqueda" value="@Model.Busqueda" />
 
             <div class="campo-grupo">
                 <label class="campo-label">Título <span class="campo-requerido">*</span></label>

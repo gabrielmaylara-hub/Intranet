@@ -46,6 +46,7 @@ public class IndexModel : AdminPageModel
     [BindProperty] public bool QuitarPdf { get; set; }
 
     [BindProperty(SupportsGet = true)] public int? AreaFiltro { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Busqueda { get; set; }
 
     public string? Mensaje { get; private set; }
     public bool EsError { get; private set; }
@@ -165,7 +166,7 @@ public class IndexModel : AdminPageModel
             }
         }
 
-        return RedirectToPage(new { AreaFiltro });
+        return RedirectToPage(new { AreaFiltro, Busqueda });
     }
 
     public async Task<IActionResult> OnPostEliminarAsync(int id)
@@ -176,14 +177,14 @@ public class IndexModel : AdminPageModel
 
         var aviso = await _avisosRepo.ObtenerPorIdAsync(id);
         if (aviso is null)
-            return RedirectToPage(new { AreaFiltro });
+            return RedirectToPage(new { AreaFiltro, Busqueda });
 
         if (!PuedeOperarAviso(contexto, aviso))
             return StatusCode(StatusCodes.Status403Forbidden);
 
         await _avisosRepo.EliminarAsync(id);
         EliminarPdfPosteriorABd(aviso.PdfPath);
-        return RedirectToPage(new { AreaFiltro });
+        return RedirectToPage(new { AreaFiltro, Busqueda });
     }
 
     public async Task<IActionResult> OnPostToggleAsync(int id)
@@ -194,13 +195,13 @@ public class IndexModel : AdminPageModel
 
         var aviso = await _avisosRepo.ObtenerPorIdAsync(id);
         if (aviso is null)
-            return RedirectToPage(new { AreaFiltro });
+            return RedirectToPage(new { AreaFiltro, Busqueda });
 
         if (!PuedeOperarAviso(contexto, aviso))
             return StatusCode(StatusCodes.Status403Forbidden);
 
         await _avisosRepo.CambiarEstadoAsync(id, !aviso.Activo);
-        return RedirectToPage(new { AreaFiltro });
+        return RedirectToPage(new { AreaFiltro, Busqueda });
     }
 
     private async Task<string?> ValidarFormularioAsync(ContextoAvisos contexto)
@@ -259,15 +260,17 @@ public class IndexModel : AdminPageModel
 
         if (contexto.EsAdminGeneral)
         {
-            Avisos = AreaFiltro is > 0
+            var avisos = AreaFiltro is > 0
                 ? await _avisosRepo.ObtenerPorAreaPublicacionAsync(AreaFiltro.Value)
                 : await _avisosRepo.ObtenerTodosAsync();
+            Avisos = FiltrarAvisos(avisos, Busqueda);
             return;
         }
 
-        Avisos = contexto.AreaId.HasValue
+        IEnumerable<Aviso> avisosArea = contexto.AreaId.HasValue
             ? await _avisosRepo.ObtenerPorAreaPublicacionAsync(contexto.AreaId.Value)
-            : [];
+            : Enumerable.Empty<Aviso>();
+        Avisos = FiltrarAvisos(avisosArea, Busqueda);
     }
 
     private async Task<ContextoAvisos> ObtenerContextoAsync()
@@ -314,6 +317,23 @@ public class IndexModel : AdminPageModel
     private static bool ContieneControl(string? valor) =>
         !string.IsNullOrEmpty(valor) &&
         valor.Any(c => char.IsControl(c) && c is not '\r' and not '\n' and not '\t');
+
+    private static IEnumerable<Aviso> FiltrarAvisos(IEnumerable<Aviso> avisos, string? busqueda)
+    {
+        if (string.IsNullOrWhiteSpace(busqueda))
+            return avisos;
+
+        var termino = busqueda.Trim();
+        return avisos.Where(aviso =>
+            ContieneTexto(aviso.Titulo, termino) ||
+            ContieneTexto(aviso.Contenido, termino) ||
+            ContieneTexto(aviso.AreaPublicacionNombre, termino) ||
+            ContieneTexto(aviso.PdfNombreOriginal, termino));
+    }
+
+    private static bool ContieneTexto(string? valor, string termino) =>
+        !string.IsNullOrWhiteSpace(valor) &&
+        valor.Contains(termino, StringComparison.OrdinalIgnoreCase);
 
     private async Task<PdfAdjuntoGuardado?> GuardarPdfAdjuntoAsync()
     {

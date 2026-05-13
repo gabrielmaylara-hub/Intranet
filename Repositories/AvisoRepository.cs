@@ -25,7 +25,7 @@ public class AvisoRepository : IAvisoRepository
                FROM avisos a
                LEFT JOIN areas_publicacion ap ON ap.id = a.area_publicacion_id
                {filtro}
-               ORDER BY a.orden ASC, a.fecha_publicacion DESC");
+               ORDER BY a.fecha_publicacion DESC, a.id DESC");
     }
 
     public async Task<IEnumerable<Aviso>> ObtenerPorAreaPublicacionAsync(
@@ -40,7 +40,7 @@ public class AvisoRepository : IAvisoRepository
                LEFT JOIN areas_publicacion ap ON ap.id = a.area_publicacion_id
                WHERE a.area_publicacion_id = @areaPublicacionId
                  {filtroActivo}
-               ORDER BY a.orden ASC, a.fecha_publicacion DESC",
+               ORDER BY a.fecha_publicacion DESC, a.id DESC",
             new { areaPublicacionId });
     }
 

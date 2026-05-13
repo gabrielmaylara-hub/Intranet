@@ -1,5 +1,6 @@
 using Intranet.Models;
 using Intranet.Repositories.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Intranet.Pages;
@@ -23,6 +24,8 @@ public class AvisosModel : PageModel
     public string Descripcion { get; private set; } =
         "Consulta los avisos y comunicados publicados por las áreas de la institución.";
     public string MensajeVacio { get; private set; } = "No hay avisos publicados por el momento.";
+    [BindProperty(SupportsGet = true)] public string? Busqueda { get; set; }
+    public bool TieneBusqueda => !string.IsNullOrWhiteSpace(Busqueda);
 
     public async Task OnGetAsync()
     {
@@ -32,8 +35,27 @@ public class AvisosModel : PageModel
 
         var avisos = await _avisosRepo.ObtenerTodosAsync(soloActivos: true);
         Avisos = avisos
+            .Where(a => CoincideBusqueda(a, Busqueda))
             .OrderByDescending(a => a.FechaPublicacion)
             .ThenByDescending(a => a.Id)
             .ToList();
+
+        if (TieneBusqueda)
+            MensajeVacio = "No hay avisos publicados que coincidan con la búsqueda.";
     }
+
+    private static bool CoincideBusqueda(Aviso aviso, string? busqueda)
+    {
+        if (string.IsNullOrWhiteSpace(busqueda))
+            return true;
+
+        var termino = busqueda.Trim();
+        return ContieneTexto(aviso.Titulo, termino) ||
+            ContieneTexto(aviso.Contenido, termino) ||
+            ContieneTexto(aviso.AreaPublicacionNombre, termino);
+    }
+
+    private static bool ContieneTexto(string? valor, string termino) =>
+        !string.IsNullOrWhiteSpace(valor) &&
+        valor.Contains(termino, StringComparison.OrdinalIgnoreCase);
 }

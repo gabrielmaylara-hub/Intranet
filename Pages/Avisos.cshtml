@@ -13,6 +13,21 @@
             <p class="pagina-descripcion">@Model.Descripcion</p>
         </div>
 
+        <form method="get" class="avisos-busqueda" role="search" aria-label="Buscar avisos">
+            <label class="sr-only" for="Busqueda">Buscar aviso o comunicado</label>
+            <input type="search"
+                   id="Busqueda"
+                   name="Busqueda"
+                   value="@Model.Busqueda"
+                   placeholder="Buscar aviso o comunicado"
+                   class="avisos-busqueda-input" />
+            <button type="submit" class="avisos-busqueda-boton">Buscar</button>
+            @if (Model.TieneBusqueda)
+            {
+                <a href="/Avisos" class="avisos-busqueda-limpiar">Limpiar búsqueda</a>
+            }
+        </form>
+
         @if (Model.Avisos.Any())
         {
             <div class="avisos-pagina-lista">

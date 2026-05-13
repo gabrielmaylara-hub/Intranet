@@ -1533,6 +1533,63 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--home-tinta-suave);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.avisos-busqueda {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 0.7rem;
+  align-items: center;
+  margin: 0 0 1.25rem;
+  padding: 0.9rem;
+  border: 1px solid var(--home-linea);
+  background: rgba(255,255,255,0.7);
+}
+
+.avisos-busqueda-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(0,72,58,0.18);
+  background: rgba(255,255,255,0.92);
+  color: var(--home-tinta);
+  font: inherit;
+}
+
+.avisos-busqueda-boton,
+.avisos-busqueda-limpiar {
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(0,72,58,0.2);
+  background: rgba(0,72,58,0.08);
+  color: var(--home-verde);
+  font-family: var(--fuente-cond);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.avisos-busqueda-boton {
+  cursor: pointer;
+}
+
+.avisos-busqueda-boton:hover,
+.avisos-busqueda-limpiar:hover {
+  border-color: rgba(201,146,42,0.42);
+  color: var(--home-dorado);
+}
+
 .avisos-pagina-lista {
   display: grid;
   gap: 1rem;
@@ -1697,6 +1754,16 @@ button { cursor: pointer; font-family: inherit; }
 
   .aviso-publico {
     padding: 1.1rem;
+  }
+
+  .avisos-busqueda {
+    grid-template-columns: 1fr;
+  }
+
+  .avisos-busqueda-boton,
+  .avisos-busqueda-limpiar {
+    width: 100%;
+    text-align: center;
   }
 
   .aviso-publico-titulo {
