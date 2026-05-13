@@ -38,12 +38,17 @@
 <div class="admin-panel" data-usuarios-form @(mostrarFormulario ? "" : "hidden")>
     <h2 class="admin-panel-titulo">@(editando ? "Editar usuario" : "Nuevo usuario")</h2>
 
-    <form method="post" asp-page-handler="Guardar">
+    <form method="post" asp-page-handler="Guardar" class="usuarios-form">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Estado" />
 
-        <div class="form-dos-columnas">
+        <div class="form-dos-columnas usuarios-form-row">
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="NombreCompleto">Nombre <span class="campo-requerido">*</span></label>
+                <input class="campo-input" asp-for="NombreCompleto" maxlength="200" required data-usuario-nombre />
+                <span class="campo-ayuda campo-ayuda--reservada" aria-hidden="true">Ayuda</span>
+            </div>
             <div class="campo-grupo">
                 <label class="campo-label" asp-for="Usuario">Usuario <span class="campo-requerido">*</span></label>
                 <input class="campo-input" asp-for="Usuario" maxlength="100" required readonly="@esAdminPrincipalEditando" data-usuario-login />
@@ -56,23 +61,19 @@
                     <span class="campo-ayuda">Se sugiere automáticamente desde el nombre, pero puedes editarlo.</span>
                 }
             </div>
-            <div class="campo-grupo">
-                <label class="campo-label" asp-for="NombreCompleto">Nombre <span class="campo-requerido">*</span></label>
-                <input class="campo-input" asp-for="NombreCompleto" maxlength="200" required data-usuario-nombre />
-            </div>
         </div>
 
-        <div class="form-dos-columnas">
+        <div class="form-dos-columnas usuarios-form-row">
             <div class="campo-grupo">
                 <label class="campo-label" asp-for="Rol">Rol <span class="campo-requerido">*</span></label>
                 <select class="campo-input" asp-for="Rol" data-usuario-rol>
                     <option value="usuario_area">usuario_area</option>
                     <option value="admin_general">admin_general</option>
                 </select>
+                <span class="campo-ayuda campo-ayuda--reservada" aria-hidden="true">Ayuda</span>
             </div>
             <div class="campo-grupo" data-usuario-area-grupo>
-                <label class="campo-label" asp-for="AreaPublicacionId">Área de publicación</label>
-                <span class="campo-requerido" data-usuario-area-requerida>*</span>
+                <label class="campo-label" asp-for="AreaPublicacionId">Área de publicación <span class="campo-requerido" data-usuario-area-requerida>*</span></label>
                 <select class="campo-input" asp-for="AreaPublicacionId" data-usuario-area-select>
                     <option value="">Sin área</option>
                     @foreach (var area in Model.Areas)
@@ -88,26 +89,34 @@
 
         @if (!editando)
         {
-            <div class="form-dos-columnas">
+            <div class="form-dos-columnas usuarios-form-row">
                 <div class="campo-grupo">
                     <label class="campo-label" asp-for="PasswordTemporal">Contraseña temporal <span class="campo-requerido">*</span></label>
-                    <input class="campo-input" asp-for="PasswordTemporal" type="password" autocomplete="new-password" minlength="10" required />
+                    <input class="campo-input" asp-for="PasswordTemporal" type="text" autocomplete="new-password" minlength="10" required spellcheck="false" data-usuario-password />
+                    <div class="usuarios-password-accion">
+                        <button type="button" class="btn btn-secundario btn-sm" data-usuario-password-regenerar>
+                            Regenerar contraseña
+                        </button>
+                    </div>
+                    <span class="campo-ayuda">Temporal para entregar al usuario.</span>
                 </div>
                 <div class="campo-grupo">
                     <label class="campo-label" asp-for="ConfirmarPasswordTemporal">Confirmar contraseña <span class="campo-requerido">*</span></label>
-                    <input class="campo-input" asp-for="ConfirmarPasswordTemporal" type="password" autocomplete="new-password" minlength="10" required />
+                    <input class="campo-input" asp-for="ConfirmarPasswordTemporal" type="text" autocomplete="new-password" minlength="10" required spellcheck="false" data-usuario-password-confirmar />
+                    <div class="usuarios-password-accion usuarios-password-accion--reservada" aria-hidden="true">Accion</div>
+                    <span class="campo-ayuda campo-ayuda--reservada" aria-hidden="true">Ayuda</span>
                 </div>
             </div>
         }
 
-        <div class="campo-grupo campo-grupo--checks">
+        <div class="campo-grupo campo-grupo--checks usuarios-activo">
             <label class="campo-check">
                 <input type="checkbox" asp-for="Activo" />
                 Activo
             </label>
         </div>
 
-        <div class="form-acciones">
+        <div class="form-acciones usuarios-form-acciones">
             <button type="submit" class="btn btn-primario">
                 @(editando ? "Guardar cambios" : "Crear usuario")
             </button>

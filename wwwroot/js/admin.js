@@ -149,6 +149,9 @@
     const primerCampoUsuario = panelUsuariosForm.querySelector("#Usuario");
     const nombreUsuario = panelUsuariosForm.querySelector("[data-usuario-nombre]");
     const activoUsuario = panelUsuariosForm.querySelector("#Activo");
+    const passwordUsuario = panelUsuariosForm.querySelector("[data-usuario-password]");
+    const confirmarPasswordUsuario = panelUsuariosForm.querySelector("[data-usuario-password-confirmar]");
+    const btnRegenerarPasswordUsuario = panelUsuariosForm.querySelector("[data-usuario-password-regenerar]");
     let usuarioEditadoManual = false;
 
     const limpiarParteUsuario = (valor) =>
@@ -177,6 +180,37 @@
       return `${primerNombre.charAt(0)}${primerApellido}${segundoApellido.charAt(0)}`;
     };
 
+    const tomarCaracter = (caracteres) => {
+      const aleatorio = window.crypto?.getRandomValues
+        ? window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296
+        : Math.random();
+
+      return caracteres[Math.floor(aleatorio * caracteres.length)];
+    };
+
+    const generarPasswordTemporal = () => {
+      const mayusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+      const minusculas = "abcdefghijkmnopqrstuvwxyz";
+      const digitos = "23456789";
+      const simbolos = "-_*";
+      const todos = `${mayusculas}${minusculas}${digitos}`;
+
+      return [
+        tomarCaracter(mayusculas),
+        tomarCaracter(minusculas),
+        tomarCaracter(minusculas),
+        tomarCaracter(digitos),
+        "-",
+        tomarCaracter(mayusculas),
+        tomarCaracter(minusculas),
+        tomarCaracter(digitos),
+        tomarCaracter(simbolos),
+        tomarCaracter(todos),
+        tomarCaracter(digitos),
+        tomarCaracter(minusculas)
+      ].join("");
+    };
+
     const esAltaUsuario = () => {
       const id = panelUsuariosForm.querySelector("#Id")?.value || "0";
       return id === "0";
@@ -188,6 +222,15 @@
       usuarioEditadoManual = false;
     };
 
+    const asignarPasswordTemporal = (forzar = false) => {
+      if (!esAltaUsuario() || !passwordUsuario || !confirmarPasswordUsuario) return;
+      if (!forzar && passwordUsuario.value) return;
+
+      const password = generarPasswordTemporal();
+      passwordUsuario.value = password;
+      confirmarPasswordUsuario.value = password;
+    };
+
     const sincronizarRolUsuario = () => {
       if (rolUsuario) {
         rolUsuario.dispatchEvent(new Event("change"));
@@ -197,6 +240,7 @@
     btnNuevoUsuario?.addEventListener("click", () => {
       if (formUsuarios) formUsuarios.reset();
       aplicarDefaultsAlta();
+      asignarPasswordTemporal(true);
       panelUsuariosForm.hidden = false;
       sincronizarRolUsuario();
       panelUsuariosForm.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -210,6 +254,11 @@
       sincronizarRolUsuario();
     });
 
+    btnRegenerarPasswordUsuario?.addEventListener("click", () => {
+      asignarPasswordTemporal(true);
+      passwordUsuario?.focus();
+    });
+
     nombreUsuario?.addEventListener("input", () => {
       if (!esAltaUsuario() || usuarioEditadoManual || !primerCampoUsuario) return;
       primerCampoUsuario.value = sugerirUsuario(nombreUsuario.value);
@@ -220,6 +269,10 @@
         usuarioEditadoManual = true;
       }
     });
+
+    if (!panelUsuariosForm.hidden) {
+      asignarPasswordTemporal();
+    }
   }
 
   // ---------------------------------------------------------------------------

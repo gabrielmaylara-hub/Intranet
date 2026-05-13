@@ -19,6 +19,8 @@ public class IndexModel : AdminPageModel
     private readonly IAreaPublicacionRepository _areasRepo;
     private readonly IAuthService _auth;
 
+    protected override bool RequiereAdminGeneral => true;
+
     public IndexModel(
         IUsuarioRepository usuariosRepo,
         IAreaPublicacionRepository areasRepo,
@@ -122,11 +124,28 @@ public class IndexModel : AdminPageModel
                     return Page();
                 }
 
-                if (string.Equals(usuario.Usuario, "admin", StringComparison.OrdinalIgnoreCase) &&
+                if (EsAdminPrincipal(usuario) &&
                     !string.Equals(Usuario, usuario.Usuario, StringComparison.Ordinal))
                 {
                     EsError = true;
                     Mensaje = "El usuario admin principal no puede cambiar su nombre de acceso.";
+                    await CargarListasAsync();
+                    return Page();
+                }
+
+                if (EsAdminPrincipal(usuario) && !Activo)
+                {
+                    EsError = true;
+                    Mensaje = "El usuario admin principal no puede desactivarse.";
+                    await CargarListasAsync();
+                    return Page();
+                }
+
+                if (EsAdminPrincipal(usuario) &&
+                    !string.Equals(Rol, RolAdminGeneral, StringComparison.OrdinalIgnoreCase))
+                {
+                    EsError = true;
+                    Mensaje = "El usuario admin principal debe conservar el rol admin_general.";
                     await CargarListasAsync();
                     return Page();
                 }
@@ -184,6 +203,21 @@ public class IndexModel : AdminPageModel
         if (!EsAdminGeneral())
             return StatusCode(StatusCodes.Status403Forbidden);
 
+        var usuario = await _usuariosRepo.ObtenerPorIdAsync(id);
+        if (usuario is null)
+        {
+            EsError = true;
+            Mensaje = "No se encontró el usuario seleccionado.";
+            return RedirectToPage();
+        }
+
+        if (EsAdminPrincipal(usuario))
+        {
+            EsError = true;
+            Mensaje = "El usuario admin principal no puede desactivarse.";
+            return RedirectToPage();
+        }
+
         var error = await ValidarNoDejarSinAdminGeneralAsync(id, desactivar: true);
         if (error is not null)
         {
@@ -232,7 +266,7 @@ public class IndexModel : AdminPageModel
 
     private async Task<string?> ValidarFormularioAsync(bool esCreacion)
     {
-        Usuario = NormalizarTexto(Usuario);
+        Usuario = NormalizarUsuario(Usuario);
         NombreCompleto = NormalizarTexto(NombreCompleto);
         Rol = NormalizarTexto(Rol);
         PasswordTemporal = (PasswordTemporal ?? string.Empty).Trim();
@@ -244,6 +278,8 @@ public class IndexModel : AdminPageModel
             return $"El usuario no debe superar {MaxUsuario} caracteres.";
         if (Usuario.Any(char.IsWhiteSpace) || ContieneControl(Usuario))
             return "El usuario no debe contener espacios ni caracteres de control.";
+        if (!Usuario.All(EsCaracterUsuarioPermitido))
+            return "El usuario solo puede contener letras sin acentos, números, punto, guion o guion bajo.";
         if (string.IsNullOrWhiteSpace(NombreCompleto))
             return "El nombre es obligatorio.";
         if (NombreCompleto.Length > MaxNombre)
@@ -352,6 +388,17 @@ public class IndexModel : AdminPageModel
     }
 
     private static string NormalizarTexto(string? valor) => valor?.Trim() ?? string.Empty;
+
+    private static string NormalizarUsuario(string? valor) =>
+        NormalizarTexto(valor).ToLowerInvariant();
+
+    private static bool EsCaracterUsuarioPermitido(char caracter) =>
+        caracter is >= 'a' and <= 'z' ||
+        caracter is >= '0' and <= '9' ||
+        caracter is '.' or '_' or '-';
+
+    private static bool EsAdminPrincipal(UsuarioAdmin usuario) =>
+        string.Equals(usuario.Usuario, "admin", StringComparison.OrdinalIgnoreCase);
 
     private static bool ContieneControl(string? valor) =>
         !string.IsNullOrEmpty(valor) &&

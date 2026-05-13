@@ -679,6 +679,63 @@ button { cursor: pointer; font-family: inherit; }
   margin-top: 0.5rem;
 }
 
+.usuarios-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.usuarios-form .campo-grupo {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.usuarios-form .campo-input {
+  width: 100%;
+}
+
+.usuarios-form-row {
+  align-items: start;
+  gap: 1rem 1.25rem;
+}
+
+.usuarios-form .campo-ayuda {
+  min-height: 1.1rem;
+}
+
+.campo-ayuda--reservada {
+  visibility: hidden;
+}
+
+.usuarios-password-accion {
+  display: flex;
+  align-items: center;
+  min-height: 2.35rem;
+}
+
+.usuarios-password-accion .btn {
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding-left: 0.85rem;
+  padding-right: 0.85rem;
+}
+
+.usuarios-password-accion--reservada {
+  visibility: hidden;
+}
+
+.usuarios-activo {
+  margin-top: 0.1rem;
+  margin-bottom: 0;
+  padding-top: 0;
+}
+
+.usuarios-form-acciones {
+  align-items: center;
+  margin-top: 0;
+}
+
 .form-inline { display: inline-flex; }
 
 .form-importacion {
