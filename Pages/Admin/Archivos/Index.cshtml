@@ -2,7 +2,8 @@
 @model Intranet.Pages.Admin.Archivos.IndexModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["TituloAdmin"] = "Archivos por Sección";
+    ViewData["TituloAdmin"] = "Archivos por sección";
+    var tiposPermitidos = ".pdf,.xls,.xlsx,.png,.doc,.docx,.ppt,.pptx,.jpg,.jpeg";
 }
 
 @if (!string.IsNullOrEmpty(Model.Mensaje))
@@ -12,7 +13,6 @@
     </div>
 }
 
-<!-- Pestañas de sección -->
 <div class="admin-tabs">
     @foreach (var (clave, etiqueta) in Intranet.Pages.Admin.Archivos.IndexModel.Secciones)
     {
@@ -30,7 +30,6 @@
         </h2>
     </div>
 
-    <!-- Tabla de archivos de la sección activa -->
     <div class="tabla-wrap">
         <table class="admin-tabla">
             <thead>
@@ -58,6 +57,11 @@
                             </span>
                         </td>
                         <td class="td-acciones">
+                            <a href="/Admin/Archivos?seccion=@Model.SeccionActual&editarId=@archivo.Id"
+                               class="btn btn-sm btn-secundario">
+                                Editar
+                            </a>
+
                             <form method="post" asp-page-handler="Toggle" class="form-inline">
                                 <input type="hidden" name="id" value="@archivo.Id" />
                                 <input type="hidden" name="seccion" value="@Model.SeccionActual" />
@@ -69,7 +73,7 @@
                             </form>
 
                             <form method="post" asp-page-handler="Eliminar" class="form-inline"
-                                  onsubmit="return confirm('¿Eliminar «@archivo.Nombre»? El archivo se borrará del servidor.')">
+                                  onsubmit="return confirm('¿Eliminar @archivo.Nombre? El archivo se borrará del servidor.')">
                                 <input type="hidden" name="id" value="@archivo.Id" />
                                 <input type="hidden" name="seccion" value="@Model.SeccionActual" />
                                 @Html.AntiForgeryToken()
@@ -88,33 +92,166 @@
         </table>
     </div>
 
-    <!-- Formulario de subida -->
     <div class="subir-archivo-panel">
-        <h3 class="admin-panel-titulo">Subir nuevo archivo</h3>
-        <form method="post" asp-page-handler="Subir" enctype="multipart/form-data">
+        <h3 class="admin-panel-titulo">@(Model.EditandoArchivo ? "Editar archivo" : "Subir nuevo archivo")</h3>
+        <form method="post" asp-page-handler="Guardar" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+            <input type="hidden" asp-for="Id" />
 
             <div class="form-dos-columnas">
                 <div class="campo-grupo">
                     <label class="campo-label">Nombre del documento <span class="campo-requerido">*</span></label>
-                    <input type="text" name="Nombre" class="campo-input"
-                           placeholder="Ej. Formato de solicitud de vacaciones" required />
+                    <input asp-for="Nombre" class="campo-input"
+                           placeholder="Ej. Formato de solicitud de vacaciones" required maxlength="180" />
                 </div>
                 <div class="campo-grupo">
                     <label class="campo-label">Descripción</label>
-                    <input type="text" name="Descripcion" class="campo-input"
-                           placeholder="Breve descripción del contenido" />
+                    <input asp-for="Descripcion" class="campo-input"
+                           placeholder="Breve descripción del contenido" maxlength="300" />
                 </div>
             </div>
 
             <div class="campo-grupo">
-                <label class="campo-label">Archivo PDF <span class="campo-requerido">*</span></label>
-                <input type="file" name="Archivo" class="campo-input campo-archivo"
-                       accept=".pdf" required />
+                <label class="campo-label">
+                    Archivo @(Model.EditandoArchivo ? "nuevo (opcional)" : "") <span class="campo-requerido">@(!Model.EditandoArchivo ? "*" : "")</span>
+                </label>
+                @if (Model.EditandoArchivo)
+                {
+                    <p class="campo-ayuda">
+                        Archivo actual: <a href="/Admin/Archivos/Descargar/@Model.Id" class="tabla-enlace-archivo">descargar archivo registrado</a>.
+                        Si no seleccionas un archivo nuevo, se conserva el actual.
+                    </p>
+                    <input type="file" name="Archivo" class="campo-input campo-archivo" accept="@tiposPermitidos" />
+                }
+                else
+                {
+                    <input type="file" name="Archivo" class="campo-input campo-archivo" accept="@tiposPermitidos" required />
+                }
+                <p class="campo-ayuda">Tipos permitidos: PDF, Excel, PNG, Word, PowerPoint, JPG/JPEG.</p>
             </div>
 
-            <button type="submit" class="btn btn-primario">Subir archivo</button>
+            <label class="campo-check">
+                <input type="hidden" name="Activo" value="false" />
+                <input type="checkbox" name="Activo" value="true" @(Model.Activo ? "checked" : null) />
+                Activo
+            </label>
+
+            <div class="form-acciones">
+                <button type="submit" class="btn btn-primario">
+                    @(Model.EditandoArchivo ? "Guardar cambios" : "Subir archivo")
+                </button>
+                @if (Model.EditandoArchivo)
+                {
+                    <a href="/Admin/Archivos?seccion=@Model.SeccionActual" class="btn btn-secundario">Cancelar edición</a>
+                }
+            </div>
         </form>
     </div>
+
+    @if (Model.EsCapacitacion)
+    {
+        <div class="subir-archivo-panel">
+            <h3 class="admin-panel-titulo">Ligas de Oferta Académica</h3>
+            <p class="campo-ayuda">
+                Estas ligas se muestran en la página pública de Oferta Académica junto con los documentos cargados.
+            </p>
+
+            <div class="tabla-wrap">
+                <table class="admin-tabla">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Descripción</th>
+                            <th>URL</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var liga in Model.LigasOfertaAcademica)
+                        {
+                            <tr>
+                                <td>@liga.Titulo</td>
+                                <td>@(liga.Descripcion ?? "—")</td>
+                                <td>
+                                    <a href="@liga.Url" class="tabla-enlace-archivo" target="_blank" rel="noopener noreferrer">
+                                        @liga.Url
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge @(liga.Activa ? "badge-activo" : "badge-inactivo")">
+                                        @(liga.Activa ? "Activa" : "Inactiva")
+                                    </span>
+                                </td>
+                                <td class="td-acciones">
+                                    <a href="/Admin/Archivos?seccion=@Model.SeccionActual&editarLigaId=@liga.Id"
+                                       class="btn btn-sm btn-secundario">
+                                        Editar
+                                    </a>
+                                    <form method="post" asp-page-handler="ToggleLiga" class="form-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@liga.Id" />
+                                        <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+                                        <button type="submit" class="btn btn-sm @(liga.Activa ? "btn-advertencia" : "btn-exito")">
+                                            @(liga.Activa ? "Desactivar" : "Activar")
+                                        </button>
+                                    </form>
+                                    <form method="post" asp-page-handler="EliminarLiga" class="form-inline"
+                                          onsubmit="return confirm('Eliminar la liga @liga.Titulo?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@liga.Id" />
+                                        <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+                                        <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.LigasOfertaAcademica.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="td-vacio">No hay ligas administradas para Oferta Académica.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <form method="post" asp-page-handler="GuardarLiga">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="seccion" value="@Model.SeccionActual" />
+                <input type="hidden" asp-for="LigaId" />
+
+                <div class="form-dos-columnas">
+                    <div class="campo-grupo">
+                        <label class="campo-label">Título de la liga <span class="campo-requerido">*</span></label>
+                        <input asp-for="LigaTitulo" class="campo-input" maxlength="180" required />
+                    </div>
+                    <div class="campo-grupo">
+                        <label class="campo-label">URL <span class="campo-requerido">*</span></label>
+                        <input asp-for="LigaUrl" class="campo-input" maxlength="500" required placeholder="https://..." />
+                    </div>
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Descripción</label>
+                    <input asp-for="LigaDescripcion" class="campo-input" maxlength="300" />
+                </div>
+                <label class="campo-check">
+                    <input type="hidden" name="LigaActiva" value="false" />
+                    <input type="checkbox" name="LigaActiva" value="true" @(Model.LigaActiva ? "checked" : null) />
+                    Activa
+                </label>
+
+                <div class="form-acciones">
+                    <button type="submit" class="btn btn-primario">
+                        @(Model.EditandoLiga ? "Guardar liga" : "Agregar liga")
+                    </button>
+                    @if (Model.EditandoLiga)
+                    {
+                        <a href="/Admin/Archivos?seccion=@Model.SeccionActual" class="btn btn-secundario">Cancelar edición</a>
+                    }
+                </div>
+            </form>
+        </div>
+    }
 </div>

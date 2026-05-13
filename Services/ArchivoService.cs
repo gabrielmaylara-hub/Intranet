@@ -1,4 +1,5 @@
 using Intranet.Services.Interfaces;
+using System.IO.Compression;
 using System.Text;
 
 namespace Intranet.Services;
@@ -19,7 +20,8 @@ public class ArchivoService : IArchivoService
     // porque /storage solo sirve extensiones autorizadas.
     private static readonly HashSet<string> ExtPermitidas = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".pdf", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".mp4"
+        ".pdf", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".mp4",
+        ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx"
     };
 
     private static readonly Dictionary<string, string[]> MimePermitidos = new(StringComparer.OrdinalIgnoreCase)
@@ -30,10 +32,17 @@ public class ArchivoService : IArchivoService
         [".jpeg"] = ["image/jpeg", "image/pjpeg"],
         [".webp"] = ["image/webp"],
         [".mp4"] = ["video/mp4", "application/mp4"],
-        [".svg"] = ["image/svg+xml", "text/xml", "application/xml"]
+        [".svg"] = ["image/svg+xml", "text/xml", "application/xml"],
+        [".xls"] = ["application/vnd.ms-excel", "application/msexcel", "application/x-msexcel", "application/x-ms-excel"],
+        [".xlsx"] = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+        [".doc"] = ["application/msword"],
+        [".docx"] = ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+        [".ppt"] = ["application/vnd.ms-powerpoint", "application/mspowerpoint", "application/x-mspowerpoint"],
+        [".pptx"] = ["application/vnd.openxmlformats-officedocument.presentationml.presentation"]
     };
 
     private static readonly byte[] FirmaPng = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    private static readonly byte[] FirmaOle = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
     private static readonly HashSet<string> MarcasMp4 = new(StringComparer.OrdinalIgnoreCase)
     {
         "isom", "iso2", "mp41", "mp42", "avc1", "M4V ", "MSNV", "dash"
@@ -175,6 +184,12 @@ public class ArchivoService : IArchivoService
             return;
         }
 
+        if (extension is ".docx" or ".xlsx" or ".pptx")
+        {
+            await ValidarOpenXmlAsync(archivo, extension);
+            return;
+        }
+
         var bytesALeer = (int)Math.Min(64L, archivo.Length);
         var encabezado = new byte[bytesALeer];
 
@@ -207,8 +222,39 @@ public class ArchivoService : IArchivoService
             ".jpg" or ".jpeg" => TieneFirmaJpeg(encabezado),
             ".webp" => TieneFirmaWebp(encabezado),
             ".mp4" => TieneFirmaMp4(encabezado),
+            ".doc" or ".xls" or ".ppt" => encabezado.StartsWith(FirmaOle),
             _ => false
         };
+
+    private static async Task ValidarOpenXmlAsync(IFormFile archivo, string extension)
+    {
+        try
+        {
+            await using var stream = archivo.OpenReadStream();
+            using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
+
+            var tieneContentTypes = zip.Entries.Any(e =>
+                string.Equals(e.FullName, "[Content_Types].xml", StringComparison.OrdinalIgnoreCase));
+
+            var carpetaEsperada = extension switch
+            {
+                ".docx" => "word/",
+                ".xlsx" => "xl/",
+                ".pptx" => "ppt/",
+                _ => string.Empty
+            };
+
+            var tieneCarpetaEsperada = zip.Entries.Any(e =>
+                e.FullName.StartsWith(carpetaEsperada, StringComparison.OrdinalIgnoreCase));
+
+            if (!tieneContentTypes || !tieneCarpetaEsperada)
+                throw new InvalidOperationException("El contenido del archivo no corresponde al tipo permitido.");
+        }
+        catch (InvalidDataException)
+        {
+            throw new InvalidOperationException("El contenido del archivo no corresponde al tipo permitido.");
+        }
+    }
 
     private static bool TieneFirmaJpeg(ReadOnlySpan<byte> encabezado) =>
         encabezado.Length >= 3 &&

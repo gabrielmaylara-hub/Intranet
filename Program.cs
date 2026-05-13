@@ -96,7 +96,8 @@ var app = builder.Build();
 
 var extensionesStoragePermitidas = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 {
-    ".pdf", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".mp4"
+    ".pdf", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".mp4",
+    ".xls", ".xlsx", ".doc", ".docx", ".ppt", ".pptx"
 };
 
 var carpetaStorageConfigurada = app.Configuration["Storage:RutaBase"] ?? "Storage";

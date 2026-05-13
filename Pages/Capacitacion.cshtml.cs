@@ -1,11 +1,18 @@
 using Intranet.Models;
 using Intranet.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Text.Json;
 
 namespace Intranet.Pages;
 
 public class CapacitacionModel : PageModel
 {
+    private const string ClaveLigasCapacitacion = "capacitacion_ligas_json";
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IArchivoSeccionRepository _archivosRepo;
     private readonly IConfiguracionRepository _configRepo;
 
@@ -18,6 +25,7 @@ public class CapacitacionModel : PageModel
     }
 
     public IEnumerable<ArchivoSeccion> ArchivosInternos { get; private set; } = [];
+    public IEnumerable<OfertaAcademicaLiga> LigasOfertaAcademica { get; private set; } = [];
     public string Titulo { get; private set; } = "Oferta Académica";
     public string Descripcion { get; private set; } =
         "Cursos de capacitación y formación profesional disponibles para el personal de la Fiscalía General del Estado de Tabasco.";
@@ -41,11 +49,31 @@ public class CapacitacionModel : PageModel
         ExternoBotonTexto = config.GetValueOrDefault("pagina_capacitacion_externo_boton_texto", ExternoBotonTexto);
         ExternoBotonUrl = config.GetValueOrDefault("pagina_capacitacion_externo_boton_url", ExternoBotonUrl);
         ArchivosInternos = await _archivosRepo.ObtenerPorSeccionAsync("capacitacion", soloActivos: true);
+        LigasOfertaAcademica = ObtenerLigas(config.GetValueOrDefault(ClaveLigasCapacitacion));
 
         static bool EsActivo(string? valor) =>
             string.IsNullOrWhiteSpace(valor) ||
             valor.Equals("1", StringComparison.OrdinalIgnoreCase) ||
             valor.Equals("true", StringComparison.OrdinalIgnoreCase) ||
             valor.Equals("activo", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IEnumerable<OfertaAcademicaLiga> ObtenerLigas(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return [];
+
+        try
+        {
+            return (JsonSerializer.Deserialize<List<OfertaAcademicaLiga>>(json, JsonOptions) ?? [])
+                .Where(l => l.Activa)
+                .OrderBy(l => l.Orden)
+                .ThenBy(l => l.Titulo)
+                .ToList();
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
     }
 }

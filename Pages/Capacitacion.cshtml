@@ -21,6 +21,41 @@
             </div>
         }
 
+        @if (Model.LigasOfertaAcademica.Any())
+        {
+            <div class="capacitacion-seccion">
+                <h2 class="subseccion-titulo">Ligas de Oferta Academica</h2>
+                <ul class="archivos-lista" role="list">
+                    @foreach (var liga in Model.LigasOfertaAcademica)
+                    {
+                        var esExterna = Uri.TryCreate(liga.Url, UriKind.Absolute, out _);
+                        <li class="archivo-item">
+                            <div class="archivo-icono" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"/>
+                                    <path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"/>
+                                </svg>
+                            </div>
+                            <div class="archivo-info">
+                                <span class="archivo-nombre">@liga.Titulo</span>
+                                @if (!string.IsNullOrWhiteSpace(liga.Descripcion))
+                                {
+                                    <span class="archivo-descripcion">@liga.Descripcion</span>
+                                }
+                            </div>
+                            <a href="@liga.Url"
+                               class="archivo-descargar"
+                               target="@(esExterna ? "_blank" : null)"
+                               rel="@(esExterna ? "noopener noreferrer" : null)"
+                               aria-label="Abrir @liga.Titulo">
+                                Abrir
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
         <!-- Enlace externo a SIGAACEJ -->
         @if (Model.ExternoActivo && !string.IsNullOrWhiteSpace(Model.ExternoBotonUrl))
         {
