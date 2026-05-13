@@ -4,6 +4,7 @@
     Layout = "_LayoutAdmin";
     ViewData["TituloAdmin"] = "Usuarios";
     var editando = Model.Id > 0;
+    var mostrarFormulario = editando || (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase) && Model.EsError);
 }
 
 @if (!string.IsNullOrWhiteSpace(Model.Mensaje))
@@ -22,8 +23,19 @@
                 Cada usuario de área debe pertenecer a una sola área.
             </p>
         </div>
-        <a class="btn btn-primario btn-sm" href="/Admin/Usuarios">Nuevo usuario</a>
+        @if (editando)
+        {
+            <a class="btn btn-primario btn-sm" href="/Admin/Usuarios">Nuevo usuario</a>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primario btn-sm" data-usuarios-nuevo>Nuevo usuario</button>
+        }
     </div>
+</div>
+
+<div class="admin-panel" data-usuarios-form @(mostrarFormulario ? "" : "hidden")>
+    <h2 class="admin-panel-titulo">@(editando ? "Editar usuario" : "Nuevo usuario")</h2>
 
     <form method="post" asp-page-handler="Guardar">
         @Html.AntiForgeryToken()
@@ -97,6 +109,10 @@
             {
                 <a class="btn btn-neutro" href="/Admin/Usuarios">Cancelar edición</a>
             }
+            else
+            {
+                <button type="button" class="btn btn-neutro" data-usuarios-cancelar>Cancelar</button>
+            }
         </div>
     </form>
 </div>
@@ -119,6 +135,7 @@
             <tbody>
                 @foreach (var usuario in Model.Usuarios)
                 {
+                    var esAdminPrincipal = string.Equals(usuario.Usuario, "admin", StringComparison.OrdinalIgnoreCase);
                     <tr>
                         <td><strong>@usuario.Usuario</strong></td>
                         <td>@usuario.NombreCompleto</td>
@@ -144,7 +161,11 @@
                                 Editar
                             </a>
 
-                            @if (usuario.Activo)
+                            @if (esAdminPrincipal)
+                            {
+                                <span class="texto-gris">Admin principal</span>
+                            }
+                            else if (usuario.Activo)
                             {
                                 <form method="post"
                                       asp-page-handler="Desactivar"

@@ -219,8 +219,8 @@ public class IndexModel : AdminPageModel
         Usuario = NormalizarTexto(Usuario);
         NombreCompleto = NormalizarTexto(NombreCompleto);
         Rol = NormalizarTexto(Rol);
-        PasswordTemporal = PasswordTemporal.Trim();
-        ConfirmarPasswordTemporal = ConfirmarPasswordTemporal.Trim();
+        PasswordTemporal = (PasswordTemporal ?? string.Empty).Trim();
+        ConfirmarPasswordTemporal = (ConfirmarPasswordTemporal ?? string.Empty).Trim();
 
         if (string.IsNullOrWhiteSpace(Usuario))
             return "El usuario es obligatorio.";

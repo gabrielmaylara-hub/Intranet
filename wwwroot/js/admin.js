@@ -138,6 +138,38 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Usuarios: el alta inicia cerrada y solo se abre cuando el admin la solicita.
+  // ---------------------------------------------------------------------------
+  const panelUsuariosForm = document.querySelector("[data-usuarios-form]");
+  const btnNuevoUsuario = document.querySelector("[data-usuarios-nuevo]");
+  const btnCancelarUsuario = document.querySelector("[data-usuarios-cancelar]");
+
+  if (panelUsuariosForm) {
+    const formUsuarios = panelUsuariosForm.querySelector("form");
+    const primerCampoUsuario = panelUsuariosForm.querySelector("#Usuario");
+
+    const sincronizarRolUsuario = () => {
+      if (rolUsuario) {
+        rolUsuario.dispatchEvent(new Event("change"));
+      }
+    };
+
+    btnNuevoUsuario?.addEventListener("click", () => {
+      if (formUsuarios) formUsuarios.reset();
+      panelUsuariosForm.hidden = false;
+      sincronizarRolUsuario();
+      panelUsuariosForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      primerCampoUsuario?.focus();
+    });
+
+    btnCancelarUsuario?.addEventListener("click", () => {
+      if (formUsuarios) formUsuarios.reset();
+      panelUsuariosForm.hidden = true;
+      sincronizarRolUsuario();
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Confirmaciones simples antes de acciones administrativas sensibles.
   // ---------------------------------------------------------------------------
   document.querySelectorAll("[data-confirm-submit]").forEach((formulario) => {
