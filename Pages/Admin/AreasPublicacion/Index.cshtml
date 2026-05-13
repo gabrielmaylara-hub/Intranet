@@ -13,6 +13,10 @@
     </div>
 }
 
+@Html.AntiForgeryToken()
+
+<div class="alerta" id="mensajeReordenAreas" role="alert" hidden></div>
+
 <div class="admin-panel">
     <div class="panel-cabecera">
         <div>
@@ -29,16 +33,9 @@
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
 
-        <div class="form-dos-columnas">
-            <div class="campo-grupo">
-                <label class="campo-label" asp-for="Nombre">Nombre <span class="campo-requerido">*</span></label>
-                <input class="campo-input" asp-for="Nombre" maxlength="180" required />
-            </div>
-            <div class="campo-grupo">
-                <label class="campo-label" asp-for="Orden">Orden</label>
-                <input class="campo-input" asp-for="Orden" type="number" min="0" />
-                <span class="campo-ayuda">Si se deja en 0, se asigna el siguiente orden disponible.</span>
-            </div>
+        <div class="campo-grupo">
+            <label class="campo-label" asp-for="Nombre">Nombre <span class="campo-requerido">*</span></label>
+            <input class="campo-input" asp-for="Nombre" maxlength="180" required />
         </div>
 
         <div class="campo-grupo">
@@ -65,24 +62,98 @@
     </form>
 </div>
 
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        const tablaAreasPublicacion = document.getElementById('tablaAreasPublicacion');
+        const tokenAreasPublicacion = document.querySelector('input[name=__RequestVerificationToken]')?.value;
+        const mensajeReordenAreas = document.getElementById('mensajeReordenAreas');
+
+        function mostrarMensajeReordenAreas(texto, esError) {
+            if (!mensajeReordenAreas) {
+                return;
+            }
+
+            mensajeReordenAreas.textContent = texto;
+            mensajeReordenAreas.hidden = false;
+            mensajeReordenAreas.className = `alerta ${esError ? 'alerta-error' : 'alerta-exito'}`;
+        }
+
+        if (tablaAreasPublicacion && tokenAreasPublicacion && window.Sortable) {
+            let ordenAnteriorAreas = [];
+
+            const sortableAreasPublicacion = Sortable.create(tablaAreasPublicacion, {
+                animation: 150,
+                handle: '.drag-handle',
+                onStart: function () {
+                    ordenAnteriorAreas = [...tablaAreasPublicacion.querySelectorAll('tr[data-id]')]
+                        .map(tr => tr.dataset.id);
+                },
+                onEnd: async function () {
+                    const items = [...tablaAreasPublicacion.querySelectorAll('tr[data-id]')]
+                        .map((tr, idx) => ({ id: parseInt(tr.dataset.id), orden: idx + 1 }));
+
+                    try {
+                        const response = await fetch('/Admin/AreasPublicacion?handler=Reordenar', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-XSRF-TOKEN': tokenAreasPublicacion
+                            },
+                            body: JSON.stringify(items)
+                        });
+
+                        let data = null;
+                        try {
+                            data = await response.json();
+                        } catch {
+                            data = null;
+                        }
+
+                        if (!response.ok || !data || data.ok !== true) {
+                            throw new Error(data?.message || 'No se pudo guardar el nuevo orden.');
+                        }
+
+                        mostrarMensajeReordenAreas(data.message || 'Orden actualizado correctamente.', false);
+                    } catch (error) {
+                        if (ordenAnteriorAreas.length > 0) {
+                            sortableAreasPublicacion.sort(ordenAnteriorAreas);
+                        }
+
+                        mostrarMensajeReordenAreas(
+                            error.message || 'No se pudo guardar el nuevo orden.',
+                            true);
+
+                        window.setTimeout(() => window.location.reload(), 1200);
+                    }
+                }
+            });
+        }
+    </script>
+}
+
 <div class="admin-panel">
     <h2 class="admin-panel-titulo">Listado</h2>
+    <p class="campo-ayuda">Arrastra las filas para reordenar. El orden se guarda automáticamente.</p>
 
     <div class="tabla-wrap">
         <table class="admin-tabla">
             <thead>
                 <tr>
+                    <th class="col-drag"></th>
                     <th>Nombre</th>
                     <th>Slug</th>
-                    <th>Orden</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tablaAreasPublicacion">
                 @foreach (var area in Model.Areas)
                 {
-                    <tr>
+                    <tr data-id="@area.Id">
+                        <td class="col-drag">
+                            <span class="drag-handle" title="Arrastrar para reordenar">::</span>
+                        </td>
                         <td>
                             <strong>@area.Nombre</strong>
                             @if (!string.IsNullOrWhiteSpace(area.Descripcion))
@@ -91,7 +162,6 @@
                             }
                         </td>
                         <td><code>@area.Slug</code></td>
-                        <td>@area.Orden</td>
                         <td>
                             <span class="badge @(area.Activa ? "badge-activo" : "badge-inactivo")">
                                 @(area.Activa ? "Activa" : "Inactiva")

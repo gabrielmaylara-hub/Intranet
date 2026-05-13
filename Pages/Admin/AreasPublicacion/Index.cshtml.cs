@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Intranet.Models;
 using Intranet.Pages.Admin;
@@ -73,9 +74,6 @@ public class IndexModel : AdminPageModel
 
         var nombreNormalizado = NormalizarTexto(Nombre);
         var descripcionNormalizada = NormalizarTexto(Descripcion);
-        var ordenFinal = Orden > 0
-            ? Orden
-            : await ObtenerSiguienteOrdenAsync();
 
         try
         {
@@ -92,7 +90,6 @@ public class IndexModel : AdminPageModel
 
                 existente.Nombre = nombreNormalizado;
                 existente.Descripcion = descripcionNormalizada;
-                existente.Orden = ordenFinal;
                 existente.Activa = Activa;
 
                 await _areasRepo.ActualizarAsync(existente);
@@ -105,7 +102,7 @@ public class IndexModel : AdminPageModel
                     Nombre = nombreNormalizado,
                     Slug = GenerarSlug(nombreNormalizado),
                     Descripcion = descripcionNormalizada,
-                    Orden = ordenFinal,
+                    Orden = await ObtenerSiguienteOrdenAsync(),
                     Activa = Activa
                 });
 
@@ -168,6 +165,75 @@ public class IndexModel : AdminPageModel
         return RedirectToPage();
     }
 
+    public async Task<IActionResult> OnPostReordenarAsync()
+    {
+        if (!EsAdminGeneral())
+            return StatusCode(StatusCodes.Status403Forbidden);
+
+        Request.EnableBuffering();
+        using var lector = new StreamReader(Request.Body, leaveOpen: true);
+        var json = await lector.ReadToEndAsync();
+
+        if (string.IsNullOrWhiteSpace(json))
+            return BadRequest(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de las áreas."
+            });
+
+        List<ReordenItem>? items;
+        try
+        {
+            items = JsonSerializer.Deserialize<List<ReordenItem>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch (JsonException)
+        {
+            return BadRequest(new
+            {
+                ok = false,
+                message = "El formato del orden recibido no es válido."
+            });
+        }
+
+        if (items is null || items.Count == 0 || items.Any(i => i.Id <= 0))
+            return BadRequest(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de las áreas."
+            });
+
+        var idsDuplicados = items
+            .GroupBy(i => i.Id)
+            .Any(g => g.Count() > 1);
+
+        if (idsDuplicados)
+            return BadRequest(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de las áreas."
+            });
+
+        var ordenCalculado = items
+            .Select((item, indice) => (item.Id, Orden: indice + 1))
+            .ToList();
+
+        var filasVerificadas = await _areasRepo.ActualizarOrdenAsync(ordenCalculado);
+
+        if (filasVerificadas != ordenCalculado.Count)
+            return NotFound(new
+            {
+                ok = false,
+                message = "No se pudo actualizar el orden de las áreas."
+            });
+
+        return new JsonResult(new
+        {
+            ok = true,
+            message = "Orden actualizado correctamente."
+        });
+    }
+
     private async Task<string?> ValidarFormularioAsync()
     {
         Nombre = NormalizarTexto(Nombre);
@@ -179,8 +245,6 @@ public class IndexModel : AdminPageModel
             return $"El nombre del área no debe superar {MaxNombre} caracteres.";
         if (!string.IsNullOrWhiteSpace(Descripcion) && Descripcion.Length > MaxDescripcion)
             return $"La descripción no debe superar {MaxDescripcion} caracteres.";
-        if (Orden < 0)
-            return "El orden no puede ser negativo.";
         if (ContieneControl(Nombre) || ContieneControl(Descripcion))
             return "El formulario contiene caracteres no permitidos.";
         if (await _areasRepo.ExisteNombreAsync(Nombre, Id > 0 ? Id : null))
@@ -232,4 +296,6 @@ public class IndexModel : AdminPageModel
             ? $"area-{Guid.NewGuid():N}"
             : slug;
     }
+
+    public record ReordenItem(int Id, int Orden);
 }

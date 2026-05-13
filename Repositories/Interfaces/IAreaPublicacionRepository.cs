@@ -14,4 +14,5 @@ public interface IAreaPublicacionRepository
     Task<bool> ActivarAsync(int id);
     Task<bool> PuedeEliminarAsync(int id);
     Task<bool> EliminarAsync(int id);
+    Task<int> ActualizarOrdenAsync(IEnumerable<(int Id, int Orden)> items);
 }
