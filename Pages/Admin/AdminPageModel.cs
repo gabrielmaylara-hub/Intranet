@@ -1,10 +1,27 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Intranet.Pages.Admin;
 
 public abstract class AdminPageModel : PageModel
 {
+    protected virtual bool RequiereAdminGeneral => false;
+
+    public override async Task OnPageHandlerExecutionAsync(
+        PageHandlerExecutingContext context,
+        PageHandlerExecutionDelegate next)
+    {
+        if (RequiereAdminGeneral && !EsAdminGeneral())
+        {
+            context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
+            return;
+        }
+
+        await next();
+    }
+
     protected bool EsAdminGeneral() =>
         string.Equals(
             User.FindFirst("rol")?.Value,

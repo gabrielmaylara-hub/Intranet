@@ -1,14 +1,16 @@
 using System.Text.Json;
 using Intranet.Models;
+using Intranet.Pages.Admin;
 using Intranet.Repositories.Interfaces;
 using Intranet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Intranet.Pages.Admin.AccesosRapidos;
 
-public class IndexModel : PageModel
+public class IndexModel : AdminPageModel
 {
+    protected override bool RequiereAdminGeneral => true;
+
     private readonly IAccesoRapidoRepository _accesosRepo;
     private readonly IArchivoService         _archivos;
     private readonly ILogger<IndexModel>     _log;

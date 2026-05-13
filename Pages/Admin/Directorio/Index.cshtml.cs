@@ -1,15 +1,17 @@
 using System.Text;
 using System.Text.Json;
 using Intranet.Models;
+using Intranet.Pages.Admin;
 using Intranet.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using MySqlConnector;
 
 namespace Intranet.Pages.Admin.Directorio;
 
-public class IndexModel : PageModel
+public class IndexModel : AdminPageModel
 {
+    protected override bool RequiereAdminGeneral => true;
+
     private const int MaxFilasImportacion = 1000;
     private const long MaxArchivoCsvBytes = 2 * 1024 * 1024;
 

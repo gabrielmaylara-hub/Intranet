@@ -76,6 +76,8 @@
                     </a>
                 </li>
             }
+            @if (esAdminGeneral)
+            {
             <li>
                 <a href="/Admin/AccesosRapidos" class="sidebar-enlace @(NavActivo("/admin/accesosrapidos") ? "sidebar-enlace--activo" : "")">
                     <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -85,6 +87,7 @@
                     Accesos Rápidos
                 </a>
             </li>
+            }
             <li>
                 <a href="/Admin/Avisos" class="sidebar-enlace @(NavActivo("/admin/avisos") ? "sidebar-enlace--activo" : "")">
                     <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -102,6 +105,8 @@
                     Tutoriales
                 </a>
             </li>
+            @if (esAdminGeneral)
+            {
             <li>
                 <a href="/Admin/Archivos" class="sidebar-enlace @(NavActivo("/admin/archivos") ? "sidebar-enlace--activo" : "")">
                     <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -119,6 +124,7 @@
                     Directorio
                 </a>
             </li>
+            }
         </ul>
     </nav>
 

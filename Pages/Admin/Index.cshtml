@@ -4,19 +4,19 @@
     Layout = "_LayoutAdmin";
     ViewData["TituloAdmin"] = "Dashboard";
 
-    var esAdminGeneral = string.Equals(
-        User.FindFirst("rol")?.Value,
-        "admin_general",
-        StringComparison.OrdinalIgnoreCase);
+    var esAdminGeneral = Model.EsAdminGeneralActual;
 }
 
 <!-- Tarjetas de estadisticas rapidas del panel administrativo. -->
 <div class="dashboard-stats">
-    <div class="stat-card">
-        <div class="stat-numero">@Model.TotalAccesos</div>
-        <div class="stat-etiqueta">Accesos rapidos activos</div>
-        <a href="/Admin/AccesosRapidos" class="stat-enlace">Administrar &rarr;</a>
-    </div>
+    @if (esAdminGeneral)
+    {
+        <div class="stat-card">
+            <div class="stat-numero">@Model.TotalAccesos</div>
+            <div class="stat-etiqueta">Accesos rapidos activos</div>
+            <a href="/Admin/AccesosRapidos" class="stat-enlace">Administrar &rarr;</a>
+        </div>
+    }
     <div class="stat-card">
         <div class="stat-numero">@Model.TotalAvisos</div>
         <div class="stat-etiqueta">Avisos publicados</div>
@@ -27,11 +27,14 @@
         <div class="stat-etiqueta">Tutoriales activos</div>
         <a href="/Admin/Tutoriales" class="stat-enlace">Administrar &rarr;</a>
     </div>
-    <div class="stat-card">
-        <div class="stat-numero">@Model.TotalArchivos</div>
-        <div class="stat-etiqueta">Archivos publicados</div>
-        <a href="/Admin/Archivos" class="stat-enlace">Administrar &rarr;</a>
-    </div>
+    @if (esAdminGeneral)
+    {
+        <div class="stat-card">
+            <div class="stat-numero">@Model.TotalArchivos</div>
+            <div class="stat-etiqueta">Archivos publicados</div>
+            <a href="/Admin/Archivos" class="stat-enlace">Administrar &rarr;</a>
+        </div>
+    }
 </div>
 
 <!-- Accesos directos a modulos del panel. -->
@@ -45,10 +48,13 @@
                 <span class="modulo-desc">Logo, colores, textos del footer y datos de contacto</span>
             </a>
         }
-        <a href="/Admin/AccesosRapidos" class="modulo-card">
-            <span class="modulo-titulo">Accesos rapidos</span>
-            <span class="modulo-desc">Agregar, editar, reordenar y subir banners por acceso</span>
-        </a>
+        @if (esAdminGeneral)
+        {
+            <a href="/Admin/AccesosRapidos" class="modulo-card">
+                <span class="modulo-titulo">Accesos rapidos</span>
+                <span class="modulo-desc">Agregar, editar, reordenar y subir banners por acceso</span>
+            </a>
+        }
         <a href="/Admin/Avisos" class="modulo-card">
             <span class="modulo-titulo">Avisos</span>
             <span class="modulo-desc">Publicar y gestionar comunicados institucionales</span>
@@ -57,14 +63,17 @@
             <span class="modulo-titulo">Tutoriales</span>
             <span class="modulo-desc">Subir y organizar videos .mp4 institucionales</span>
         </a>
-        <a href="/Admin/Archivos" class="modulo-card">
-            <span class="modulo-titulo">Archivos</span>
-            <span class="modulo-desc">PDFs descargables por seccion: formatos, manuales, DGIE, identidad</span>
-        </a>
-        <a href="/Admin/Directorio" class="modulo-card">
-            <span class="modulo-titulo">Directorio</span>
-            <span class="modulo-desc">Capturar areas, nombres y extensiones institucionales</span>
-        </a>
+        @if (esAdminGeneral)
+        {
+            <a href="/Admin/Archivos" class="modulo-card">
+                <span class="modulo-titulo">Archivos</span>
+                <span class="modulo-desc">PDFs descargables por seccion: formatos, manuales, DGIE, identidad</span>
+            </a>
+            <a href="/Admin/Directorio" class="modulo-card">
+                <span class="modulo-titulo">Directorio</span>
+                <span class="modulo-desc">Capturar areas, nombres y extensiones institucionales</span>
+            </a>
+        }
     </div>
 </div>
 
