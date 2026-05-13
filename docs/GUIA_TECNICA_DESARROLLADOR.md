@@ -123,7 +123,7 @@ Reglas de esta fase:
 - Cada usuario de area pertenece a una sola area de publicacion.
 - `admin_general` puede no tener area asignada.
 - No borrar areas con usuarios asociados; usar desactivar.
-- Avisos ya aplica permisos por area. Tutoriales y Archivos siguen pendientes para fases posteriores.
+- Avisos y Tutoriales ya aplican permisos por area. Archivos sigue pendiente para fases posteriores.
 - La administracion de usuarios vive en `/Admin/Usuarios` y solo debe verla `admin_general`.
 - No desactives ni cambies el rol del ultimo `admin_general` activo; el backend lo bloquea para evitar dejar el panel sin acceso.
 - Para crear o resetear un usuario se captura una contrasena temporal desde Admin. El valor no se muestra despues de guardar y solo se conserva el hash.
@@ -140,7 +140,20 @@ Reglas:
 - Los avisos historicos sin area quedan visibles y administrables solo para `admin_general`.
 - Al crear un aviso, `usuario_area` no elige area: el backend asigna automaticamente la suya.
 - Al editar, publicar, desactivar o eliminar, el backend vuelve a validar el area del aviso para bloquear manipulacion de IDs.
-- No apliques esta regla todavia a Tutoriales sin una migracion y validaciones equivalentes.
+- Tutoriales usa la misma regla de area con una migracion y validaciones equivalentes.
+
+### Tutoriales por area
+
+La tabla `tutoriales` tiene `area_publicacion_id`, `creado_por_usuario_id`, `actualizado_por_usuario_id` y `fecha_actualizacion`.
+
+Reglas:
+
+- `admin_general` puede ver y administrar todos los tutoriales.
+- `usuario_area` solo puede ver y operar tutoriales con su mismo `area_publicacion_id`.
+- Los tutoriales historicos sin area quedan visibles y administrables solo para `admin_general`.
+- Al crear un tutorial, `usuario_area` no elige area: el backend asigna automaticamente la suya.
+- Al editar, activar, desactivar o eliminar, el backend vuelve a validar el area del tutorial para bloquear manipulacion de IDs.
+- Archivos todavia no tiene permisos por area; no mezcles esa regla sin una fase propia.
 
 Areas semilla oficiales:
 
