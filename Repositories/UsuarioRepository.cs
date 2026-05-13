@@ -21,11 +21,29 @@ public class UsuarioRepository : IUsuarioRepository
             new { usuario });
     }
 
+    public async Task<UsuarioAdmin?> ObtenerPorIdAsync(int id)
+    {
+        using var con = _db.CrearConexion();
+        return await con.QueryFirstOrDefaultAsync<UsuarioAdmin>(
+            $"SELECT {ColumnasUsuarioAdmin} FROM usuarios_admin WHERE id = @id AND activo = 1",
+            new { id });
+    }
+
     public async Task<bool> ExistenUsuariosActivosAsync()
     {
         using var con = _db.CrearConexion();
         var total = await con.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM usuarios_admin WHERE activo = 1");
         return total > 0;
+    }
+
+    public async Task<bool> ActualizarPasswordHashAsync(int id, string passwordHash)
+    {
+        using var con = _db.CrearConexion();
+        var filas = await con.ExecuteAsync(
+            "UPDATE usuarios_admin SET password_hash = @passwordHash WHERE id = @id AND activo = 1",
+            new { id, passwordHash });
+
+        return filas == 1;
     }
 }

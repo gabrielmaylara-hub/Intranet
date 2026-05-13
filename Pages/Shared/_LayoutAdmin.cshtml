@@ -97,6 +97,7 @@
     <!-- Logout al fondo del sidebar -->
     <div class="sidebar-pie">
         <span class="sidebar-usuario">@nombreUsuario</span>
+        <a href="/Admin/CambiarPassword" class="sidebar-logout">Cambiar contraseña</a>
         <form method="post" asp-page="/Admin/Login" asp-page-handler="Salir">
             @Html.AntiForgeryToken()
             <button type="submit" class="sidebar-logout">Cerrar sesión</button>
