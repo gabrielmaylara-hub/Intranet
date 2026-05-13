@@ -54,8 +54,8 @@
                                 <input type="number" name="HeaderLinks[@i].Orden" value="@Model.HeaderLinks[i].Orden" class="campo-input" min="1" />
                             </td>
                             <td>
-                                <input type="hidden" name="HeaderLinks[@i].Activo" value="false" />
                                 <input type="checkbox" name="HeaderLinks[@i].Activo" value="true" @(Model.HeaderLinks[i].Activo ? "checked" : "") />
+                                <input type="hidden" name="HeaderLinks[@i].Activo" value="false" />
                             </td>
                         </tr>
                     }
@@ -206,8 +206,8 @@
                             <td><input type="text" name="FooterRecursosLinks[@i].Url" value="@Model.FooterRecursosLinks[i].Url" class="campo-input" maxlength="500" /></td>
                             <td><input type="number" name="FooterRecursosLinks[@i].Orden" value="@Model.FooterRecursosLinks[i].Orden" class="campo-input" min="1" /></td>
                             <td>
-                                <input type="hidden" name="FooterRecursosLinks[@i].Activo" value="false" />
                                 <input type="checkbox" name="FooterRecursosLinks[@i].Activo" value="true" @(Model.FooterRecursosLinks[i].Activo ? "checked" : "") />
+                                <input type="hidden" name="FooterRecursosLinks[@i].Activo" value="false" />
                             </td>
                         </tr>
                     }
@@ -239,8 +239,8 @@
                             <td><input type="text" name="FooterSistemasLinks[@i].Url" value="@Model.FooterSistemasLinks[i].Url" class="campo-input" maxlength="500" /></td>
                             <td><input type="number" name="FooterSistemasLinks[@i].Orden" value="@Model.FooterSistemasLinks[i].Orden" class="campo-input" min="1" /></td>
                             <td>
-                                <input type="hidden" name="FooterSistemasLinks[@i].Activo" value="false" />
                                 <input type="checkbox" name="FooterSistemasLinks[@i].Activo" value="true" @(Model.FooterSistemasLinks[i].Activo ? "checked" : "") />
+                                <input type="hidden" name="FooterSistemasLinks[@i].Activo" value="false" />
                             </td>
                         </tr>
                     }
