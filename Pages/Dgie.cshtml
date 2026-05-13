@@ -1,17 +1,14 @@
 @page
 @model DgieModel
 @{
-    ViewData["Title"] = "Solicitud de Anuencia Técnica DGIE";
+    ViewData["Title"] = Model.Titulo;
 }
 
 <section class="seccion-pagina">
     <div class="seccion-inner">
         <div class="pagina-encabezado">
-            <h1 class="pagina-titulo">Solicitud de Anuencia Técnica DGIE</h1>
-            <p class="pagina-descripcion">
-                Formatos y documentos para tramitar una solicitud de anuencia técnica ante la
-                Dirección General de Informática y Estadística.
-            </p>
+            <h1 class="pagina-titulo">@Model.Titulo</h1>
+            <p class="pagina-descripcion">@Model.Descripcion</p>
         </div>
 
         @await Html.PartialAsync("_ListaArchivos", Model.Archivos)

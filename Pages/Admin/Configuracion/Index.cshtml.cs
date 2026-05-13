@@ -49,6 +49,28 @@ public class IndexModel : PageModel
     [BindProperty] public string HomeTutorialesVerTodos { get; set; } = string.Empty;
     [BindProperty] public string HomeTutorialesVacio { get; set; } = string.Empty;
 
+    [BindProperty] public string PaginaFormatosTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaFormatosDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaManualesTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaManualesDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaDgieTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaDgieDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaIdentidadTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaIdentidadDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaCapacitacionTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaCapacitacionDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaCapacitacionInternosTitulo { get; set; } = string.Empty;
+    [BindProperty] public bool PaginaCapacitacionExternoActivo { get; set; } = true;
+    [BindProperty] public string PaginaCapacitacionExternoTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaCapacitacionExternoDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaCapacitacionExternoBotonTexto { get; set; } = string.Empty;
+    [BindProperty] public string PaginaCapacitacionExternoBotonUrl { get; set; } = string.Empty;
+    [BindProperty] public string PaginaTutorialesTitulo { get; set; } = string.Empty;
+    [BindProperty] public string PaginaTutorialesDescripcion { get; set; } = string.Empty;
+    [BindProperty] public string PaginaTutorialesVacio { get; set; } = string.Empty;
+    [BindProperty] public string PaginaTutorialesVideoNoSoportado { get; set; } = string.Empty;
+    [BindProperty] public string PaginaTutorialesVideoProximamente { get; set; } = string.Empty;
+
     [BindProperty] public string FooterTexto { get; set; } = string.Empty;
     [BindProperty] public string FooterSubtexto { get; set; } = string.Empty;
     [BindProperty] public string FooterRecursosTitulo { get; set; } = string.Empty;
@@ -102,6 +124,27 @@ public class IndexModel : PageModel
             ["home_tutoriales_titulo"] = HomeTutorialesTitulo,
             ["home_tutoriales_ver_todos"] = HomeTutorialesVerTodos,
             ["home_tutoriales_vacio"] = HomeTutorialesVacio,
+            ["pagina_formatos_titulo"] = PaginaFormatosTitulo,
+            ["pagina_formatos_descripcion"] = PaginaFormatosDescripcion,
+            ["pagina_manuales_titulo"] = PaginaManualesTitulo,
+            ["pagina_manuales_descripcion"] = PaginaManualesDescripcion,
+            ["pagina_dgie_titulo"] = PaginaDgieTitulo,
+            ["pagina_dgie_descripcion"] = PaginaDgieDescripcion,
+            ["pagina_identidad_titulo"] = PaginaIdentidadTitulo,
+            ["pagina_identidad_descripcion"] = PaginaIdentidadDescripcion,
+            ["pagina_capacitacion_titulo"] = PaginaCapacitacionTitulo,
+            ["pagina_capacitacion_descripcion"] = PaginaCapacitacionDescripcion,
+            ["pagina_capacitacion_internos_titulo"] = PaginaCapacitacionInternosTitulo,
+            ["pagina_capacitacion_externo_activo"] = PaginaCapacitacionExternoActivo ? "1" : "0",
+            ["pagina_capacitacion_externo_titulo"] = PaginaCapacitacionExternoTitulo,
+            ["pagina_capacitacion_externo_descripcion"] = PaginaCapacitacionExternoDescripcion,
+            ["pagina_capacitacion_externo_boton_texto"] = PaginaCapacitacionExternoBotonTexto,
+            ["pagina_capacitacion_externo_boton_url"] = PaginaCapacitacionExternoBotonUrl,
+            ["pagina_tutoriales_titulo"] = PaginaTutorialesTitulo,
+            ["pagina_tutoriales_descripcion"] = PaginaTutorialesDescripcion,
+            ["pagina_tutoriales_vacio"] = PaginaTutorialesVacio,
+            ["pagina_tutoriales_video_no_soportado"] = PaginaTutorialesVideoNoSoportado,
+            ["pagina_tutoriales_video_proximamente"] = PaginaTutorialesVideoProximamente,
             ["footer_texto"] = FooterTexto,
             ["footer_subtexto"] = FooterSubtexto,
             ["footer_recursos_titulo"] = FooterRecursosTitulo,
@@ -200,6 +243,42 @@ public class IndexModel : PageModel
         HomeTutorialesVerTodos = config.GetValueOrDefault("home_tutoriales_ver_todos", "Ver todos →");
         HomeTutorialesVacio = config.GetValueOrDefault("home_tutoriales_vacio", "No hay tutoriales publicados en este momento.");
 
+        PaginaFormatosTitulo = config.GetValueOrDefault("pagina_formatos_titulo", "Formatos de Contraloría");
+        PaginaFormatosDescripcion = config.GetValueOrDefault(
+            "pagina_formatos_descripcion",
+            "Formatos oficiales de la Contraloría Interna de la Fiscalía General del Estado de Tabasco. Descarga el formato que necesitas en formato PDF.");
+        PaginaManualesTitulo = config.GetValueOrDefault("pagina_manuales_titulo", "Manuales de Capacitación Justicia.NET");
+        PaginaManualesDescripcion = config.GetValueOrDefault(
+            "pagina_manuales_descripcion",
+            "Manuales de usuario y capacitación del sistema Justicia.NET. Consulta o descarga el manual que necesitas.");
+        PaginaDgieTitulo = config.GetValueOrDefault("pagina_dgie_titulo", "Solicitud de Anuencia Técnica DGIE");
+        PaginaDgieDescripcion = config.GetValueOrDefault(
+            "pagina_dgie_descripcion",
+            "Formatos y documentos para tramitar una solicitud de anuencia técnica ante la Dirección General de Informática y Estadística.");
+        PaginaIdentidadTitulo = config.GetValueOrDefault("pagina_identidad_titulo", "Kit de Identidad Gráfica FGET");
+        PaginaIdentidadDescripcion = config.GetValueOrDefault(
+            "pagina_identidad_descripcion",
+            "Recursos gráficos oficiales de la Fiscalía General del Estado de Tabasco: logotipos, paleta de colores, tipografías y lineamientos de uso.");
+        PaginaCapacitacionTitulo = config.GetValueOrDefault("pagina_capacitacion_titulo", "Oferta Académica");
+        PaginaCapacitacionDescripcion = config.GetValueOrDefault(
+            "pagina_capacitacion_descripcion",
+            "Cursos de capacitación y formación profesional disponibles para el personal de la Fiscalía General del Estado de Tabasco.");
+        PaginaCapacitacionInternosTitulo = config.GetValueOrDefault("pagina_capacitacion_internos_titulo", "Cursos y Materiales Internos");
+        PaginaCapacitacionExternoActivo = EsActivo(config.GetValueOrDefault("pagina_capacitacion_externo_activo", "1"));
+        PaginaCapacitacionExternoTitulo = config.GetValueOrDefault("pagina_capacitacion_externo_titulo", "Sistema Integral de Gestión Académica");
+        PaginaCapacitacionExternoDescripcion = config.GetValueOrDefault(
+            "pagina_capacitacion_externo_descripcion",
+            "Accede al sistema SIGAACEJ del Tribunal Superior de Justicia del Estado de Tabasco para consultar la oferta académica institucional compartida.");
+        PaginaCapacitacionExternoBotonTexto = config.GetValueOrDefault("pagina_capacitacion_externo_boton_texto", "Acceder a SIGAACEJ ↗");
+        PaginaCapacitacionExternoBotonUrl = config.GetValueOrDefault("pagina_capacitacion_externo_boton_url", "https://sigaacej.tsj-tabasco.gob.mx/");
+        PaginaTutorialesTitulo = config.GetValueOrDefault("pagina_tutoriales_titulo", "Tutoriales Institucionales");
+        PaginaTutorialesDescripcion = config.GetValueOrDefault(
+            "pagina_tutoriales_descripcion",
+            "Videos de capacitación y guías de uso de los sistemas institucionales de la Fiscalía General del Estado de Tabasco.");
+        PaginaTutorialesVacio = config.GetValueOrDefault("pagina_tutoriales_vacio", "No hay tutoriales publicados en este momento.");
+        PaginaTutorialesVideoNoSoportado = config.GetValueOrDefault("pagina_tutoriales_video_no_soportado", "Tu navegador no soporta reproducción de video.");
+        PaginaTutorialesVideoProximamente = config.GetValueOrDefault("pagina_tutoriales_video_proximamente", "Video próximamente");
+
         FooterTexto = config.GetValueOrDefault("footer_texto", "Fiscalía General del Estado de Tabasco");
         FooterSubtexto = config.GetValueOrDefault("footer_subtexto", "Dirección General de Informática y Estadística");
         FooterRecursosTitulo = config.GetValueOrDefault("footer_recursos_titulo", "RECURSOS");
@@ -253,6 +332,26 @@ public class IndexModel : PageModel
         HomeTutorialesTitulo = NormalizarTexto(HomeTutorialesTitulo);
         HomeTutorialesVerTodos = NormalizarTexto(HomeTutorialesVerTodos);
         HomeTutorialesVacio = NormalizarTexto(HomeTutorialesVacio);
+        PaginaFormatosTitulo = NormalizarTexto(PaginaFormatosTitulo);
+        PaginaFormatosDescripcion = NormalizarTexto(PaginaFormatosDescripcion);
+        PaginaManualesTitulo = NormalizarTexto(PaginaManualesTitulo);
+        PaginaManualesDescripcion = NormalizarTexto(PaginaManualesDescripcion);
+        PaginaDgieTitulo = NormalizarTexto(PaginaDgieTitulo);
+        PaginaDgieDescripcion = NormalizarTexto(PaginaDgieDescripcion);
+        PaginaIdentidadTitulo = NormalizarTexto(PaginaIdentidadTitulo);
+        PaginaIdentidadDescripcion = NormalizarTexto(PaginaIdentidadDescripcion);
+        PaginaCapacitacionTitulo = NormalizarTexto(PaginaCapacitacionTitulo);
+        PaginaCapacitacionDescripcion = NormalizarTexto(PaginaCapacitacionDescripcion);
+        PaginaCapacitacionInternosTitulo = NormalizarTexto(PaginaCapacitacionInternosTitulo);
+        PaginaCapacitacionExternoTitulo = NormalizarTexto(PaginaCapacitacionExternoTitulo);
+        PaginaCapacitacionExternoDescripcion = NormalizarTexto(PaginaCapacitacionExternoDescripcion);
+        PaginaCapacitacionExternoBotonTexto = NormalizarTexto(PaginaCapacitacionExternoBotonTexto);
+        PaginaCapacitacionExternoBotonUrl = NormalizarTexto(PaginaCapacitacionExternoBotonUrl);
+        PaginaTutorialesTitulo = NormalizarTexto(PaginaTutorialesTitulo);
+        PaginaTutorialesDescripcion = NormalizarTexto(PaginaTutorialesDescripcion);
+        PaginaTutorialesVacio = NormalizarTexto(PaginaTutorialesVacio);
+        PaginaTutorialesVideoNoSoportado = NormalizarTexto(PaginaTutorialesVideoNoSoportado);
+        PaginaTutorialesVideoProximamente = NormalizarTexto(PaginaTutorialesVideoProximamente);
         FooterTexto = NormalizarTexto(FooterTexto);
         FooterSubtexto = NormalizarTexto(FooterSubtexto);
         FooterRecursosTitulo = NormalizarTexto(FooterRecursosTitulo);
@@ -281,6 +380,25 @@ public class IndexModel : PageModel
             (HomeTutorialesTitulo, MaxTextoCorto, "Título de tutoriales"),
             (HomeTutorialesVerTodos, MaxTextoCorto, "Texto de ver todos"),
             (HomeTutorialesVacio, MaxTextoMedio, "Mensaje vacío de tutoriales"),
+            (PaginaFormatosTitulo, MaxTextoCorto, "Título de Formatos"),
+            (PaginaFormatosDescripcion, MaxTextoLargo, "Descripción de Formatos"),
+            (PaginaManualesTitulo, MaxTextoCorto, "Título de Manuales"),
+            (PaginaManualesDescripcion, MaxTextoLargo, "Descripción de Manuales"),
+            (PaginaDgieTitulo, MaxTextoCorto, "Título de DGIE"),
+            (PaginaDgieDescripcion, MaxTextoLargo, "Descripción de DGIE"),
+            (PaginaIdentidadTitulo, MaxTextoCorto, "Título de Identidad"),
+            (PaginaIdentidadDescripcion, MaxTextoLargo, "Descripción de Identidad"),
+            (PaginaCapacitacionTitulo, MaxTextoCorto, "Título de Capacitación"),
+            (PaginaCapacitacionDescripcion, MaxTextoLargo, "Descripción de Capacitación"),
+            (PaginaCapacitacionInternosTitulo, MaxTextoCorto, "Título de materiales internos"),
+            (PaginaCapacitacionExternoTitulo, MaxTextoCorto, "Título del enlace académico"),
+            (PaginaCapacitacionExternoDescripcion, MaxTextoLargo, "Descripción del enlace académico"),
+            (PaginaCapacitacionExternoBotonTexto, MaxTextoCorto, "Texto del botón académico"),
+            (PaginaTutorialesTitulo, MaxTextoCorto, "Título de página Tutoriales"),
+            (PaginaTutorialesDescripcion, MaxTextoLargo, "Descripción de página Tutoriales"),
+            (PaginaTutorialesVacio, MaxTextoMedio, "Mensaje vacío de página Tutoriales"),
+            (PaginaTutorialesVideoNoSoportado, MaxTextoMedio, "Mensaje de video no soportado"),
+            (PaginaTutorialesVideoProximamente, MaxTextoCorto, "Mensaje de video próximamente"),
             (FooterTexto, MaxTextoCorto, "Texto principal del footer"),
             (FooterSubtexto, MaxTextoCorto, "Subtexto del footer"),
             (FooterRecursosTitulo, MaxTextoCorto, "Título de recursos"),
@@ -303,6 +421,17 @@ public class IndexModel : PageModel
             return $"El correo de contacto no debe superar {MaxEmail} caracteres.";
         if (!EmailValido(FooterEmail))
             return "El correo de contacto no tiene un formato válido.";
+        if (PaginaCapacitacionExternoBotonUrl.Length > MaxUrl)
+            return $"La URL del botón académico no debe superar {MaxUrl} caracteres.";
+        if (ContieneControl(PaginaCapacitacionExternoBotonUrl))
+            return "La URL del botón académico contiene caracteres no permitidos.";
+        if (PaginaCapacitacionExternoActivo && string.IsNullOrWhiteSpace(PaginaCapacitacionExternoBotonUrl))
+            return "El enlace académico activo necesita URL.";
+        if (!string.IsNullOrWhiteSpace(PaginaCapacitacionExternoBotonUrl) &&
+            !UrlValida(PaginaCapacitacionExternoBotonUrl))
+        {
+            return "La URL del enlace académico debe ser una ruta interna /... o una URL http/https.";
+        }
 
         return
             ValidarYNormalizarEnlaces(HeaderLinks, "menú superior") ??
@@ -376,6 +505,12 @@ public class IndexModel : PageModel
 
     private static bool ContieneControl(string valor) =>
         valor.Any(c => char.IsControl(c) && c is not '\t');
+
+    private static bool EsActivo(string? valor) =>
+        string.IsNullOrWhiteSpace(valor) ||
+        valor.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+        valor.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+        valor.Equals("activo", StringComparison.OrdinalIgnoreCase);
 
     private static bool UrlValida(string url)
     {

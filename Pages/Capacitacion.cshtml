@@ -1,30 +1,30 @@
 @page
 @model CapacitacionModel
 @{
-    ViewData["Title"] = "Oferta Académica";
+    ViewData["Title"] = Model.Titulo;
+    var botonExterno = Uri.TryCreate(Model.ExternoBotonUrl, UriKind.Absolute, out _);
 }
 
 <section class="seccion-pagina">
     <div class="seccion-inner">
         <div class="pagina-encabezado">
-            <h1 class="pagina-titulo">Oferta Académica</h1>
-            <p class="pagina-descripcion">
-                Cursos de capacitación y formación profesional disponibles para el personal
-                de la Fiscalía General del Estado de Tabasco.
-            </p>
+            <h1 class="pagina-titulo">@Model.Titulo</h1>
+            <p class="pagina-descripcion">@Model.Descripcion</p>
         </div>
 
         <!-- Oferta académica interna -->
         @if (Model.ArchivosInternos.Any())
         {
             <div class="capacitacion-seccion">
-                <h2 class="subseccion-titulo">Cursos y Materiales Internos</h2>
+                <h2 class="subseccion-titulo">@Model.InternosTitulo</h2>
                 @await Html.PartialAsync("_ListaArchivos", Model.ArchivosInternos)
             </div>
         }
 
         <!-- Enlace externo a SIGAACEJ -->
-        <div class="capacitacion-externa">
+        @if (Model.ExternoActivo && !string.IsNullOrWhiteSpace(Model.ExternoBotonUrl))
+        {
+            <div class="capacitacion-externa">
             <div class="externa-card">
                 <div class="externa-icono" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -34,19 +34,17 @@
                     </svg>
                 </div>
                 <div class="externa-info">
-                    <h2 class="externa-titulo">Sistema Integral de Gestión Académica</h2>
-                    <p class="externa-desc">
-                        Accede al sistema SIGAACEJ del Tribunal Superior de Justicia del Estado
-                        de Tabasco para consultar la oferta académica institucional compartida.
-                    </p>
-                    <a href="https://sigaacej.tsj-tabasco.gob.mx/"
-                       target="_blank"
-                       rel="noopener noreferrer"
+                    <h2 class="externa-titulo">@Model.ExternoTitulo</h2>
+                    <p class="externa-desc">@Model.ExternoDescripcion</p>
+                    <a href="@Model.ExternoBotonUrl"
+                       target="@(botonExterno ? "_blank" : null)"
+                       rel="@(botonExterno ? "noopener noreferrer" : null)"
                        class="btn btn-primario">
-                        Acceder a SIGAACEJ ↗
+                        @Model.ExternoBotonTexto
                     </a>
                 </div>
             </div>
         </div>
+        }
     </div>
 </section>

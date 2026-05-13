@@ -182,6 +182,115 @@
         </div>
     </div>
 
+    <div class="admin-panel">
+        <h2 class="admin-panel-titulo">Páginas públicas</h2>
+
+        <h3 class="admin-subtitulo">Formatos</h3>
+        <div class="campo-grupo">
+            <label class="campo-label">Título</label>
+            <input type="text" name="PaginaFormatosTitulo" value="@Model.PaginaFormatosTitulo" class="campo-input" maxlength="150" />
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="PaginaFormatosDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaFormatosDescripcion</textarea>
+        </div>
+
+        <h3 class="admin-subtitulo">Manuales</h3>
+        <div class="campo-grupo">
+            <label class="campo-label">Título</label>
+            <input type="text" name="PaginaManualesTitulo" value="@Model.PaginaManualesTitulo" class="campo-input" maxlength="150" />
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="PaginaManualesDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaManualesDescripcion</textarea>
+        </div>
+
+        <h3 class="admin-subtitulo">DGIE</h3>
+        <div class="campo-grupo">
+            <label class="campo-label">Título</label>
+            <input type="text" name="PaginaDgieTitulo" value="@Model.PaginaDgieTitulo" class="campo-input" maxlength="150" />
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="PaginaDgieDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaDgieDescripcion</textarea>
+        </div>
+
+        <h3 class="admin-subtitulo">Identidad gráfica</h3>
+        <div class="campo-grupo">
+            <label class="campo-label">Título</label>
+            <input type="text" name="PaginaIdentidadTitulo" value="@Model.PaginaIdentidadTitulo" class="campo-input" maxlength="150" />
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="PaginaIdentidadDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaIdentidadDescripcion</textarea>
+        </div>
+
+        <h3 class="admin-subtitulo">Capacitación</h3>
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Título</label>
+                <input type="text" name="PaginaCapacitacionTitulo" value="@Model.PaginaCapacitacionTitulo" class="campo-input" maxlength="150" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Título de materiales internos</label>
+                <input type="text" name="PaginaCapacitacionInternosTitulo" value="@Model.PaginaCapacitacionInternosTitulo" class="campo-input" maxlength="150" />
+            </div>
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="PaginaCapacitacionDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaCapacitacionDescripcion</textarea>
+        </div>
+        <div class="campo-grupo campo-grupo--checks">
+            <label class="campo-check">
+                <input type="checkbox" name="PaginaCapacitacionExternoActivo" value="true" @(Model.PaginaCapacitacionExternoActivo ? "checked" : "") />
+                Mostrar enlace académico externo
+            </label>
+            <input type="hidden" name="PaginaCapacitacionExternoActivo" value="false" />
+        </div>
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Título del enlace</label>
+                <input type="text" name="PaginaCapacitacionExternoTitulo" value="@Model.PaginaCapacitacionExternoTitulo" class="campo-input" maxlength="150" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Texto del botón</label>
+                <input type="text" name="PaginaCapacitacionExternoBotonTexto" value="@Model.PaginaCapacitacionExternoBotonTexto" class="campo-input" maxlength="150" />
+            </div>
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">URL del botón</label>
+            <input type="text" name="PaginaCapacitacionExternoBotonUrl" value="@Model.PaginaCapacitacionExternoBotonUrl" class="campo-input" maxlength="500" />
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción del enlace</label>
+            <textarea name="PaginaCapacitacionExternoDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaCapacitacionExternoDescripcion</textarea>
+        </div>
+
+        <h3 class="admin-subtitulo">Tutoriales</h3>
+        <div class="campo-grupo">
+            <label class="campo-label">Título</label>
+            <input type="text" name="PaginaTutorialesTitulo" value="@Model.PaginaTutorialesTitulo" class="campo-input" maxlength="150" />
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Descripción</label>
+            <textarea name="PaginaTutorialesDescripcion" class="campo-input" maxlength="500" rows="2">@Model.PaginaTutorialesDescripcion</textarea>
+        </div>
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label">Mensaje sin tutoriales</label>
+                <input type="text" name="PaginaTutorialesVacio" value="@Model.PaginaTutorialesVacio" class="campo-input" maxlength="300" />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label">Video próximamente</label>
+                <input type="text" name="PaginaTutorialesVideoProximamente" value="@Model.PaginaTutorialesVideoProximamente" class="campo-input" maxlength="150" />
+            </div>
+        </div>
+        <div class="campo-grupo">
+            <label class="campo-label">Mensaje de video no soportado</label>
+            <input type="text" name="PaginaTutorialesVideoNoSoportado" value="@Model.PaginaTutorialesVideoNoSoportado" class="campo-input" maxlength="300" />
+        </div>
+    </div>
+
     <div class="admin-dos-columnas">
         <div class="admin-panel">
             <h2 class="admin-panel-titulo">Footer: recursos</h2>
