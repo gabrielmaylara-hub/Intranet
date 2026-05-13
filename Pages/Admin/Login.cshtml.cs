@@ -79,13 +79,19 @@ public class LoginModel : PageModel
 
         _intentosLogin.RegistrarExito(HttpContext, Usuario);
 
-        // Crea los claims de la sesión (sin roles — un solo perfil admin)
+        // Crea los claims de la sesión. NameIdentifier se mantiene como Id para
+        // no romper cambio de contraseña ni flujos existentes; rol/area preparan
+        // la fase futura de usuarios por area.
         var claims = new List<Claim>
         {
             new(ClaimTypes.Name,        usuario.Usuario),
             new(ClaimTypes.GivenName,   usuario.NombreCompleto),
-            new(ClaimTypes.NameIdentifier, usuario.Id.ToString())
+            new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new("rol", usuario.Rol)
         };
+
+        if (usuario.AreaPublicacionId is not null)
+            claims.Add(new Claim("area_publicacion_id", usuario.AreaPublicacionId.Value.ToString()));
 
         var identidad  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal  = new ClaimsPrincipal(identidad);

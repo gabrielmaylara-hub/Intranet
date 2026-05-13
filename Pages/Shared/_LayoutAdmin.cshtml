@@ -20,6 +20,10 @@
     bool NavActivo(string ruta) => rutaActual.StartsWith(ruta, StringComparison.OrdinalIgnoreCase);
 
     var nombreUsuario = User.Identity?.Name ?? "Admin";
+    var esAdminGeneral = !string.Equals(
+        User.FindFirst("rol")?.Value,
+        "usuario_area",
+        StringComparison.OrdinalIgnoreCase);
 }
 
 <!-- ─── Sidebar de navegación ──────────────────────────────────────────── -->
@@ -48,6 +52,19 @@
                     Configuración
                 </a>
             </li>
+            @if (esAdminGeneral)
+            {
+                <li>
+                    <a href="/Admin/AreasPublicacion" class="sidebar-enlace @(NavActivo("/admin/areaspublicacion") ? "sidebar-enlace--activo" : "")">
+                        <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18"/>
+                            <path d="M5 21V7l8-4 6 3v15"/>
+                            <path d="M9 9h1M9 13h1M9 17h1M14 10h1M14 14h1M14 18h1"/>
+                        </svg>
+                        Áreas de publicación
+                    </a>
+                </li>
+            }
             <li>
                 <a href="/Admin/AccesosRapidos" class="sidebar-enlace @(NavActivo("/admin/accesosrapidos") ? "sidebar-enlace--activo" : "")">
                     <svg class="sidebar-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -1,0 +1,137 @@
+@page
+@model Intranet.Pages.Admin.AreasPublicacion.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["TituloAdmin"] = "Áreas de publicación";
+    var editando = Model.Id > 0;
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Mensaje))
+{
+    <div class="alerta @(Model.EsError ? "alerta-error" : "alerta-exito")" role="alert">
+        @Model.Mensaje
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="panel-cabecera">
+        <div>
+            <h2 class="admin-panel-titulo">Áreas de publicación</h2>
+            <p class="campo-ayuda">
+                Estas áreas controlan qué contenido podrá administrar cada usuario de área.
+                No dependen del Directorio telefónico.
+            </p>
+        </div>
+        <a class="btn btn-primario btn-sm" href="/Admin/AreasPublicacion">Nueva área</a>
+    </div>
+
+    <form method="post" asp-page-handler="Guardar">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-dos-columnas">
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="Nombre">Nombre <span class="campo-requerido">*</span></label>
+                <input class="campo-input" asp-for="Nombre" maxlength="180" required />
+            </div>
+            <div class="campo-grupo">
+                <label class="campo-label" asp-for="Orden">Orden</label>
+                <input class="campo-input" asp-for="Orden" type="number" min="0" />
+                <span class="campo-ayuda">Si se deja en 0, se asigna el siguiente orden disponible.</span>
+            </div>
+        </div>
+
+        <div class="campo-grupo">
+            <label class="campo-label" asp-for="Descripcion">Descripción</label>
+            <input class="campo-input" asp-for="Descripcion" maxlength="300" />
+        </div>
+
+        <div class="campo-grupo campo-grupo--checks">
+            <label class="campo-check">
+                <input type="checkbox" asp-for="Activa" />
+                Activa
+            </label>
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-primario">
+                @(editando ? "Guardar cambios" : "Crear área")
+            </button>
+            @if (editando)
+            {
+                <a class="btn btn-neutro" href="/Admin/AreasPublicacion">Cancelar edición</a>
+            }
+        </div>
+    </form>
+</div>
+
+<div class="admin-panel">
+    <h2 class="admin-panel-titulo">Listado</h2>
+
+    <div class="tabla-wrap">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Slug</th>
+                    <th>Orden</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var area in Model.Areas)
+                {
+                    <tr>
+                        <td>
+                            <strong>@area.Nombre</strong>
+                            @if (!string.IsNullOrWhiteSpace(area.Descripcion))
+                            {
+                                <span class="texto-gris bloque">@area.Descripcion</span>
+                            }
+                        </td>
+                        <td><code>@area.Slug</code></td>
+                        <td>@area.Orden</td>
+                        <td>
+                            <span class="badge @(area.Activa ? "badge-activo" : "badge-inactivo")">
+                                @(area.Activa ? "Activa" : "Inactiva")
+                            </span>
+                        </td>
+                        <td class="td-acciones">
+                            <a class="btn btn-sm btn-secundario"
+                               href="/Admin/AreasPublicacion?editarId=@area.Id">
+                                Editar
+                            </a>
+
+                            @if (area.Activa)
+                            {
+                                <form method="post" asp-page-handler="Desactivar" class="form-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@area.Id" />
+                                    <button type="submit" class="btn btn-sm btn-advertencia">Desactivar</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Activar" class="form-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@area.Id" />
+                                    <button type="submit" class="btn btn-sm btn-exito">Activar</button>
+                                </form>
+                            }
+
+                            <form method="post"
+                                  asp-page-handler="Eliminar"
+                                  class="form-inline"
+                                  onsubmit="return confirm('Eliminar el área @area.Nombre?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@area.Id" />
+                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

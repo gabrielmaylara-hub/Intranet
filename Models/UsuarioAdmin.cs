@@ -7,4 +7,7 @@ public class UsuarioAdmin
     public string PasswordHash   { get; set; } = string.Empty;
     public string NombreCompleto { get; set; } = string.Empty;
     public bool   Activo         { get; set; } = true;
+    public string Rol            { get; set; } = "admin_general";
+    public int?   AreaPublicacionId { get; set; }
+    public string? AreaPublicacionNombre { get; set; }
 }

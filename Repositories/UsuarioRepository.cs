@@ -9,7 +9,8 @@ public class UsuarioRepository : IUsuarioRepository
 {
     private readonly ConexionDb _db;
     private const string ColumnasUsuarioAdmin =
-        "id, usuario, password_hash, nombre_completo, activo";
+        @"u.id, u.usuario, u.password_hash, u.nombre_completo, u.activo,
+          u.rol, u.area_publicacion_id, a.nombre AS area_publicacion_nombre";
 
     public UsuarioRepository(ConexionDb db) => _db = db;
 
@@ -17,7 +18,10 @@ public class UsuarioRepository : IUsuarioRepository
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<UsuarioAdmin>(
-            $"SELECT {ColumnasUsuarioAdmin} FROM usuarios_admin WHERE usuario = @usuario AND activo = 1",
+            $@"SELECT {ColumnasUsuarioAdmin}
+               FROM usuarios_admin u
+               LEFT JOIN areas_publicacion a ON a.id = u.area_publicacion_id
+               WHERE u.usuario = @usuario AND u.activo = 1",
             new { usuario });
     }
 
@@ -25,7 +29,10 @@ public class UsuarioRepository : IUsuarioRepository
     {
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<UsuarioAdmin>(
-            $"SELECT {ColumnasUsuarioAdmin} FROM usuarios_admin WHERE id = @id AND activo = 1",
+            $@"SELECT {ColumnasUsuarioAdmin}
+               FROM usuarios_admin u
+               LEFT JOIN areas_publicacion a ON a.id = u.area_publicacion_id
+               WHERE u.id = @id AND u.activo = 1",
             new { id });
     }
 

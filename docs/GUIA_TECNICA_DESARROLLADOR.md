@@ -109,6 +109,35 @@ Reglas:
 - Si falta orden, el sistema asigna el siguiente disponible dentro del area.
 - Si falta activo, la extension queda activa por defecto.
 
+## Usuarios por area y areas de publicacion
+
+`areas_publicacion` es un catalogo editorial para permisos de publicacion. Es distinto de `directorio_areas`, que pertenece al Directorio telefonico y no debe usarse como fuente de permisos.
+
+Roles base:
+
+- `admin_general`: administra todo el panel.
+- `usuario_area`: se usara en fases posteriores para publicar contenido de su propia area.
+
+Reglas de esta fase:
+
+- Cada usuario de area pertenece a una sola area de publicacion.
+- `admin_general` puede no tener area asignada.
+- No borrar areas con usuarios asociados; usar desactivar.
+- Todavia no se aplican filtros por area a Avisos, Tutoriales ni Archivos.
+
+Areas semilla oficiales:
+
+- Contraloria
+- Direccion de Asuntos Juridicos
+- Direccion de Recursos Humanos y Financieros
+- Direccion General de Desarrollo y Evaluacion Institucional
+- Direccion General Administrativa
+- Visitaduria
+- Escuela de la Fiscalia
+- Direccion de Cultura
+- Direccion General de Delitos Comunes
+- Despacho
+
 ## Configuracion publica
 
 Los textos visibles de Header, Home, paginas publicas y Footer se guardan en `configuracion_sitio`. Los enlaces configurables se guardan por grupo en `sitio_enlaces`.
