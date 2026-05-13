@@ -1263,12 +1263,20 @@ button { cursor: pointer; font-family: inherit; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.65) 0%,
-    rgba(0, 0, 0, 0.32) 50%,
-    rgba(0, 0, 0, 0.08) 100%
-  );
+  background:
+    linear-gradient(
+      125deg,
+      rgba(0, 0, 0, 0.80) 0%,
+      rgba(0, 0, 0, 0.66) 36%,
+      rgba(0, 0, 0, 0.32) 66%,
+      rgba(0, 0, 0, 0.12) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.74) 0%,
+      rgba(0, 0, 0, 0.38) 50%,
+      rgba(0, 0, 0, 0.12) 100%
+    );
   opacity: 1;
   pointer-events: none;
   transition:
@@ -1294,12 +1302,20 @@ button { cursor: pointer; font-family: inherit; }
 
 .home-redisenado .acceso-card--lista:hover::after,
 .home-redisenado .acceso-card--lista:focus-visible::after {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.60) 0%,
-    rgba(0, 0, 0, 0.28) 50%,
-    rgba(0, 0, 0, 0.06) 100%
-  );
+  background:
+    linear-gradient(
+      125deg,
+      rgba(0, 0, 0, 0.76) 0%,
+      rgba(0, 0, 0, 0.60) 36%,
+      rgba(0, 0, 0, 0.28) 66%,
+      rgba(0, 0, 0, 0.10) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.70) 0%,
+      rgba(0, 0, 0, 0.34) 50%,
+      rgba(0, 0, 0, 0.10) 100%
+    );
 }
 
 .home-redisenado .acceso-card--lista:hover .acceso-card-accion,
@@ -1314,6 +1330,8 @@ button { cursor: pointer; font-family: inherit; }
   min-width: 0;
   margin-top: auto;
   padding-right: 2.7rem;
+  position: relative;
+  z-index: 1;
 }
 
 .home-redisenado .acceso-card-nombre {
@@ -1325,7 +1343,9 @@ button { cursor: pointer; font-family: inherit; }
   letter-spacing: 0.01em;
   line-height: 1.12;
   overflow-wrap: anywhere;
-  text-shadow: 0 2px 14px rgba(0,0,0,0.35);
+  text-shadow:
+    0 2px 8px rgba(0,0,0,0.76),
+    0 0 18px rgba(0,0,0,0.46);
 }
 
 .acceso-card-accion {
@@ -1336,7 +1356,10 @@ button { cursor: pointer; font-family: inherit; }
   color: #ffffff;
   font-size: 1.35rem;
   line-height: 1;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  z-index: 1;
+  text-shadow:
+    0 2px 8px rgba(0,0,0,0.72),
+    0 0 16px rgba(0,0,0,0.42);
   transition: color var(--transicion), transform var(--transicion);
 }
 
