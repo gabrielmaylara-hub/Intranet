@@ -195,6 +195,34 @@ public class IndexModel : PageModel
         return Page();
     }
 
+    public async Task<IActionResult> OnPostReordenarExtensionesAsync(
+        [FromBody] ReordenarExtensionesRequest? solicitud)
+    {
+        if (solicitud is null ||
+            string.IsNullOrWhiteSpace(solicitud.Area) ||
+            solicitud.Ids.Count == 0)
+        {
+            return BadRequest(new { mensaje = "La solicitud de reordenamiento no es valida." });
+        }
+
+        try
+        {
+            await _directorioRepo.ReordenarExtensionesAsync(
+                solicitud.Area,
+                solicitud.Ids);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+        catch (MySqlException ex) when (EsDuplicadoOrdenDirectorio(ex))
+        {
+            return BadRequest(new { mensaje = "Ya existe una extensión con ese orden interno dentro del área seleccionada." });
+        }
+
+        return new JsonResult(new { ok = true });
+    }
+
     public async Task<IActionResult> OnPostGuardarAsync()
     {
         if (string.IsNullOrWhiteSpace(Area) ||
@@ -767,6 +795,12 @@ public class DirectorioCsvFila
     public string Extension   { get; set; } = string.Empty;
     public string OrdenTexto  { get; set; } = string.Empty;
     public string ActivoTexto { get; set; } = string.Empty;
+}
+
+public sealed class ReordenarExtensionesRequest
+{
+    public string Area { get; set; } = string.Empty;
+    public List<int> Ids { get; set; } = [];
 }
 
 public sealed class DirectorioImportacionFila : DirectorioCsvFila

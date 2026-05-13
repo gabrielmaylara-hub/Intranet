@@ -247,9 +247,21 @@ button { cursor: pointer; font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1.25rem;
 }
 .panel-cabecera .admin-panel-titulo { margin-bottom: 0; }
+
+.panel-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.panel-cuerpo[hidden] {
+  display: none;
+}
 
 /* ─── Dashboard ──────────────────────────────────────────────────────────────── */
 .dashboard-stats {
@@ -381,6 +393,31 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--gris-texto);
   font-size: 0.8rem;
   white-space: nowrap;
+}
+
+.admin-tabla-directorio .th-orden-secundario,
+.admin-tabla-directorio .td-orden-secundario {
+  width: 72px;
+  color: var(--gris-texto);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.directorio-reordenable {
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.directorio-reordenable[draggable="true"] {
+  cursor: grab;
+}
+
+.directorio-reordenable.directorio-dragging {
+  opacity: 0.55;
+  background: rgba(201,146,42,0.12);
+}
+
+.directorio-area-bloque.directorio-guardando {
+  opacity: 0.75;
 }
 
 .col-drag { width: 36px; }

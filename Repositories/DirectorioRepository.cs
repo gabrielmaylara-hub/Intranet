@@ -73,6 +73,66 @@ public class DirectorioRepository : IDirectorioRepository
             new { id, activo });
     }
 
+    public async Task ReordenarExtensionesAsync(string area, IReadOnlyList<int> idsOrdenados)
+    {
+        if (string.IsNullOrWhiteSpace(area) || idsOrdenados.Count == 0)
+            throw new InvalidOperationException("Solicitud de reordenamiento incompleta.");
+
+        var areaNormalizada = area.Trim();
+        var ids = idsOrdenados.Distinct().ToList();
+        if (ids.Count != idsOrdenados.Count)
+            throw new InvalidOperationException("La solicitud contiene extensiones repetidas.");
+
+        using var con = _db.CrearConexion();
+        await con.OpenAsync();
+        using var tx = await con.BeginTransactionAsync();
+
+        var existentes = (await con.QueryAsync<DirectorioEntrada>(
+            @"SELECT id, area, nombre, extension, orden, activo
+              FROM directorio
+              WHERE area = @area",
+            new { area = areaNormalizada },
+            tx)).ToList();
+
+        if (existentes.Count != ids.Count ||
+            ids.Any(id => existentes.All(e => e.Id != id)))
+        {
+            throw new InvalidOperationException("Las extensiones seleccionadas no pertenecen a la misma area.");
+        }
+
+        for (var i = 0; i < ids.Count; i++)
+        {
+            await con.ExecuteAsync(
+                @"UPDATE directorio
+                  SET orden = @ordenTemporal
+                  WHERE id = @id AND area = @area",
+                new
+                {
+                    id = ids[i],
+                    area = areaNormalizada,
+                    ordenTemporal = -1000000 - i
+                },
+                tx);
+        }
+
+        for (var i = 0; i < ids.Count; i++)
+        {
+            await con.ExecuteAsync(
+                @"UPDATE directorio
+                  SET orden = @orden
+                  WHERE id = @id AND area = @area",
+                new
+                {
+                    id = ids[i],
+                    area = areaNormalizada,
+                    orden = i + 1
+                },
+                tx);
+        }
+
+        await tx.CommitAsync();
+    }
+
     public async Task<IEnumerable<DirectorioArea>> ObtenerAreasAsync(bool soloActivas = false)
     {
         using var con = _db.CrearConexion();

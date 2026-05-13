@@ -201,4 +201,117 @@
       panelAreaFormulario.querySelector("form")?.reset();
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // Paneles colapsables en pantallas administrativas densas.
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll("[data-colapsable]").forEach((panel) => {
+    const boton = panel.querySelector("[data-colapsar]");
+    const cuerpo = panel.querySelector("[data-colapsable-contenido]");
+    if (!boton || !cuerpo) return;
+
+    boton.addEventListener("click", () => {
+      const colapsado = !cuerpo.hidden;
+      cuerpo.hidden = colapsado;
+      boton.setAttribute("aria-expanded", colapsado ? "false" : "true");
+      boton.textContent = colapsado ? "Expandir" : "Contraer";
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Directorio: reordenamiento por arrastrar/soltar dentro de la misma area.
+  // ---------------------------------------------------------------------------
+  const bloquesDirectorio = document.querySelectorAll(".directorio-area-bloque");
+
+  if (bloquesDirectorio.length > 0) {
+    const token = document.querySelector("input[name='__RequestVerificationToken']")?.value || "";
+    let filaArrastrada = null;
+    let bloqueOrigen = null;
+
+    const filasDeBloque = (bloque) =>
+      Array.from(bloque.querySelectorAll(".directorio-reordenable"));
+
+    const actualizarOrdenVisual = (bloque) => {
+      filasDeBloque(bloque).forEach((fila, indice) => {
+        const orden = String(indice + 1);
+        const celdaOrden = fila.querySelector("[data-orden-celda]");
+        const botonEditar = fila.querySelector(".btn-editar");
+        if (celdaOrden) celdaOrden.textContent = orden;
+        if (botonEditar) botonEditar.dataset.orden = orden;
+      });
+    };
+
+    const guardarOrden = async (bloque) => {
+      const ids = filasDeBloque(bloque)
+        .map((fila) => Number(fila.dataset.directorioId))
+        .filter((id) => Number.isInteger(id) && id > 0);
+
+      if (ids.length === 0) return;
+
+      bloque.classList.add("directorio-guardando");
+
+      try {
+        const respuesta = await fetch(`${window.location.pathname}?handler=ReordenarExtensiones`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": token
+          },
+          body: JSON.stringify({
+            area: bloque.dataset.directorioArea || "",
+            ids
+          })
+        });
+
+        if (!respuesta.ok) {
+          const datos = await respuesta.json().catch(() => null);
+          throw new Error(datos?.mensaje || "No se pudo guardar el orden.");
+        }
+
+        actualizarOrdenVisual(bloque);
+      } catch (error) {
+        window.alert(error.message || "No se pudo guardar el orden.");
+        window.location.reload();
+      } finally {
+        bloque.classList.remove("directorio-guardando");
+      }
+    };
+
+    bloquesDirectorio.forEach((bloque) => {
+      bloque.addEventListener("dragstart", (evento) => {
+        const fila = evento.target.closest(".directorio-reordenable");
+        if (!fila || !bloque.contains(fila)) return;
+
+        filaArrastrada = fila;
+        bloqueOrigen = bloque;
+        fila.classList.add("directorio-dragging");
+        evento.dataTransfer.effectAllowed = "move";
+      });
+
+      bloque.addEventListener("dragover", (evento) => {
+        if (!filaArrastrada || bloqueOrigen !== bloque) return;
+
+        const objetivo = evento.target.closest(".directorio-reordenable");
+        if (!objetivo || objetivo === filaArrastrada || !bloque.contains(objetivo)) return;
+
+        evento.preventDefault();
+        const caja = objetivo.getBoundingClientRect();
+        const insertarDespues = evento.clientY > caja.top + caja.height / 2;
+        bloque.insertBefore(filaArrastrada, insertarDespues ? objetivo.nextSibling : objetivo);
+      });
+
+      bloque.addEventListener("drop", (evento) => {
+        if (!filaArrastrada || bloqueOrigen !== bloque) return;
+
+        evento.preventDefault();
+        guardarOrden(bloque);
+      });
+    });
+
+    document.addEventListener("dragend", () => {
+      filaArrastrada?.classList.remove("directorio-dragging");
+      filaArrastrada = null;
+      bloqueOrigen = null;
+    });
+  }
 })();

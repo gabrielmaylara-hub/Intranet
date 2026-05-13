@@ -12,16 +12,25 @@
     </div>
 }
 
-<div class="admin-panel">
+<div class="admin-panel" data-colapsable>
     <div class="panel-cabecera">
         <h2 class="admin-panel-titulo">Datos por area</h2>
-        <button type="button" class="btn btn-primario btn-sm" id="btnNuevaArea">+ Nueva area</button>
+        <div class="panel-acciones">
+            <button type="button" class="btn btn-primario btn-sm" id="btnNuevaArea">+ Nueva area</button>
+            <button type="button"
+                    class="btn btn-secundario btn-sm"
+                    data-colapsar
+                    aria-expanded="true">
+                Contraer
+            </button>
+        </div>
     </div>
 
-    <p class="campo-ayuda">Captura titular, ubicacion y correo solo cuando el dato este confirmado. Los campos vacios no se muestran en la pagina publica.</p>
+    <div class="panel-cuerpo" data-colapsable-contenido>
+        <p class="campo-ayuda">Captura titular, ubicacion y correo solo cuando el dato este confirmado. Los campos vacios no se muestran en la pagina publica.</p>
 
-    <div class="tabla-wrap">
-        <table class="admin-tabla">
+        <div class="tabla-wrap">
+            <table class="admin-tabla">
             <thead>
                 <tr>
                     <th>Area</th>
@@ -63,7 +72,8 @@
                     </tr>
                 }
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -123,43 +133,64 @@
     </form>
 </div>
 
-<div class="admin-panel">
+<div class="admin-panel" data-colapsable>
     <div class="panel-cabecera">
         <h2 class="admin-panel-titulo">Extensiones publicadas</h2>
-        <button type="button" class="btn btn-primario btn-sm" id="btnNuevo">+ Nueva extension</button>
+        <div class="panel-acciones">
+            <button type="button" class="btn btn-primario btn-sm" id="btnNuevo">+ Nueva extension</button>
+            <button type="button"
+                    class="btn btn-secundario btn-sm"
+                    data-colapsar
+                    aria-expanded="true">
+                Contraer
+            </button>
+        </div>
     </div>
 
-    <p class="campo-ayuda">Primero selecciona un area existente. El orden de cada extension solo aplica dentro de su area.</p>
+    <div class="panel-cuerpo" data-colapsable-contenido>
+        <p class="campo-ayuda">Arrastra las extensiones para reordenarlas dentro de su area. El orden se guarda como 1, 2, 3... por cada grupo.</p>
 
-    <div class="tabla-wrap">
-        <table class="admin-tabla">
+        <div class="tabla-wrap">
+            <table class="admin-tabla admin-tabla-directorio">
             <thead>
                 <tr>
-                    <th>Orden interno</th>
+                    <th class="col-drag">Mover</th>
                     <th>Nombre / unidad</th>
                     <th>Extension</th>
+                    <th class="th-orden-secundario">Orden</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
                 @foreach (var grupo in Model.Entradas.GroupBy(e => e.Area))
                 {
+                    var entradasGrupo = grupo.OrderBy(e => e.Orden).ThenBy(e => e.Nombre).ToList();
+
+                    <tbody class="directorio-area-bloque" data-directorio-area="@grupo.Key">
                     <tr class="admin-tabla-grupo">
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="admin-tabla-grupo-titulo">
                                 <span class="admin-tabla-grupo-nombre">@grupo.Key</span>
-                                <span class="admin-tabla-grupo-conteo">@grupo.Count() extensiones</span>
+                                <span class="admin-tabla-grupo-conteo">@entradasGrupo.Count extensiones</span>
                             </div>
                         </td>
                     </tr>
 
-                    @foreach (var entrada in grupo.OrderBy(e => e.Orden).ThenBy(e => e.Nombre))
+                    @for (var indice = 0; indice < entradasGrupo.Count; indice++)
                     {
-                        <tr>
-                            <td>@entrada.Orden</td>
+                        var entrada = entradasGrupo[indice];
+                        var ordenVisual = indice + 1;
+
+                        <tr class="directorio-reordenable"
+                            data-directorio-id="@entrada.Id"
+                            data-directorio-area="@entrada.Area"
+                            draggable="true">
+                            <td class="col-drag">
+                                <span class="drag-handle" aria-label="Arrastrar extension" title="Arrastrar para reordenar">⋮⋮</span>
+                            </td>
                             <td>@entrada.Nombre</td>
                             <td>@entrada.Extension</td>
+                            <td class="td-orden-secundario" data-orden-celda>@ordenVisual</td>
                             <td>
                                 <span class="badge @(entrada.Activo ? "badge-activo" : "badge-inactivo")">
                                     @(entrada.Activo ? "Activo" : "Inactivo")
@@ -172,7 +203,7 @@
                                         data-area="@entrada.Area"
                                         data-nombre="@entrada.Nombre"
                                         data-extension="@entrada.Extension"
-                                        data-orden="@entrada.Orden"
+                                        data-orden="@ordenVisual"
                                         data-activo="@entrada.Activo.ToString().ToLower()">
                                     Editar
                                 </button>
@@ -195,9 +226,10 @@
                             </td>
                         </tr>
                     }
+                    </tbody>
                 }
-            </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 </div>
 
