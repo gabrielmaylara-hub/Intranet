@@ -135,56 +135,66 @@
         <table class="admin-tabla">
             <thead>
                 <tr>
-                    <th>Area</th>
+                    <th>Orden interno</th>
                     <th>Nombre / unidad</th>
                     <th>Extension</th>
-                    <th>Orden interno</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var entrada in Model.Entradas)
+                @foreach (var grupo in Model.Entradas.GroupBy(e => e.Area))
                 {
-                    <tr>
-                        <td>@entrada.Area</td>
-                        <td>@entrada.Nombre</td>
-                        <td>@entrada.Extension</td>
-                        <td>@entrada.Orden</td>
-                        <td>
-                            <span class="badge @(entrada.Activo ? "badge-activo" : "badge-inactivo")">
-                                @(entrada.Activo ? "Activo" : "Inactivo")
-                            </span>
-                        </td>
-                        <td class="td-acciones">
-                            <button type="button"
-                                    class="btn btn-sm btn-secundario btn-editar"
-                                    data-id="@entrada.Id"
-                                    data-area="@entrada.Area"
-                                    data-nombre="@entrada.Nombre"
-                                    data-extension="@entrada.Extension"
-                                    data-orden="@entrada.Orden"
-                                    data-activo="@entrada.Activo.ToString().ToLower()">
-                                Editar
-                            </button>
-
-                            <form method="post" asp-page-handler="Toggle" class="form-inline">
-                                <input type="hidden" name="id" value="@entrada.Id" />
-                                @Html.AntiForgeryToken()
-                                <button type="submit"
-                                        class="btn btn-sm @(entrada.Activo ? "btn-advertencia" : "btn-exito")">
-                                    @(entrada.Activo ? "Desactivar" : "Activar")
-                                </button>
-                            </form>
-
-                            <form method="post" asp-page-handler="Eliminar" class="form-inline"
-                                  onsubmit="return confirm('Eliminar la extension @entrada.Extension de @entrada.Nombre?')">
-                                <input type="hidden" name="id" value="@entrada.Id" />
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
-                            </form>
+                    <tr class="admin-tabla-grupo">
+                        <td colspan="5">
+                            <div class="admin-tabla-grupo-titulo">
+                                <span class="admin-tabla-grupo-nombre">@grupo.Key</span>
+                                <span class="admin-tabla-grupo-conteo">@grupo.Count() extensiones</span>
+                            </div>
                         </td>
                     </tr>
+
+                    @foreach (var entrada in grupo.OrderBy(e => e.Orden).ThenBy(e => e.Nombre))
+                    {
+                        <tr>
+                            <td>@entrada.Orden</td>
+                            <td>@entrada.Nombre</td>
+                            <td>@entrada.Extension</td>
+                            <td>
+                                <span class="badge @(entrada.Activo ? "badge-activo" : "badge-inactivo")">
+                                    @(entrada.Activo ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td class="td-acciones">
+                                <button type="button"
+                                        class="btn btn-sm btn-secundario btn-editar"
+                                        data-id="@entrada.Id"
+                                        data-area="@entrada.Area"
+                                        data-nombre="@entrada.Nombre"
+                                        data-extension="@entrada.Extension"
+                                        data-orden="@entrada.Orden"
+                                        data-activo="@entrada.Activo.ToString().ToLower()">
+                                    Editar
+                                </button>
+
+                                <form method="post" asp-page-handler="Toggle" class="form-inline">
+                                    <input type="hidden" name="id" value="@entrada.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-sm @(entrada.Activo ? "btn-advertencia" : "btn-exito")">
+                                        @(entrada.Activo ? "Desactivar" : "Activar")
+                                    </button>
+                                </form>
+
+                                <form method="post" asp-page-handler="Eliminar" class="form-inline"
+                                      onsubmit="return confirm('Eliminar la extension @entrada.Extension de @entrada.Nombre?')">
+                                    <input type="hidden" name="id" value="@entrada.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-peligro">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>

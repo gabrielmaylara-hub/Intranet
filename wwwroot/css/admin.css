@@ -351,6 +351,38 @@ button { cursor: pointer; font-family: inherit; }
 
 .admin-tabla tbody tr:hover { background: var(--negro-hover); }
 
+.admin-tabla tbody tr.admin-tabla-grupo,
+.admin-tabla tbody tr.admin-tabla-grupo:hover {
+  background: rgba(201,146,42,0.12);
+}
+
+.admin-tabla-grupo td {
+  border-top: 1px solid rgba(201,146,42,0.4);
+  border-bottom: 1px solid rgba(201,146,42,0.32);
+  padding: 0.65rem 0.875rem;
+}
+
+.admin-tabla-grupo-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-tabla-grupo-nombre {
+  font-family: var(--fuente-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--dorado-bri);
+  letter-spacing: 0.04em;
+}
+
+.admin-tabla-grupo-conteo {
+  color: var(--gris-texto);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
 .col-drag { width: 36px; }
 
 .drag-handle {
@@ -704,7 +736,7 @@ button { cursor: pointer; font-family: inherit; }
 .login-logo-img {
   width: 64px;
   height: 64px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 50%;
   border: 1px solid rgba(201,146,42,0.7);
   background: var(--negro);

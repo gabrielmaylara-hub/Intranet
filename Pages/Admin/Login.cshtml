@@ -22,7 +22,14 @@
     <div class="login-card">
         <!-- Marca institucional -->
         <div class="login-marca">
-            <img src="~/img/logo-fget.jpeg" alt="FGET" class="login-logo-img" asp-append-version="true" />
+            @if (!string.IsNullOrWhiteSpace(Model.LogoPath))
+            {
+                <img src="/storage/@Model.LogoPath" alt="FGET" class="login-logo-img" />
+            }
+            else
+            {
+                <img src="~/img/logo-fget.jpeg" alt="FGET" class="login-logo-img" asp-append-version="true" />
+            }
             <h1 class="login-titulo">Panel de Administración</h1>
             <p class="login-subtitulo">Dirección General de Informática y Estadística</p>
         </div>
