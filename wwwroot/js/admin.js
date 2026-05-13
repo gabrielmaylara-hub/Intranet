@@ -35,6 +35,26 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Mostrar/ocultar contraseñas sin enviar formularios.
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll("[data-password-toggle]").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const grupo = boton.closest(".campo-password");
+      const input = grupo?.querySelector("input");
+      if (!input) return;
+
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.setAttribute("aria-pressed", visible ? "false" : "true");
+      boton.setAttribute(
+        "aria-label",
+        visible ? "Mostrar contraseña" : "Ocultar contraseña"
+      );
+      boton.classList.toggle("password-toggle--activo", !visible);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Formularios reutilizados de alta y edicion.
   // Las paginas de Accesos, Avisos y Tutoriales comparten los mismos ids base.
   // ---------------------------------------------------------------------------

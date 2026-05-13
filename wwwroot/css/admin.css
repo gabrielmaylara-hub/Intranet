@@ -437,6 +437,44 @@ button { cursor: pointer; font-family: inherit; }
   border-color: var(--dorado);
   box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
 }
+.campo-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.campo-password .campo-input {
+  width: 100%;
+  padding-right: 3rem;
+}
+.password-toggle {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radio);
+  color: var(--gris-texto);
+  cursor: pointer;
+  transition: color var(--transicion), border-color var(--transicion), background var(--transicion);
+}
+.password-toggle svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.password-toggle:hover,
+.password-toggle:focus-visible,
+.password-toggle--activo {
+  color: var(--dorado);
+  border-color: rgba(201,146,42,0.45);
+  background: rgba(201,146,42,0.08);
+  outline: none;
+}
 .campo-textarea { resize: vertical; min-height: 100px; }
 .campo-archivo  { padding: 0.5rem; }
 .campo-color    { min-height: 44px; padding: 0.35rem; }
