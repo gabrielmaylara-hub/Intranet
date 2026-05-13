@@ -103,6 +103,14 @@ else
                         <td class="td-acciones">
                             @if (Model.PuedeGestionarTutoriales)
                             {
+                                @if (!string.IsNullOrWhiteSpace(tut.ArchivoPath))
+                                {
+                                    <a class="btn btn-sm btn-neutro"
+                                       href="/Admin/Tutoriales/Descargar/@tut.Id">
+                                        Descargar
+                                    </a>
+                                }
+
                                 <button type="button"
                                         class="btn btn-sm btn-secundario btn-editar"
                                         data-id="@tut.Id"

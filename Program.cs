@@ -165,7 +165,7 @@ app.MapGet("/health/ready", async (ConexionDb db) =>
 // entrega. Centralizar su salida aqui permite validar extension y bloquear
 // path traversal antes de leer del disco.
 // Punto de extensión: agregar validaciones de sesión por sección aquí en el futuro.
-IResult ServirArchivoStorage(string? ruta)
+async Task<IResult> ServirArchivoStorage(string? ruta, HttpContext contexto, ConexionDb db)
 {
     if (string.IsNullOrWhiteSpace(ruta))
         return Results.NotFound();
@@ -199,10 +199,158 @@ IResult ServirArchivoStorage(string? ruta)
         tipoContenido = "application/octet-stream";
 
     // enableRangeProcessing permite streaming de video con salto de posición.
+    var nombreVisible = await ObtenerNombreVisiblePorRutaAsync(rutaRelativaProveedor, db);
+    if (!string.IsNullOrWhiteSpace(nombreVisible))
+    {
+        var nombreDescarga = ConstruirNombreDescarga(nombreVisible, rutaRelativaProveedor);
+        contexto.Response.Headers.ContentDisposition =
+            $"inline; filename=\"{Uri.EscapeDataString(nombreDescarga)}\"; filename*=UTF-8''{Uri.EscapeDataString(nombreDescarga)}";
+    }
+
     return Results.File(archivoInfo.PhysicalPath, tipoContenido, enableRangeProcessing: true);
 }
 
 app.MapGet("/storage/{**ruta}", ServirArchivoStorage).AllowAnonymous();
+
+app.MapGet("/descargar/archivo/{id:int}", async (
+    int id,
+    IArchivoSeccionRepository archivosRepo) =>
+{
+    var archivo = await archivosRepo.ObtenerPorIdAsync(id);
+    if (archivo is null || !archivo.Activo)
+        return Results.NotFound();
+
+    return DescargarArchivoStorage(
+        archivo.ArchivoPath,
+        ConstruirNombreDescarga(archivo.Nombre, archivo.ArchivoPath));
+}).AllowAnonymous();
+
+app.MapGet("/Admin/Archivos/Descargar/{id:int}", async (
+    int id,
+    IArchivoSeccionRepository archivosRepo) =>
+{
+    var archivo = await archivosRepo.ObtenerPorIdAsync(id);
+    if (archivo is null)
+        return Results.NotFound();
+
+    return DescargarArchivoStorage(
+        archivo.ArchivoPath,
+        ConstruirNombreDescarga(archivo.Nombre, archivo.ArchivoPath));
+}).RequireAuthorization();
+
+app.MapGet("/descargar/tutorial/{id:int}", async (
+    int id,
+    ITutorialRepository tutorialesRepo) =>
+{
+    var tutorial = await tutorialesRepo.ObtenerPorIdAsync(id);
+    if (tutorial is null || !tutorial.Activo || string.IsNullOrWhiteSpace(tutorial.ArchivoPath))
+        return Results.NotFound();
+
+    return DescargarArchivoStorage(
+        tutorial.ArchivoPath,
+        ConstruirNombreDescarga(tutorial.Titulo, tutorial.ArchivoPath));
+}).AllowAnonymous();
+
+app.MapGet("/Admin/Tutoriales/Descargar/{id:int}", async (
+    int id,
+    ITutorialRepository tutorialesRepo) =>
+{
+    var tutorial = await tutorialesRepo.ObtenerPorIdAsync(id);
+    if (tutorial is null || string.IsNullOrWhiteSpace(tutorial.ArchivoPath))
+        return Results.NotFound();
+
+    return DescargarArchivoStorage(
+        tutorial.ArchivoPath,
+        ConstruirNombreDescarga(tutorial.Titulo, tutorial.ArchivoPath));
+}).RequireAuthorization();
+
+IResult DescargarArchivoStorage(string rutaRelativa, string nombreDescarga)
+{
+    if (string.IsNullOrWhiteSpace(rutaRelativa))
+        return Results.NotFound();
+
+    var rutaNormalizada = rutaRelativa.Replace('\\', '/').TrimStart('/');
+    var rutaCompleta = Path.GetFullPath(Path.Combine(
+        baseStorage,
+        rutaNormalizada.Replace('/', Path.DirectorySeparatorChar)));
+
+    var baseStorageConSeparador = baseStorage.TrimEnd(
+        Path.DirectorySeparatorChar,
+        Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+    if (!rutaCompleta.StartsWith(baseStorageConSeparador, StringComparison.OrdinalIgnoreCase))
+        return Results.Forbid();
+
+    var extension = Path.GetExtension(rutaCompleta);
+    if (!extensionesStoragePermitidas.Contains(extension))
+        return Results.NotFound();
+
+    var rutaRelativaProveedor = Path.GetRelativePath(baseStorage, rutaCompleta).Replace('\\', '/');
+    var archivoInfo = proveedorStorage.GetFileInfo(rutaRelativaProveedor);
+
+    if (!archivoInfo.Exists || archivoInfo.PhysicalPath is null)
+        return Results.NotFound();
+
+    var proveedor = new FileExtensionContentTypeProvider();
+    if (!proveedor.TryGetContentType(archivoInfo.PhysicalPath, out var tipoContenido))
+        tipoContenido = "application/octet-stream";
+
+    return Results.File(
+        archivoInfo.PhysicalPath,
+        tipoContenido,
+        fileDownloadName: nombreDescarga,
+        enableRangeProcessing: true);
+}
+
+static string ConstruirNombreDescarga(string? nombreVisible, string rutaRelativa)
+{
+    var nombreBase = SanitizarNombreArchivo(nombreVisible);
+    var extension = Path.GetExtension(rutaRelativa);
+
+    if (string.IsNullOrWhiteSpace(nombreBase))
+        nombreBase = "archivo";
+
+    if (string.IsNullOrWhiteSpace(extension))
+        return nombreBase;
+
+    return nombreBase.EndsWith(extension, StringComparison.OrdinalIgnoreCase)
+        ? nombreBase
+        : $"{nombreBase}{extension.ToLowerInvariant()}";
+}
+
+static string SanitizarNombreArchivo(string? nombre)
+{
+    if (string.IsNullOrWhiteSpace(nombre))
+        return string.Empty;
+
+    var invalidos = Path.GetInvalidFileNameChars()
+        .Concat(['/', '\\'])
+        .ToHashSet();
+
+    var limpio = new string(nombre
+        .Where(c => !char.IsControl(c) && !invalidos.Contains(c))
+        .ToArray());
+
+    limpio = limpio.Replace("..", ".").Trim().Trim('.');
+    return limpio.Length > 180 ? limpio[..180].Trim() : limpio;
+}
+
+static async Task<string?> ObtenerNombreVisiblePorRutaAsync(string rutaRelativa, ConexionDb db)
+{
+    using var con = db.CrearConexion();
+    return await con.ExecuteScalarAsync<string?>(
+        @"SELECT nombre
+          FROM archivos_seccion
+          WHERE archivo_path = @ruta
+          LIMIT 1",
+        new { ruta = rutaRelativa })
+        ?? await con.ExecuteScalarAsync<string?>(
+            @"SELECT titulo
+              FROM tutoriales
+              WHERE archivo_path = @ruta
+              LIMIT 1",
+            new { ruta = rutaRelativa });
+}
 
 app.MapRazorPages();
 

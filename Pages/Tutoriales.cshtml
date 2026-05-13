@@ -55,6 +55,12 @@
                                 @tut.FechaCreacion.ToString("dd 'de' MMMM 'de' yyyy",
                                     new System.Globalization.CultureInfo("es-MX"))
                             </time>
+                            @if (!string.IsNullOrWhiteSpace(tut.ArchivoPath))
+                            {
+                                <a href="/descargar/tutorial/@tut.Id" class="tutorial-ver-enlace">
+                                    Descargar video
+                                </a>
+                            }
                         </div>
                     </article>
                 }
