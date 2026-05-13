@@ -219,6 +219,7 @@
       asignarValor("formTituloInput", datos.titulo);
       asignarValor("formContenido", datos.contenido);
       asignarValor("formFecha", datos.fecha);
+      asignarValor("formAreaPublicacionId", datos.areaPublicacionId);
       asignarValor("formDescripcion", datos.descripcion);
       asignarCheck("formNuevaVentana", datos.nuevaVentana);
       asignarCheck("formActivo", datos.activo);

@@ -71,7 +71,7 @@ No imprimas esos valores ni los subas a Git.
 
 ## Modulos principales
 
-- Home: renderiza textos configurables, accesos rapidos, avisos, tutoriales y footer.
+- Home: renderiza textos configurables, accesos rapidos, avisos publicados, tutoriales y footer.
 - Directorio publico: muestra extensiones agrupadas por area y permite busqueda.
 - Admin Directorio: administra areas, extensiones, importacion CSV y orden visual.
 - Admin Configuracion: administra identidad, Home, menu superior, paginas publicas, footer, colores y logo.
@@ -116,18 +116,31 @@ Reglas:
 Roles base:
 
 - `admin_general`: administra todo el panel.
-- `usuario_area`: se usara en fases posteriores para publicar contenido de su propia area.
+- `usuario_area`: administra directamente el contenido habilitado de su propia area.
 
 Reglas de esta fase:
 
 - Cada usuario de area pertenece a una sola area de publicacion.
 - `admin_general` puede no tener area asignada.
 - No borrar areas con usuarios asociados; usar desactivar.
-- Todavia no se aplican filtros por area a Avisos, Tutoriales ni Archivos.
+- Avisos ya aplica permisos por area. Tutoriales y Archivos siguen pendientes para fases posteriores.
 - La administracion de usuarios vive en `/Admin/Usuarios` y solo debe verla `admin_general`.
 - No desactives ni cambies el rol del ultimo `admin_general` activo; el backend lo bloquea para evitar dejar el panel sin acceso.
 - Para crear o resetear un usuario se captura una contrasena temporal desde Admin. El valor no se muestra despues de guardar y solo se conserva el hash.
-- `usuario_area` todavia no administra Avisos/Tutoriales en esta fase; esa restriccion se aplicara cuando esos modulos tengan columna de area.
+- `usuario_area` no debe acceder a Configuracion, Usuarios ni Areas de publicacion; la proteccion debe existir en backend, no solo en el menu.
+
+### Avisos por area
+
+La tabla `avisos` tiene `area_publicacion_id`, `creado_por_usuario_id`, `actualizado_por_usuario_id` y `fecha_actualizacion`.
+
+Reglas:
+
+- `admin_general` puede ver y administrar todos los avisos.
+- `usuario_area` solo puede ver y operar avisos con su mismo `area_publicacion_id`.
+- Los avisos historicos sin area quedan visibles y administrables solo para `admin_general`.
+- Al crear un aviso, `usuario_area` no elige area: el backend asigna automaticamente la suya.
+- Al editar, publicar, desactivar o eliminar, el backend vuelve a validar el area del aviso para bloquear manipulacion de IDs.
+- No apliques esta regla todavia a Tutoriales sin una migracion y validaciones equivalentes.
 
 Areas semilla oficiales:
 
