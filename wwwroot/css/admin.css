@@ -613,13 +613,21 @@ button { cursor: pointer; font-family: inherit; }
 .logo-preview {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
   padding: 1rem;
   background: var(--negro-hover);
   border-radius: var(--radio);
 }
-.logo-preview img { max-height: 60px; width: auto; }
+.logo-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 120px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
 .logo-preview-label { font-size: 0.78rem; color: var(--gris-texto); }
 
 /* ─── Subir archivo (Archivos por sección) ───────────────────────────────────── */
