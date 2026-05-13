@@ -2,6 +2,7 @@ using System.Globalization;
 using Intranet.Models;
 using Intranet.Pages.Admin;
 using Intranet.Repositories.Interfaces;
+using Intranet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Intranet.Pages.Admin.Avisos;
@@ -10,16 +11,23 @@ public class IndexModel : AdminPageModel
 {
     private const int MaxTitulo = 200;
     private const int MaxContenido = 4000;
+    private const string SubcarpetaPdfAvisos = "avisos";
 
     private readonly IAvisoRepository _avisosRepo;
     private readonly IAreaPublicacionRepository _areasRepo;
+    private readonly IArchivoService _archivos;
+    private readonly ILogger<IndexModel> _logger;
 
     public IndexModel(
         IAvisoRepository avisosRepo,
-        IAreaPublicacionRepository areasRepo)
+        IAreaPublicacionRepository areasRepo,
+        IArchivoService archivos,
+        ILogger<IndexModel> logger)
     {
         _avisosRepo = avisosRepo;
         _areasRepo = areasRepo;
+        _archivos = archivos;
+        _logger = logger;
     }
 
     public IEnumerable<Aviso> Avisos { get; private set; } = [];
@@ -34,6 +42,8 @@ public class IndexModel : AdminPageModel
     [BindProperty] public string FechaPublicacion { get; set; } = DateTime.Today.ToString("yyyy-MM-dd");
     [BindProperty] public bool Activo { get; set; } = true;
     [BindProperty] public int? AreaPublicacionId { get; set; }
+    [BindProperty] public IFormFile? PdfAdjunto { get; set; }
+    [BindProperty] public bool QuitarPdf { get; set; }
 
     [BindProperty(SupportsGet = true)] public int? AreaFiltro { get; set; }
 
@@ -93,17 +103,42 @@ public class IndexModel : AdminPageModel
 
         var areaFinal = contexto.EsAdminGeneral ? NormalizarAreaAdmin(AreaPublicacionId) : contexto.AreaId;
         var usuarioId = ObtenerUsuarioId();
+        PdfAdjuntoGuardado? pdfNuevo;
+
+        try
+        {
+            pdfNuevo = await GuardarPdfAdjuntoAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            EsError = true;
+            Mensaje = ex.Message;
+            await CargarPaginaAsync();
+            return Page();
+        }
 
         if (Id > 0 && existente is not null)
         {
+            var pdfAnterior = existente.PdfPath;
+
             existente.Titulo = Titulo.Trim();
             existente.Contenido = Contenido?.Trim();
             existente.FechaPublicacion = fecha.Date;
             existente.Activo = Activo;
             existente.AreaPublicacionId = areaFinal;
             existente.ActualizadoPorUsuarioId = usuarioId;
+            AplicarPdf(existente, pdfNuevo);
 
-            await _avisosRepo.ActualizarAsync(existente);
+            try
+            {
+                await _avisosRepo.ActualizarAsync(existente);
+                EliminarPdfAnteriorSiCambio(pdfAnterior, existente.PdfPath);
+            }
+            catch
+            {
+                EliminarPdfPosteriorABd(pdfNuevo?.RutaRelativa);
+                throw;
+            }
         }
         else
         {
@@ -117,8 +152,17 @@ public class IndexModel : AdminPageModel
                 AreaPublicacionId = areaFinal,
                 CreadoPorUsuarioId = usuarioId
             };
+            AplicarPdf(aviso, pdfNuevo);
 
-            await _avisosRepo.InsertarAsync(aviso);
+            try
+            {
+                await _avisosRepo.InsertarAsync(aviso);
+            }
+            catch
+            {
+                EliminarPdfPosteriorABd(pdfNuevo?.RutaRelativa);
+                throw;
+            }
         }
 
         return RedirectToPage(new { AreaFiltro });
@@ -138,6 +182,7 @@ public class IndexModel : AdminPageModel
             return StatusCode(StatusCodes.Status403Forbidden);
 
         await _avisosRepo.EliminarAsync(id);
+        EliminarPdfPosteriorABd(aviso.PdfPath);
         return RedirectToPage(new { AreaFiltro });
     }
 
@@ -175,6 +220,16 @@ public class IndexModel : AdminPageModel
             return $"El contenido no debe superar {MaxContenido} caracteres.";
         if (ContieneControl(Contenido))
             return "El contenido contiene caracteres no permitidos.";
+        if (PdfAdjunto is not null && PdfAdjunto.Length > 0)
+        {
+            var errorPdf = ValidarPdfAdjunto(PdfAdjunto);
+            if (errorPdf is not null)
+                return errorPdf;
+        }
+        else if (PdfAdjunto is not null && PdfAdjunto.Length == 0)
+        {
+            return "El PDF adjunto no puede estar vac\u00edo.";
+        }
 
         if (contexto.EsAdminGeneral)
         {
@@ -260,9 +315,101 @@ public class IndexModel : AdminPageModel
         !string.IsNullOrEmpty(valor) &&
         valor.Any(c => char.IsControl(c) && c is not '\r' and not '\n' and not '\t');
 
+    private async Task<PdfAdjuntoGuardado?> GuardarPdfAdjuntoAsync()
+    {
+        if (PdfAdjunto is null || PdfAdjunto.Length == 0)
+            return null;
+
+        try
+        {
+            var ruta = await _archivos.GuardarAsync(PdfAdjunto, SubcarpetaPdfAvisos);
+            return new PdfAdjuntoGuardado(
+                ruta,
+                ObtenerNombreOriginalPdf(PdfAdjunto.FileName),
+                "application/pdf",
+                PdfAdjunto.Length);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Se rechazo un PDF adjunto de aviso por validacion de archivo.");
+            throw new InvalidOperationException($"No se pudo guardar el PDF adjunto: {ex.Message}");
+        }
+    }
+
+    private void AplicarPdf(Aviso aviso, PdfAdjuntoGuardado? pdfNuevo)
+    {
+        if (pdfNuevo is not null)
+        {
+            aviso.PdfPath = pdfNuevo.RutaRelativa;
+            aviso.PdfNombreOriginal = pdfNuevo.NombreOriginal;
+            aviso.PdfContentType = pdfNuevo.ContentType;
+            aviso.PdfTamanoBytes = pdfNuevo.TamanoBytes;
+            return;
+        }
+
+        if (QuitarPdf)
+        {
+            aviso.PdfPath = null;
+            aviso.PdfNombreOriginal = null;
+            aviso.PdfContentType = null;
+            aviso.PdfTamanoBytes = null;
+        }
+    }
+
+    private static string? ValidarPdfAdjunto(IFormFile archivo)
+    {
+        var nombre = Path.GetFileName(archivo.FileName);
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "El PDF adjunto debe tener un nombre valido.";
+        if (ContieneControl(nombre))
+            return "El nombre del PDF adjunto contiene caracteres no permitidos.";
+
+        var extension = Path.GetExtension(nombre);
+        if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
+            return "El PDF adjunto debe tener extension .pdf.";
+
+        return null;
+    }
+
+    private static string ObtenerNombreOriginalPdf(string? nombreArchivo)
+    {
+        var nombre = Path.GetFileName(nombreArchivo ?? string.Empty).Trim();
+        return string.IsNullOrWhiteSpace(nombre) ? "comunicado.pdf" : nombre;
+    }
+
+    private void EliminarPdfAnteriorSiCambio(string? rutaAnterior, string? rutaActual)
+    {
+        if (!string.IsNullOrWhiteSpace(rutaAnterior) &&
+            !string.Equals(rutaAnterior, rutaActual, StringComparison.OrdinalIgnoreCase))
+        {
+            EliminarPdfPosteriorABd(rutaAnterior);
+        }
+    }
+
+    private void EliminarPdfPosteriorABd(string? rutaRelativa)
+    {
+        if (string.IsNullOrWhiteSpace(rutaRelativa))
+            return;
+
+        try
+        {
+            _archivos.Eliminar(rutaRelativa);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "No se pudo eliminar un PDF adjunto de aviso despues de actualizar la BD.");
+        }
+    }
+
     private sealed record ContextoAvisos(
         bool EsAdminGeneral,
         int? AreaId,
         string? AreaNombre,
         bool PuedeGestionar);
+
+    private sealed record PdfAdjuntoGuardado(
+        string RutaRelativa,
+        string NombreOriginal,
+        string ContentType,
+        long TamanoBytes);
 }

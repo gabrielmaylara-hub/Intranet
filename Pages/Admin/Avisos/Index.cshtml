@@ -64,6 +64,7 @@ else
                     <th>Título</th>
                     <th>Área</th>
                     <th>Fecha</th>
+                    <th>Adjunto</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -85,6 +86,16 @@ else
                         </td>
                         <td>@aviso.FechaPublicacion.ToString("dd/MM/yyyy")</td>
                         <td>
+                            @if (aviso.TienePdf)
+                            {
+                                <span class="badge badge-activo">PDF</span>
+                            }
+                            else
+                            {
+                                <span class="texto-gris">Sin PDF</span>
+                            }
+                        </td>
+                        <td>
                             <span class="badge @(aviso.Activo ? "badge-activo" : "badge-inactivo")">
                                 @(aviso.Activo ? "Activo" : "Inactivo")
                             </span>
@@ -99,6 +110,8 @@ else
                                         data-contenido="@aviso.Contenido"
                                         data-fecha="@aviso.FechaPublicacion.ToString("yyyy-MM-dd")"
                                         data-area-publicacion-id="@aviso.AreaPublicacionId"
+                                        data-tiene-pdf="@aviso.TienePdf.ToString().ToLower()"
+                                        data-pdf-nombre="@aviso.PdfNombreOriginal"
                                         data-activo="@aviso.Activo.ToString().ToLower()">
                                     Editar
                                 </button>
@@ -127,7 +140,7 @@ else
                 @if (!Model.Avisos.Any())
                 {
                     <tr>
-                        <td colspan="5" class="texto-gris">No hay avisos para mostrar.</td>
+                        <td colspan="6" class="texto-gris">No hay avisos para mostrar.</td>
                     </tr>
                 }
             </tbody>
@@ -140,7 +153,7 @@ else
     <div class="admin-panel" id="panelFormulario" hidden>
         <h2 class="admin-panel-titulo" id="formTitulo">Nuevo aviso</h2>
 
-        <form method="post" asp-page-handler="Guardar">
+        <form method="post" asp-page-handler="Guardar" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" name="Id" id="formId" value="0" />
             <input type="hidden" name="AreaFiltro" value="@Model.AreaFiltro" />
@@ -177,6 +190,24 @@ else
                     <span class="campo-ayuda">El aviso se guardará automáticamente en tu área.</span>
                 </div>
             }
+
+            <div class="campo-grupo">
+                <label class="campo-label" for="formPdfAdjunto">PDF adjunto</label>
+                <input type="file"
+                       name="PdfAdjunto"
+                       id="formPdfAdjunto"
+                       class="campo-input"
+                       accept=".pdf,application/pdf" />
+                <span class="campo-ayuda">Opcional. Solo se permite PDF.</span>
+                <div class="campo-ayuda" id="formPdfActual" hidden>
+                    PDF actual: <span id="formPdfActualNombre"></span>
+                    <label class="campo-check campo-check-inline" id="formQuitarPdfWrapper">
+                        <input type="checkbox" name="QuitarPdf" id="formQuitarPdf" value="true" />
+                        Quitar PDF actual
+                    </label>
+                    <input type="hidden" name="QuitarPdf" value="false" />
+                </div>
+            </div>
 
             <div class="form-dos-columnas">
                 <div class="campo-grupo">

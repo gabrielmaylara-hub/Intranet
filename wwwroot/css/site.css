@@ -1494,6 +1494,27 @@ button { cursor: pointer; font-family: inherit; }
   white-space: pre-line;
 }
 
+.aviso-descarga {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.85rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(0,72,58,0.18);
+  background: rgba(0,72,58,0.06);
+  color: var(--home-verde);
+  font-family: var(--fuente-cond);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.aviso-descarga:hover {
+  border-color: rgba(201,146,42,0.42);
+  color: var(--home-dorado);
+}
+
 .avisos-pagina {
   background:
     linear-gradient(135deg, rgba(23,63,54,0.06), transparent 32%),
@@ -1571,6 +1592,10 @@ button { cursor: pointer; font-family: inherit; }
   font-size: 1rem;
   line-height: 1.75;
   white-space: pre-line;
+}
+
+.aviso-publico-descarga {
+  margin-top: 1rem;
 }
 
 .home-redisenado .tutoriales-grid-home {

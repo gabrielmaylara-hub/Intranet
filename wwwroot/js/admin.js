@@ -388,6 +388,25 @@
       const campo = obtener(id);
       if (campo) campo.checked = valor === true || valor === "true";
     };
+    const limpiarPdfAviso = () => {
+      asignarValor("formPdfAdjunto", "");
+      asignarCheck("formQuitarPdf", false);
+
+      const info = obtener("formPdfActual");
+      const nombre = obtener("formPdfActualNombre");
+      if (info) info.hidden = true;
+      if (nombre) nombre.textContent = "";
+    };
+    const configurarPdfAviso = (datos) => {
+      limpiarPdfAviso();
+
+      if (datos.tienePdf !== "true") return;
+
+      const info = obtener("formPdfActual");
+      const nombre = obtener("formPdfActualNombre");
+      if (nombre) nombre.textContent = datos.pdfNombre || "PDF adjunto";
+      if (info) info.hidden = false;
+    };
 
     const mostrarFormulario = (modo) => {
       if (tituloFormulario) {
@@ -405,6 +424,7 @@
       asignarValor("formId", "0");
       asignarCheck("formActivo", true);
       asignarCheck("formNuevaVentana", true);
+      limpiarPdfAviso();
 
       mostrarFormulario("nuevo");
 
@@ -430,6 +450,7 @@
       asignarValor("formDescripcion", datos.descripcion);
       asignarCheck("formNuevaVentana", datos.nuevaVentana);
       asignarCheck("formActivo", datos.activo);
+      configurarPdfAviso(datos);
 
       mostrarFormulario("editar");
     };
@@ -439,6 +460,7 @@
     btnCancelar?.addEventListener("click", () => {
       panelFormulario.hidden = true;
       if (form) form.reset();
+      limpiarPdfAviso();
     });
 
     document.querySelectorAll(".btn-editar").forEach((boton) => {

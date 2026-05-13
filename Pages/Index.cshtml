@@ -128,6 +128,12 @@
                                     {
                                         <p class="aviso-contenido">@aviso.Contenido</p>
                                     }
+                                    @if (aviso.TienePdf)
+                                    {
+                                        <a class="aviso-descarga" href="/descargar/aviso/@aviso.Id">
+                                            Descargar comunicado
+                                        </a>
+                                    }
                                 </div>
                             </li>
                         }

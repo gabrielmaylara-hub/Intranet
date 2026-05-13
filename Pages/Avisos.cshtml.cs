@@ -33,6 +33,7 @@ public class AvisosModel : PageModel
         var avisos = await _avisosRepo.ObtenerTodosAsync(soloActivos: true);
         Avisos = avisos
             .OrderByDescending(a => a.FechaPublicacion)
+            .ThenByDescending(a => a.Id)
             .ToList();
     }
 }

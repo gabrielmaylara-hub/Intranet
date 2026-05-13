@@ -11,7 +11,8 @@ public class AvisoRepository : IAvisoRepository
     private const string ColumnasAviso =
         @"a.id, a.titulo, a.contenido, a.fecha_publicacion, a.activo, a.orden,
           a.area_publicacion_id, ap.nombre AS area_publicacion_nombre,
-          a.creado_por_usuario_id, a.actualizado_por_usuario_id, a.fecha_actualizacion";
+          a.creado_por_usuario_id, a.actualizado_por_usuario_id, a.fecha_actualizacion,
+          a.pdf_path, a.pdf_nombre_original, a.pdf_content_type, a.pdf_tamano_bytes";
 
     public AvisoRepository(ConexionDb db) => _db = db;
 
@@ -60,10 +61,12 @@ public class AvisoRepository : IAvisoRepository
         return await con.ExecuteScalarAsync<int>(
             @"INSERT INTO avisos
                   (titulo, contenido, fecha_publicacion, activo, orden,
-                   area_publicacion_id, creado_por_usuario_id)
+                   area_publicacion_id, creado_por_usuario_id,
+                   pdf_path, pdf_nombre_original, pdf_content_type, pdf_tamano_bytes)
               VALUES
                   (@Titulo, @Contenido, @FechaPublicacion, @Activo, @Orden,
-                   @AreaPublicacionId, @CreadoPorUsuarioId);
+                   @AreaPublicacionId, @CreadoPorUsuarioId,
+                   @PdfPath, @PdfNombreOriginal, @PdfContentType, @PdfTamanoBytes);
               SELECT LAST_INSERT_ID();",
             aviso);
     }
@@ -79,7 +82,11 @@ public class AvisoRepository : IAvisoRepository
                   orden = @Orden,
                   area_publicacion_id = @AreaPublicacionId,
                   actualizado_por_usuario_id = @ActualizadoPorUsuarioId,
-                  fecha_actualizacion = CURRENT_TIMESTAMP
+                  fecha_actualizacion = CURRENT_TIMESTAMP,
+                  pdf_path = @PdfPath,
+                  pdf_nombre_original = @PdfNombreOriginal,
+                  pdf_content_type = @PdfContentType,
+                  pdf_tamano_bytes = @PdfTamanoBytes
               WHERE id = @Id",
             aviso);
     }

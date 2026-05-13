@@ -13,4 +13,10 @@ public class Aviso
     public int?     CreadoPorUsuarioId { get; set; }
     public int?     ActualizadoPorUsuarioId { get; set; }
     public DateTime? FechaActualizacion { get; set; }
+    public string?  PdfPath { get; set; }
+    public string?  PdfNombreOriginal { get; set; }
+    public string?  PdfContentType { get; set; }
+    public long?    PdfTamanoBytes { get; set; }
+
+    public bool TienePdf => !string.IsNullOrWhiteSpace(PdfPath);
 }

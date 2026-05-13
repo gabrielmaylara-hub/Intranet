@@ -252,6 +252,23 @@ app.MapGet("/descargar/tutorial/{id:int}", async (
         ConstruirNombreDescarga(tutorial.Titulo, tutorial.ArchivoPath));
 }).AllowAnonymous();
 
+app.MapGet("/descargar/aviso/{id:int}", async (
+    int id,
+    IAvisoRepository avisosRepo) =>
+{
+    var aviso = await avisosRepo.ObtenerPorIdAsync(id);
+    if (aviso is null || !aviso.Activo || string.IsNullOrWhiteSpace(aviso.PdfPath))
+        return Results.NotFound();
+
+    return DescargarArchivoStorage(
+        aviso.PdfPath,
+        ConstruirNombreDescarga(
+            string.IsNullOrWhiteSpace(aviso.PdfNombreOriginal)
+                ? aviso.Titulo
+                : aviso.PdfNombreOriginal,
+            aviso.PdfPath));
+}).AllowAnonymous();
+
 app.MapGet("/Admin/Tutoriales/Descargar/{id:int}", async (
     int id,
     ITutorialRepository tutorialesRepo) =>
@@ -349,6 +366,12 @@ static async Task<string?> ObtenerNombreVisiblePorRutaAsync(string rutaRelativa,
             @"SELECT titulo
               FROM tutoriales
               WHERE archivo_path = @ruta
+              LIMIT 1",
+            new { ruta = rutaRelativa })
+        ?? await con.ExecuteScalarAsync<string?>(
+            @"SELECT COALESCE(pdf_nombre_original, titulo)
+              FROM avisos
+              WHERE pdf_path = @ruta
               LIMIT 1",
             new { ruta = rutaRelativa });
 }

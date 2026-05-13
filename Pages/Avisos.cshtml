@@ -39,6 +39,12 @@
                         {
                             <p class="aviso-publico-contenido">@aviso.Contenido</p>
                         }
+                        @if (aviso.TienePdf)
+                        {
+                            <a class="aviso-descarga aviso-publico-descarga" href="/descargar/aviso/@aviso.Id">
+                                Descargar comunicado
+                            </a>
+                        }
                     </article>
                 }
             </div>
