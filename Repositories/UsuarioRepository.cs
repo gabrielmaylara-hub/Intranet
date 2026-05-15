@@ -5,9 +5,16 @@ using Intranet.Repositories.Interfaces;
 
 namespace Intranet.Repositories;
 
+// Este repositorio concentra el SQL del modulo de usuarios administrativos.
+// El panel Admin debe gestionarlos a traves de este repositorio y dejar la
+// apertura de conexiones a ConexionDb. Los valores de entrada deben viajar como
+// parametros de Dapper; cualquier interpolacion debe limitarse a SQL interno.
 public class UsuarioRepository : IUsuarioRepository
 {
     private readonly ConexionDb _db;
+    // password_hash, rol y area_publicacion_id son datos delicados para control
+    // de acceso y segmentacion administrativa. Cualquier cambio en esta proyeccion
+    // impacta login, autorizacion y pantallas de gestion de usuarios.
     private const string ColumnasUsuarioAdmin =
         @"u.id, u.usuario, u.password_hash, u.nombre_completo, u.activo,
           u.rol, u.area_publicacion_id, a.nombre AS area_publicacion_nombre,
@@ -17,6 +24,7 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<IEnumerable<UsuarioAdmin>> ListarAsync()
     {
+        // Alimenta el listado del panel Admin y la revision operativa de cuentas.
         using var con = _db.CrearConexion();
         return await con.QueryAsync<UsuarioAdmin>(
             $@"SELECT {ColumnasUsuarioAdmin}
@@ -27,6 +35,8 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<UsuarioAdmin?> ObtenerPorUsuarioAsync(string usuario)
     {
+        // Ruta critica para autenticacion: solo devuelve usuarios activos y con
+        // metadata suficiente para login, rol y alcance de administracion.
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<UsuarioAdmin>(
             $@"SELECT {ColumnasUsuarioAdmin}
@@ -81,6 +91,8 @@ public class UsuarioRepository : IUsuarioRepository
     public async Task<int> CrearAsync(UsuarioAdmin usuario)
     {
         using var con = _db.CrearConexion();
+        // LAST_INSERT_ID() es especifico de MySQL. Mantenerlo ubicado facilita
+        // evaluar impacto si el proveedor de datos cambia en el futuro.
         return await con.ExecuteScalarAsync<int>(
             @"INSERT INTO usuarios_admin
                   (usuario, password_hash, nombre_completo, activo, rol, area_publicacion_id)
@@ -135,6 +147,8 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<bool> ResetearPasswordAsync(int id, string nuevoHash)
     {
+        // El repositorio solo persiste el hash. La generacion del password hash
+        // corresponde al servicio de autenticacion, no a la capa de datos.
         using var con = _db.CrearConexion();
         var filas = await con.ExecuteAsync(
             @"UPDATE usuarios_admin
@@ -161,6 +175,8 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<int> ContarAdminsGeneralesActivosAsync(int? excluirId = null)
     {
+        // Este conteo protege la consistencia operativa para no dejar al sistema
+        // sin administradores generales activos por error de gestion.
         using var con = _db.CrearConexion();
         return await con.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*)

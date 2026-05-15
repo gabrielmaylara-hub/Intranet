@@ -6,10 +6,16 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Intranet.Repositories;
 
+// Este repositorio concentra configuracion institucional y enlaces del sitio.
+// El panel Admin lo usa para mantener textos, enlaces y ajustes visibles en la
+// intranet. Los valores entrantes deben viajar como parametros de Dapper y las
+// interpolaciones deben limitarse a columnas o fragmentos internos controlados.
 public class ConfiguracionRepository : IConfiguracionRepository
 {
     private readonly ConexionDb    _db;
     private readonly IMemoryCache  _cache;
+    // Estas claves de cache impactan navegacion y textos visibles. Si cambia la
+    // semantica de invalidez, revisar panel Admin, portada y enlaces publicos.
     private const string CacheKey = "intranet_site_config";
     private const string CacheKeyEnlaces = "intranet_site_links";
     private const string ColumnasConfiguracionSitio = "clave, valor, tipo, descripcion";
@@ -29,6 +35,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
 
     public async Task<Dictionary<string, string>> ObtenerTodosAsync()
     {
+        // La lectura pasa por cache para reducir consultas repetidas de valores
+        // institucionales que se usan en multiples paginas por request.
         if (_cache.TryGetValue(CacheKey, out Dictionary<string, string>? cached) && cached is not null)
             return cached;
 
@@ -52,6 +60,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
         string grupo,
         bool soloActivos = false)
     {
+        // Estos enlaces afectan navegacion publica e institucional. El grupo y
+        // su estado determinan que opciones ve el usuario en cada seccion.
         var cacheKey = $"{CacheKeyEnlaces}:{grupo}:{soloActivos}";
         if (_cache.TryGetValue(cacheKey, out IEnumerable<SitioEnlace>? cached) && cached is not null)
             return cached;
@@ -72,6 +82,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
     public async Task GuardarAsync(string clave, string valor)
     {
         using var con = _db.CrearConexion();
+        // ON DUPLICATE KEY UPDATE es sintaxis MySQL y centraliza la persistencia
+        // de claves institucionales sin exponer logica de upsert al PageModel.
         await con.ExecuteAsync(
             @"INSERT INTO configuracion_sitio (clave, valor) VALUES (@clave, @valor)
               ON DUPLICATE KEY UPDATE valor = @valor",
@@ -84,6 +96,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
         using var con = _db.CrearConexion();
         await con.OpenAsync();
         using var tx = await con.BeginTransactionAsync();
+        // La transaccion evita dejar configuracion parcial cuando el Admin guarda
+        // varias claves institucionales en una sola operacion.
         foreach (var (clave, valor) in valores)
             await con.ExecuteAsync(
                 @"INSERT INTO configuracion_sitio (clave, valor) VALUES (@clave, @valor)
@@ -99,6 +113,8 @@ public class ConfiguracionRepository : IConfiguracionRepository
         await con.OpenAsync();
         using var tx = await con.BeginTransactionAsync();
 
+        // Insert y update comparten una misma transaccion porque el orden y el
+        // estado de enlaces impactan directamente navegacion y consistencia visual.
         foreach (var enlace in enlaces)
         {
             if (enlace.Id > 0)

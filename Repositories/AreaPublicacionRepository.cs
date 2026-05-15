@@ -5,9 +5,15 @@ using Intranet.Repositories.Interfaces;
 
 namespace Intranet.Repositories;
 
+// Este repositorio concentra el SQL de las areas de publicacion. Estas areas
+// condicionan permisos de administracion y segmentacion de contenido en avisos,
+// tutoriales y usuarios. Los valores de entrada deben ir como parametros de
+// Dapper; las interpolaciones deben limitarse a constantes internas.
 public class AreaPublicacionRepository : IAreaPublicacionRepository
 {
     private readonly ConexionDb _db;
+    // nombre, slug y activa afectan catalogos del panel Admin y visibilidad
+    // funcional de modulos asociados. Mantener esta proyeccion alineada con el modelo.
     private const string ColumnasAreaPublicacion =
         "id, nombre, slug, descripcion, orden, activa, fecha_creacion, fecha_actualizacion";
 
@@ -15,6 +21,8 @@ public class AreaPublicacionRepository : IAreaPublicacionRepository
 
     public async Task<IEnumerable<AreaPublicacion>> ObtenerTodasAsync()
     {
+        // Se usa en catalogos administrativos y formularios que dependen del
+        // universo completo de areas, incluso cuando alguna esta desactivada.
         using var con = _db.CrearConexion();
         return await con.QueryAsync<AreaPublicacion>(
             $"SELECT {ColumnasAreaPublicacion} FROM areas_publicacion ORDER BY orden ASC, nombre ASC");
@@ -54,6 +62,8 @@ public class AreaPublicacionRepository : IAreaPublicacionRepository
     public async Task<int> CrearAsync(AreaPublicacion area)
     {
         using var con = _db.CrearConexion();
+        // LAST_INSERT_ID() es dependiente de MySQL. Documentarlo aqui ayuda a
+        // evaluar el alcance si el repositorio cambia de proveedor algun dia.
         return await con.ExecuteScalarAsync<int>(
             @"INSERT INTO areas_publicacion
                   (nombre, slug, descripcion, orden, activa)
@@ -107,12 +117,17 @@ public class AreaPublicacionRepository : IAreaPublicacionRepository
 
     public async Task<bool> PuedeEliminarAsync(int id)
     {
+        // Antes de eliminar, se valida dependencia con usuarios administrativos.
+        // Este chequeo es delicado porque protege consistencia de permisos.
         using var con = _db.CrearConexion();
         var usuarios = await con.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM usuarios_admin WHERE area_publicacion_id = @id",
             new { id });
 
-        // Fases futuras: sumar dependencias de avisos/tutoriales cuando tengan area_publicacion_id.
+        // Actualmente este metodo solo bloquea eliminacion por dependencia con
+        // usuarios administrativos. Avisos y tutoriales tambien pueden quedar
+        // vinculados a un area; si la regla de negocio exige bloquear por ese
+        // contenido asociado, este metodo debe ampliarse explicitamente.
         return usuarios == 0;
     }
 
@@ -137,6 +152,8 @@ public class AreaPublicacionRepository : IAreaPublicacionRepository
         await con.OpenAsync();
         using var tx = await con.BeginTransactionAsync();
 
+        // El reordenamiento debe ser atomico porque impacta orden visual y
+        // experiencia del panel Admin; no conviene persistir estados parciales.
         var ids = lista.Select(i => i.Id).ToArray();
         var filasEncontradas = await con.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM areas_publicacion WHERE id IN @ids",
