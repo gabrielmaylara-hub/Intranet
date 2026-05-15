@@ -7,6 +7,9 @@ using MySqlConnector;
 
 namespace Intranet.Pages.Admin.Usuarios;
 
+// Este archivo .cshtml.cs es el PageModel asociado a la vista Razor del modulo
+// Admin/Usuarios. Centraliza el flujo GET/POST del formulario y deja la
+// persistencia en repositorios ya documentados.
 public class IndexModel : AdminPageModel
 {
     private const int MinPassword = 10;
@@ -19,6 +22,8 @@ public class IndexModel : AdminPageModel
     private readonly IAreaPublicacionRepository _areasRepo;
     private readonly IAuthService _auth;
 
+    // Este modulo solo puede operarlo un admin_general. La validacion existe en
+    // backend y no debe depender unicamente de que la UI oculte botones.
     protected override bool RequiereAdminGeneral => true;
 
     public IndexModel(
@@ -54,6 +59,8 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnGetAsync(int? editarId)
     {
+        // GET carga catalogos y, si llega editarId, hidrata el formulario desde
+        // BD para que la misma Razor Page sirva alta y edicion.
         if (!EsAdminGeneral())
             return StatusCode(StatusCodes.Status403Forbidden);
 
@@ -82,6 +89,8 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnPostGuardarAsync()
     {
+        // POST procesa alta o edicion segun Id. Los datos llegan por BindProperty
+        // y deben validarse aqui aunque la interfaz ya imponga restricciones.
         if (!EsAdminGeneral())
             return StatusCode(StatusCodes.Status403Forbidden);
 
@@ -100,6 +109,8 @@ public class IndexModel : AdminPageModel
         {
             if (Id == 0)
             {
+                // En alta, el hash de la contrasena se genera en backend; el
+                // repositorio solo persiste metadata y password_hash.
                 var usuario = new UsuarioAdmin
                 {
                     Usuario = Usuario,
@@ -115,6 +126,8 @@ public class IndexModel : AdminPageModel
             }
             else
             {
+                // En edicion, el usuario admin principal tiene protecciones
+                // adicionales para no degradar el acceso administrativo base.
                 var usuario = await _usuariosRepo.ObtenerPorIdAsync(Id);
                 if (usuario is null)
                 {
@@ -237,6 +250,8 @@ public class IndexModel : AdminPageModel
         string nuevoPassword,
         string confirmarPassword)
     {
+        // El reseteo de contrasena es un handler nombrado independiente del
+        // guardado general para separar credenciales de otros cambios del perfil.
         if (!EsAdminGeneral())
             return StatusCode(StatusCodes.Status403Forbidden);
 
@@ -266,6 +281,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<string?> ValidarFormularioAsync(bool esCreacion)
     {
+        // Las validaciones criticas viven en backend: formato de usuario, rol,
+        // area de publicacion y reglas para no dejar el sistema sin admin activo.
         Usuario = NormalizarUsuario(Usuario);
         NombreCompleto = NormalizarTexto(NombreCompleto);
         Rol = NormalizarTexto(Rol);
@@ -348,6 +365,8 @@ public class IndexModel : AdminPageModel
 
     private async Task CargarListasAsync()
     {
+        // Este helper prepara la misma vista Razor con usuarios y catalogos para
+        // filtros, alta, edicion y reproceso tras errores de validacion.
         var usuarios = (await _usuariosRepo.ListarAsync()).ToList();
         TotalActivos = usuarios.Count(u => u.Activo);
         TotalInactivos = usuarios.Count(u => !u.Activo);

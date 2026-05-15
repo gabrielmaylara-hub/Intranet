@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Intranet.Pages.Admin.Avisos;
 
+// Este archivo .cshtml.cs es el PageModel del panel Admin de avisos. Coordina
+// la vista Razor, la validacion backend, el acceso a repositorios y el manejo
+// del PDF adjunto que se guarda en Storage fuera de la base de datos.
 public class IndexModel : AdminPageModel
 {
     private const int MaxTitulo = 200;
@@ -53,12 +56,16 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
+        // GET prepara filtros, areas y listado. La misma pagina atiende tanto a
+        // admin_general como a usuario_area segun el contexto resuelto en backend.
         await CargarPaginaAsync();
         return Page();
     }
 
     public async Task<IActionResult> OnPostGuardarAsync()
     {
+        // POST crea o actualiza avisos. El formulario llega por BindProperty y
+        // las reglas de permisos no dependen solo del filtrado visual del panel.
         var contexto = await ObtenerContextoAsync();
         if (!contexto.PuedeGestionar)
         {
@@ -120,6 +127,8 @@ public class IndexModel : AdminPageModel
 
         if (Id > 0 && existente is not null)
         {
+            // En edicion, la BD guarda solo metadata del PDF; si cambia el
+            // archivo fisico en Storage, la limpieza ocurre despues del update.
             var pdfAnterior = existente.PdfPath;
 
             existente.Titulo = Titulo.Trim();
@@ -143,6 +152,8 @@ public class IndexModel : AdminPageModel
         }
         else
         {
+            // En alta, el area final depende del rol actual: admin_general puede
+            // elegirla; usuario_area queda restringido a su area activa.
             var aviso = new Aviso
             {
                 Titulo = Titulo.Trim(),
@@ -171,6 +182,8 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnPostEliminarAsync(int id)
     {
+        // El panel Admin puede borrar el registro y luego intentar limpiar el
+        // PDF asociado. El binario no vive en la tabla avisos.
         var contexto = await ObtenerContextoAsync();
         if (!contexto.PuedeGestionar)
             return StatusCode(StatusCodes.Status403Forbidden);
@@ -206,6 +219,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<string?> ValidarFormularioAsync(ContextoAvisos contexto)
     {
+        // La vista publica y el panel comparten el mismo modelo de datos, por eso
+        // el backend valida titulo, contenido, area y PDF aunque la UI ya guie al usuario.
         Titulo = Titulo.Trim();
         Contenido = Contenido?.Trim();
 
@@ -252,6 +267,8 @@ public class IndexModel : AdminPageModel
 
     private async Task CargarPaginaAsync()
     {
+        // Este helper recompone la vista tras GET o error de POST, distinguiendo
+        // entre filtrado global de admin_general y alcance acotado de usuario_area.
         Areas = await _areasRepo.ObtenerActivasAsync();
         var contexto = await ObtenerContextoAsync();
 
@@ -275,6 +292,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<ContextoAvisos> ObtenerContextoAsync()
     {
+        // Resuelve el alcance efectivo del operador para que handlers y filtros
+        // trabajen con la misma regla de permisos en backend.
         if (EsAdminGeneral())
             return new ContextoAvisos(true, null, null, true);
 
@@ -337,6 +356,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<PdfAdjuntoGuardado?> GuardarPdfAdjuntoAsync()
     {
+        // El PageModel delega la validacion fisica del archivo a IArchivoService.
+        // Aqui solo se encapsula el flujo de guardado y la metadata visible.
         if (PdfAdjunto is null || PdfAdjunto.Length == 0)
             return null;
 
@@ -408,6 +429,8 @@ public class IndexModel : AdminPageModel
 
     private void EliminarPdfPosteriorABd(string? rutaRelativa)
     {
+        // Si falla la limpieza fisica, se deja evidencia en logs sin revertir la
+        // BD. Es un punto delicado de mantenimiento entre metadata y Storage.
         if (string.IsNullOrWhiteSpace(rutaRelativa))
             return;
 

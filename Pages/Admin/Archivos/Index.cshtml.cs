@@ -7,8 +7,13 @@ using System.Text.Json;
 
 namespace Intranet.Pages.Admin.Archivos;
 
+// Este archivo .cshtml.cs es el PageModel de la vista Razor del modulo
+// Admin/Archivos. Coordina formularios, handlers nombrados, metadata en BD y
+// archivos fisicos en Storage, sin guardar binarios completos en la base.
 public class IndexModel : AdminPageModel
 {
+    // Solo admin_general puede operar este modulo. La restriccion existe en
+    // backend y no debe depender unicamente de la navegacion del panel.
     protected override bool RequiereAdminGeneral => true;
 
     private const int MaxNombre = 180;
@@ -78,6 +83,8 @@ public class IndexModel : AdminPageModel
 
     public async Task OnGetAsync(string? seccion = null, int? editarId = null, int? editarLigaId = null)
     {
+        // GET usa la misma pagina para listar y, si corresponde, precargar
+        // formulario de edicion de archivo o de liga en capacitacion.
         await CargarSeccionAsync(seccion);
 
         if (editarId.HasValue)
@@ -89,6 +96,8 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnPostGuardarAsync(string seccion)
     {
+        // POST crea o actualiza metadata del archivo. El nombre visible, estado
+        // y seccion se validan aqui; el almacenamiento real se delega al servicio.
         await CargarSeccionAsync(seccion);
 
         Nombre = NormalizarTexto(Nombre);
@@ -105,6 +114,8 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnPostEliminarAsync(int id, string seccion)
     {
+        // Elimina primero el registro y luego intenta limpiar el archivo fisico
+        // en Storage para no dejar metadata huerfana visible en Admin.
         await CargarSeccionAsync(seccion);
         var archivo = await _archivosRepo.ObtenerPorIdAsync(id);
         if (archivo is null || archivo.Seccion != SeccionActual)
@@ -129,6 +140,8 @@ public class IndexModel : AdminPageModel
 
     public async Task<IActionResult> OnPostGuardarLigaAsync(string seccion)
     {
+        // La seccion de capacitacion mezcla archivos fisicos y ligas externas.
+        // Este handler solo toca metadata serializada en configuracion.
         await CargarSeccionAsync(seccion);
         if (!EsCapacitacion)
             return RedirectToPage(new { seccion = SeccionActual });
@@ -204,6 +217,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<IActionResult> CrearArchivoAsync()
     {
+        // En alta, la base guarda metadata y ruta relativa. El binario se escribe
+        // en Storage y se limpia si falla la persistencia posterior.
         if (Archivo is null || Archivo.Length == 0)
             return await PageConErrorAsync("Selecciona un archivo para subir.");
 
@@ -241,6 +256,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<IActionResult> ActualizarArchivoAsync()
     {
+        // En reemplazo de archivo, la ruta anterior solo se elimina despues de
+        // confirmar el update de BD para no perder la referencia vigente.
         var existente = await _archivosRepo.ObtenerPorIdAsync(Id);
         if (existente is null || existente.Seccion != SeccionActual)
             return await PageConErrorAsync("El archivo seleccionado ya no existe.");
@@ -287,6 +304,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<string?> GuardarArchivoNuevoAsync(IFormFile archivo)
     {
+        // Este PageModel valida extension visible y delega al servicio la
+        // validacion profunda y el guardado fisico dentro de Storage.
         var ext = Path.GetExtension(archivo.FileName).ToLowerInvariant();
         if (!ExtensionesPermitidas.Contains(ext))
         {
@@ -313,6 +332,8 @@ public class IndexModel : AdminPageModel
 
     private async Task CargarSeccionAsync(string? seccion)
     {
+        // SeccionActual controla tanto el listado visible como la subcarpeta de
+        // Storage donde se guardan los archivos del modulo.
         SeccionActual = Secciones.ContainsKey(seccion ?? "") ? seccion! : "formatos";
         Archivos = await _archivosRepo.ObtenerPorSeccionAsync(SeccionActual);
         LigasOfertaAcademica = EsCapacitacion
@@ -429,6 +450,8 @@ public class IndexModel : AdminPageModel
 
     private string? ValidarDocumento()
     {
+        // Las validaciones criticas no deben depender solo de atributos HTML:
+        // nombre visible, ruta indirecta y extensiones se comprueban en backend.
         if (string.IsNullOrWhiteSpace(Nombre))
             return "El nombre del archivo es obligatorio.";
 
@@ -491,6 +514,8 @@ public class IndexModel : AdminPageModel
 
     private async Task<IActionResult> PageConErrorAsync(string mensaje)
     {
+        // Rehidrata la vista Razor tras error de POST para no perder contexto de
+        // seccion, listado y archivo/liga actualmente en edicion.
         EsError = true;
         Mensaje = mensaje;
         if (Id > 0)
