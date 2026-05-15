@@ -15,11 +15,19 @@ TestResults/
 *.log
 *.tmp
 *.bak
+*.dmp
 *.dump
+*.mdf
+*.ldf
 .env
 .env.local
 .env.*.local
 .env.intranet-local
+*.zip
+*.7z
+*.rar
+/ENTREGA INTRANET SQLSERVER 2022*/
+/ENTREGA*/
 Thumbs.db
 .DS_Store
 

@@ -1,0 +1,18 @@
+PLANTILLA DE CREDENCIALES - NO ESCRIBIR SECRETOS REALES EN GIT
+
+Servidor SQL Server:
+  <SERVIDOR_O_INSTANCIA>
+
+Base de datos:
+  intranet_fget
+
+Usuario SQL, si aplica:
+  <USUARIO_SQL>
+
+Contrasena:
+  <ENTREGAR_POR_CANAL_SEGURO>
+
+Notas:
+- No reemplazar esta plantilla con credenciales reales dentro del repositorio.
+- No guardar contrasenas en scripts .ps1, .bat, appsettings.json ni documentos versionados.
+- Preferir autenticacion integrada cuando la operacion lo permita.
