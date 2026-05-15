@@ -11,6 +11,8 @@ using Intranet.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Esta aplicacion usa ASP.NET Core Razor Pages. No es Blazor: la UI se
+// resuelve con paginas .cshtml y sus PageModels .cshtml.cs en cada request.
 // Dapper debe mapear columnas MySQL en snake_case a propiedades C# en PascalCase.
 DefaultTypeMap.MatchNamesWithUnderscores = true;
 
@@ -29,6 +31,7 @@ builder.WebHost.ConfigureKestrel(opciones =>
 });
 
 // ─── Razor Pages: protege toda la carpeta /Admin excepto la página de login ──
+// Aqui se registra el motor de paginas Razor y sus convenciones de seguridad.
 builder.Services.AddRazorPages(opciones =>
 {
     opciones.Conventions.AuthorizeFolder("/Admin");
@@ -72,9 +75,13 @@ builder.Services.Configure<IISServerOptions>(opciones =>
 builder.Services.AddMemoryCache();
 
 // ─── Acceso a datos: singleton para reutilizar la cadena de conexión ─────────
+// La app centraliza la creacion de conexiones en ConexionDb para que paginas,
+// servicios y repositorios no tengan que conocer la cadena real del ambiente.
 builder.Services.AddSingleton<ConexionDb>();
 
 // ─── Repositorios ─────────────────────────────────────────────────────────────
+// Las Razor Pages consumen repositorios via DI; estos repositorios encapsulan
+// SQL y acceso a datos con Dapper, sin exponer detalles de conexion a la UI.
 builder.Services.AddScoped<IAccesoRapidoRepository,  AccesoRapidoRepository>();
 builder.Services.AddScoped<IAvisoRepository,          AvisoRepository>();
 builder.Services.AddScoped<ITutorialRepository,       TutorialRepository>();
@@ -107,6 +114,9 @@ var proveedorStorage = new PhysicalFileProvider(baseStorage);
 app.Lifetime.ApplicationStopping.Register(() => proveedorStorage.Dispose());
 
 // ─── Sembrar datos iniciales al arrancar ──────────────────────────────────────
+// Si la preparacion de base falla aqui, la aplicacion no termina de arrancar y
+// ningun endpoint HTTP llega a exponerse. Para despliegue, esto suele indicar
+// cadena invalida, motor caido o migraciones inconsistentes.
 using (var scope = app.Services.CreateScope())
 {
     var inicializador = scope.ServiceProvider.GetRequiredService<DbInicializador>();
@@ -114,6 +124,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ─── Pipeline de middlewares ──────────────────────────────────────────────────
+// Orden esperado del pipeline: manejo de errores, HTTPS, estaticos, routing,
+// autenticacion y autorizacion antes de mapear endpoints y Razor Pages.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -129,12 +141,17 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// /health/live solo responde por vida del proceso. Sirve para separar "la app
+// esta levantada" de "la dependencia de datos esta lista".
 app.MapGet("/health/live", () =>
     // Liveness: solo confirma que el proceso web esta levantado.
     // No valida MySQL; esa diferencia ayuda a diagnosticar dependencia vs app.
     Results.Json(new { status = "ok" }))
     .AllowAnonymous();
 
+// /health/ready intenta abrir conexion y ejecutar una consulta minima. En
+// despliegue conviene revisar este endpoint despues de validar cadena, red y
+// permisos del motor, sin exponer secretos ni cadenas reales en logs.
 app.MapGet("/health/ready", async (ConexionDb db) =>
 {
     // Readiness: valida la dependencia minima de la intranet, MySQL.

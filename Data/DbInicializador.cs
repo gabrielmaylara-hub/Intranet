@@ -31,6 +31,9 @@ public class DbInicializador
 
     public async Task InicializarAsync()
     {
+        // Este inicializador corre antes de que la app atienda trafico. Su
+        // objetivo es dejar la BD en un estado minimo consistente para que las
+        // Razor Pages y los endpoints no operen contra una estructura incompleta.
         using var con = _db.CrearConexion();
 
         try
@@ -49,6 +52,8 @@ public class DbInicializador
         }
         catch (Exception ex)
         {
+            // Un error aqui es bloqueante para despliegue: si la dependencia de
+            // datos no abre o las migraciones fallan, el host aborta el arranque.
             _log.LogError(ex,
                 "Error critico al preparar la estructura de base de datos. " +
                 "El arranque se detendra para evitar operar con una BD inconsistente.");
@@ -96,6 +101,8 @@ public class DbInicializador
         // El orden alfabetico por prefijo 001, 002, ... define el historial.
         // No insertar migraciones "entre medias" cuando ya existen ambientes con
         // versiones aplicadas; crea una nueva version siguiente.
+        // Para despliegue, verificar que Data/Scripts/Migrations viaje junto con
+        // la publicacion. Si falta esa carpeta, el arranque debe fallar.
         var carpetaMigraciones = Path.Combine(
             _entorno.ContentRootPath,
             "Data",
