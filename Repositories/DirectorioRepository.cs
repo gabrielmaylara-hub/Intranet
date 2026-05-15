@@ -5,9 +5,15 @@ using Intranet.Repositories.Interfaces;
 
 namespace Intranet.Repositories;
 
+// Este repositorio concentra el SQL del directorio y sus areas. Las Razor Pages
+// del directorio publico y del panel Admin deben entrar por aqui, dejando la
+// apertura de conexiones a ConexionDb. Los valores de entrada deben viajar como
+// parametros de Dapper y las interpolaciones limitarse a SQL interno controlado.
 public class DirectorioRepository : IDirectorioRepository
 {
     private readonly ConexionDb _db;
+    // Estas columnas deben mantenerse alineadas con los modelos usados por
+    // listados publicos, formularios de edicion e importacion administrativa.
     private const string ColumnasDirectorio =
         "id, area, nombre, extension, orden, activo";
     private const string ColumnasAreas =
@@ -19,6 +25,7 @@ public class DirectorioRepository : IDirectorioRepository
     {
         // El orden publico combina orden del area + orden interno. No cambiarlo
         // sin revisar /Directorio y el drag/drop del Admin.
+        // Este metodo abastece el directorio publico y vistas administrativas.
         using var con = _db.CrearConexion();
         var filtro = soloActivos ? "WHERE d.activo = 1" : "";
         return await con.QueryAsync<DirectorioEntrada>(
@@ -39,6 +46,8 @@ public class DirectorioRepository : IDirectorioRepository
     public async Task<int> InsertarAsync(DirectorioEntrada entrada)
     {
         using var con = _db.CrearConexion();
+        // El repositorio asegura que el area exista antes de persistir entradas.
+        // Esto reduce acoplamiento con la UI y protege flujos administrativos.
         await AsegurarAreaInternaAsync(con, entrada.Area);
 
         return await con.ExecuteScalarAsync<int>(
@@ -148,6 +157,8 @@ public class DirectorioRepository : IDirectorioRepository
 
     public async Task<IEnumerable<DirectorioArea>> ObtenerAreasAsync(bool soloActivas = false)
     {
+        // Se usa tanto para filtros publicos como para formularios y catalogos
+        // del Admin. El estado activo controla exposicion sin borrar historial.
         using var con = _db.CrearConexion();
         var filtro = soloActivas ? "WHERE activo = 1" : "";
         return await con.QueryAsync<DirectorioArea>(
@@ -211,6 +222,8 @@ public class DirectorioRepository : IDirectorioRepository
     {
         // La importacion solo actualiza metadata del area cuando el CSV trae
         // datos. No borra titular/ubicacion/correo existentes si llega vacio.
+        // Mantener esta semantica es delicado para soporte, porque evita que una
+        // importacion parcial degrade informacion validada manualmente en Admin.
         using var con = _db.CrearConexion();
         await con.ExecuteAsync(
             @"UPDATE directorio_areas

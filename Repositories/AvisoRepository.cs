@@ -5,9 +5,16 @@ using Intranet.Repositories.Interfaces;
 
 namespace Intranet.Repositories;
 
+// Este repositorio concentra el SQL del modulo de avisos. Las Razor Pages y
+// PageModels deben consumirlo via DI en lugar de abrir conexiones directamente.
+// Los valores recibidos desde usuario o formularios deben viajar como
+// parametros de Dapper. Las interpolaciones de SQL en este repositorio
+// deben limitarse a constantes internas o fragmentos controlados por codigo.
 public class AvisoRepository : IAvisoRepository
 {
     private readonly ConexionDb _db;
+    // Mantener esta proyeccion alineada con el modelo Aviso y con los nombres
+    // visibles en vistas publicas y panel Admin.
     private const string ColumnasAviso =
         @"a.id, a.titulo, a.contenido, a.fecha_publicacion, a.activo, a.orden,
           a.area_publicacion_id, ap.nombre AS area_publicacion_nombre,
@@ -18,6 +25,8 @@ public class AvisoRepository : IAvisoRepository
 
     public async Task<IEnumerable<Aviso>> ObtenerTodosAsync(bool soloActivos = false)
     {
+        // Este metodo alimenta tanto listados administrativos como vistas
+        // publicas. El filtro soloActivos evita exponer avisos inactivos.
         using var con = _db.CrearConexion();
         var filtro = soloActivos ? "WHERE a.activo = 1" : "";
         return await con.QueryAsync<Aviso>(
@@ -46,6 +55,8 @@ public class AvisoRepository : IAvisoRepository
 
     public async Task<Aviso?> ObtenerPorIdAsync(int id)
     {
+        // Se usa en edicion y en endpoints de descarga para resolver metadata
+        // del PDF asociado antes de ir a Storage.
         using var con = _db.CrearConexion();
         return await con.QueryFirstOrDefaultAsync<Aviso>(
             $@"SELECT {ColumnasAviso}
@@ -58,6 +69,8 @@ public class AvisoRepository : IAvisoRepository
     public async Task<int> InsertarAsync(Aviso aviso)
     {
         using var con = _db.CrearConexion();
+        // LAST_INSERT_ID() es especifico de MySQL y debe conservarse mientras
+        // este repositorio siga apuntando al proveedor configurado actual.
         return await con.ExecuteScalarAsync<int>(
             @"INSERT INTO avisos
                   (titulo, contenido, fecha_publicacion, activo, orden,
@@ -74,6 +87,8 @@ public class AvisoRepository : IAvisoRepository
     public async Task ActualizarAsync(Aviso aviso)
     {
         using var con = _db.CrearConexion();
+        // pdf_path y nombre visible quedan en BD como metadata. El archivo real
+        // vive en Storage y se sirve por endpoints controlados fuera del repo.
         await con.ExecuteAsync(
             @"UPDATE avisos
               SET titulo = @Titulo, contenido = @Contenido,
@@ -99,6 +114,8 @@ public class AvisoRepository : IAvisoRepository
 
     public async Task CambiarEstadoAsync(int id, bool activo)
     {
+        // El estado activo/inactivo es relevante para el front publico y para
+        // descargas anonimas; cambiar esta semantica impacta visibilidad.
         using var con = _db.CrearConexion();
         await con.ExecuteAsync(
             @"UPDATE avisos
